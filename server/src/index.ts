@@ -14,6 +14,8 @@ const sessionsData: Map<string, GameData> = new Map();
 
 wss.on("connection", function connection(ws) {
   ws.on("error", console.error);
+
+  // Handle incoming messages
   ws.on("message", function message(data, isBinary) {
     if (isBinary) {
       console.log("Message is binary; rejecting.");
@@ -30,11 +32,38 @@ wss.on("connection", function connection(ws) {
         });
         break;
       }
-      default:
-        console.log(`unhandled event ${jsonParsed.type}`);
+      case "JOIN_SESSION": {
+        const session = sessionsData.get(jsonParsed.data.id);
+        if (!session) {
+          wsSend(ws, {
+            type: "JOIN_SESSION_RESPONSE",
+            data: {
+              success: false,
+              failure: "Cannot find session",
+            },
+          });
+        } else {
+          console.error(
+            `JOIN_SESSION - Session ${jsonParsed.data.id} not found`,
+          );
+          wsSend(ws, {
+            type: "JOIN_SESSION_RESPONSE",
+            data: {
+              success: true,
+              game: {
+                id: session.id,
+              },
+              failure: undefined,
+            },
+          });
+        }
         break;
-    }
-    if (data instanceof ArrayBuffer) {
+      }
+      default: {
+        const unexpectedType = jsonParsed["type"] as string;
+        console.log(`unhandled event ${unexpectedType}`);
+        break;
+      }
     }
   });
 });

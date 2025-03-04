@@ -4,12 +4,18 @@ import { createWorld } from "koota";
 import { Position2, Velocity2 } from "@shared/ecs/trait";
 import { create, useStore } from "zustand";
 import { GameSimulation } from "@shared/game/types";
-import { GameSessionServerEvent } from "@shared/net/messages";
+import {
+  GameSessionClientEvent,
+  GameSessionServerEvent,
+} from "@shared/net/messages";
 
 /** START GAME CODE */
 
 type WsStore = {
   game: GameSimulation | null;
+  initGameError: {
+    message: string;
+  } | null;
   ws: WebSocket | null;
   initWs: () => void;
   removeWs: () => void;
@@ -18,6 +24,7 @@ type WsStore = {
 const wsSessionStore = create<WsStore>()((set) => {
   return {
     game: null,
+    initGameError: null,
     ws: null,
     removeWs() {
       return set((state) => {
@@ -75,6 +82,32 @@ const wsSessionStore = create<WsStore>()((set) => {
                     });
                   }
                   break;
+                case "JOIN_SESSION_RESPONSE":
+                  if (jsonData.data.success) {
+                    const data = jsonData.data;
+                    // TODO: actually set up world
+                    const world = createWorld();
+                    world.spawn(Position2, Velocity2);
+                    set({
+                      game: {
+                        data: {
+                          id: data.game.id,
+                          world: world,
+                        },
+                        tick() {
+                          // TODO: actually set up tick
+                        },
+                      },
+                    });
+                  } else {
+                    const data = jsonData.data;
+                    set({
+                      initGameError: {
+                        message: data.failure,
+                      },
+                    });
+                  }
+                  break;
                 default:
                   console.warn(`Unhandled server event, ${jsonData.type}`);
               }
@@ -93,14 +126,14 @@ const wsSessionStore = create<WsStore>()((set) => {
 function App() {
   const ws = useStore(wsSessionStore, (s) => s.ws);
   const game = useStore(wsSessionStore, (s) => s.game);
+  const initGameError = useStore(wsSessionStore, (s) => s.initGameError);
 
   const createSession = () => {
     if (!ws) throw new Error("WS not established!");
-    ws.send(
-      JSON.stringify({
-        type: "CREATE_SESSION",
-      }),
-    );
+    wsSend(ws, {
+      type: "CREATE_SESSION",
+      data: undefined,
+    });
   };
 
   React.useEffect(() => {
@@ -113,6 +146,10 @@ function App() {
       state.removeWs();
     };
   }, []);
+
+  if (initGameError) {
+    return <div>Error: {initGameError.message}</div>;
+  }
 
   if (game) {
     return <Game game={game} />;
@@ -132,7 +169,25 @@ function App() {
 
       <div>
         <div>Join a Session</div>
-        <form>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!ws) {
+              throw new Error("WS connection unavailable");
+            }
+
+            const values = new FormData(e.target as HTMLFormElement);
+            const sessionId = values.get("sessionId") as string;
+            wsSend(ws, {
+              type: "JOIN_SESSION",
+              data: {
+                id: sessionId,
+              },
+            });
+          }}
+        >
           <div className="flex flex-col gap-2">
             <fieldset>
               <label htmlFor="sessionId">Session ID: </label>
@@ -163,3 +218,7 @@ function Game(props: { game: GameSimulation }) {
 
 const root = createRoot(document.getElementById("app-root")!);
 root.render(<App />);
+
+function wsSend(ws: WebSocket, msg: GameSessionClientEvent): void {
+  ws.send(JSON.stringify(msg));
+}
