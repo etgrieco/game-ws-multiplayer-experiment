@@ -1,5 +1,9 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket as WsWebSocketInstance } from "ws";
 import { GameData } from "@shared/game/types.js";
+import {
+  GameSessionClientEvent,
+  GameSessionServerEvent,
+} from "@shared/net/messages.js";
 
 console.log("Server started...");
 
@@ -16,18 +20,14 @@ wss.on("connection", function connection(ws) {
       return;
     }
     const strData = data.toString("utf-8");
-    console.log("reading data...");
-    const jsonParsed = JSON.parse(strData);
-    console.log("checking type: ", jsonParsed.type);
+    const jsonParsed = JSON.parse(strData) as GameSessionClientEvent;
     switch (jsonParsed.type) {
       case "CREATE_SESSION": {
         const session = createSession();
-        ws.send(
-          JSON.stringify({
-            type: "CREATE_SESSION_RESPONSE",
-            data: session,
-          }),
-        );
+        wsSend(ws, {
+          type: "CREATE_SESSION_RESPONSE",
+          data: session,
+        });
         break;
       }
       default:
@@ -38,6 +38,10 @@ wss.on("connection", function connection(ws) {
     }
   });
 });
+
+function wsSend(ws: WsWebSocketInstance, msg: GameSessionServerEvent): void {
+  ws.send(JSON.stringify(msg));
+}
 
 function createSession() {
   const uuid = crypto.randomUUID();

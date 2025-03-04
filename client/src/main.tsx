@@ -4,6 +4,7 @@ import { createWorld } from "koota";
 import { Position2, Velocity2 } from "@shared/ecs/trait";
 import { create, useStore } from "zustand";
 import { GameSimulation } from "@shared/game/types";
+import { GameSessionServerEvent } from "@shared/net/messages";
 
 /** START GAME CODE */
 
@@ -51,27 +52,31 @@ const wsSessionStore = create<WsStore>()((set) => {
           console.log("received data", e);
           if (typeof e.data === "string") {
             try {
-              const jsonData = JSON.parse(e.data);
+              const jsonData = JSON.parse(e.data) as GameSessionServerEvent;
               switch (jsonData.type) {
-                case "CREATE_SESSION_RESPONSE": {
-                  set((s) => {
-                    // TODO: actually set up world
-                    const world = createWorld();
-                    world.spawn(Position2, Velocity2);
+                case "CREATE_SESSION_RESPONSE":
+                  {
+                    set(() => {
+                      // TODO: actually set up world
+                      const world = createWorld();
+                      world.spawn(Position2, Velocity2);
 
-                    return {
-                      game: {
-                        tick() {
-                          // TODO: actually set up tick
+                      return {
+                        game: {
+                          tick() {
+                            // TODO: actually set up tick
+                          },
+                          data: {
+                            id: jsonData.data.id,
+                            world: world,
+                          },
                         },
-                        data: {
-                          id: jsonData.data.id,
-                          world: world,
-                        },
-                      },
-                    };
-                  });
-                }
+                      };
+                    });
+                  }
+                  break;
+                default:
+                  console.warn(`Unhandled server event, ${jsonData.type}`);
               }
             } catch (e) {
               console.error(e);
