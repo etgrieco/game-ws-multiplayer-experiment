@@ -1,11 +1,12 @@
-import { movePosition2System } from "@shared/ecs/system";
-import { GameData } from "@shared/game/types";
+import { movePosition2System } from "@shared/ecs/system.js";
+import { GameData, GameSimulation } from "@shared/game/types.js";
+import { createWorld } from "koota";
 
 // START TRAITS
 
 const TICK_RATE = 1000 / 60; // 60 updates per second (~16.67ms per frame)
 
-function gameLoop(initGameData: GameData) {
+export function gameLoop(initGameData: GameData) {
   if (!initGameData.world) {
     throw new Error("Expects workd to be already initailzied");
   }
@@ -13,16 +14,15 @@ function gameLoop(initGameData: GameData) {
   movePosition2System(initGameData.world);
 }
 
-function setupGame(id: string) {
-  const initGameData: GameData = {
-    id,
-    world,
-  };
-
-  const initGameLoop = gameLoopFactory(() => gameLoop(initGameData));
+/** First step to run to set up game logic + initial state */
+export function setupGameSimulation(simulationContainer: GameSimulation): void {
+  simulationContainer.data.world = createWorld();
+  simulationContainer.tick = gameLoopFactory(() =>
+    gameLoop(simulationContainer.data),
+  );
 }
 
-function gameLoopFactory(mainMethod: () => void) {
+export function gameLoopFactory(mainMethod: () => void) {
   return function initGameLoop() {
     const startTime = Date.now();
 
