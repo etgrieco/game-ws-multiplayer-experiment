@@ -12,9 +12,11 @@
     "@tailwindcss/vite": "^4",
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "dependencies": {
-    "tailwindcss": "^4.0.9"
+    "tailwindcss": "^4.0.9",
+    "koota": "^0.2.2"
   }
 }

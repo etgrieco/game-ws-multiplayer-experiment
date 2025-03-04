@@ -1,0 +1,7 @@
+{
+    "name": "game-ws-multiplayer",
+    "private": true,
+    "type": "module",
+    "workspaces": ["client", "server", "shared"],
+    "packageManager": "pnpm@10.4.1"
+}

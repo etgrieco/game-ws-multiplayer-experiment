@@ -1,0 +1,10 @@
+{
+    "name": "game-shared",
+    "peerDependencies": {
+        "koota": "0.2.x"
+    },
+    "type": "module",
+    "devDependencies": {
+        "typescript": "~5.7.2"
+    }
+}

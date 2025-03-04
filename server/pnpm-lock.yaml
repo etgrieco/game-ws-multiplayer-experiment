@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      koota:
+        specifier: ^0.2.2
+        version: 0.2.2
       ws:
         specifier: ^8.18.1
         version: 8.18.1
@@ -168,6 +171,17 @@ packages:
   is-number@7.0.0:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
     engines: {node: '>=0.12.0'}
+
+  koota@0.2.2:
+    resolution: {integrity: sha512-c2nwfxkql0Y+vN7wFSTiwqZ1zBSSIicryX1nAa+QEzrO7KDAklZb9+Y3BibRnDBOroZVjzemdwura7TcIHV/Sw==}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      react: '>=18.0.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      react:
+        optional: true
 
   make-error@1.3.6:
     resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
@@ -444,6 +458,8 @@ snapshots:
       is-extglob: 2.1.1
 
   is-number@7.0.0: {}
+
+  koota@0.2.2: {}
 
   make-error@1.3.6: {}
 

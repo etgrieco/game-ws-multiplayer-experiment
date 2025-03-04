@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      koota:
+        specifier: ^0.2.2
+        version: 0.2.2
       tailwindcss:
         specifier: ^4.0.9
         version: 4.0.9
@@ -378,6 +381,17 @@ packages:
   jiti@2.4.2:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
+
+  koota@0.2.2:
+    resolution: {integrity: sha512-c2nwfxkql0Y+vN7wFSTiwqZ1zBSSIicryX1nAa+QEzrO7KDAklZb9+Y3BibRnDBOroZVjzemdwura7TcIHV/Sw==}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      react: '>=18.0.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      react:
+        optional: true
 
   lightningcss-darwin-arm64@1.29.1:
     resolution: {integrity: sha512-HtR5XJ5A0lvCqYAoSv2QdZZyoHNttBpa5EP9aNuzBQeKGfbyH5+UipLWvVzpP4Uml5ej4BYs5I9Lco9u1fECqw==}
@@ -759,6 +773,8 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   jiti@2.4.2: {}
+
+  koota@0.2.2: {}
 
   lightningcss-darwin-arm64@1.29.1:
     optional: true

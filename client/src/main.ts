@@ -1,21 +1,33 @@
-import "./style.css";
+import { createWorld } from "koota";
+import { Position2, Velocity2 } from "@shared/ecs/trait";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
    <button id="session-trigger">trigger new session</button>
+   <div id="canvas-root"></div>
   </div>
 `;
 
-(
-  document.querySelector("#session-trigger")! as HTMLButtonElement
-).addEventListener("click", () => {
-  console.log("sending...");
-  ws.send(
-    JSON.stringify({
-      type: "CREATE_SESSION",
-    }),
-  );
-});
+/** START GAME CODE */
+
+const world = createWorld();
+
+const myPlayer = world.spawn(Position2, Velocity2);
+
+function setupButtons() {
+  const sessionTriggerBtn = document.querySelector(
+    "#session-trigger",
+  )! as HTMLButtonElement;
+  sessionTriggerBtn.addEventListener("click", () => {
+    console.log("sending...");
+    ws.send(
+      JSON.stringify({
+        type: "CREATE_SESSION",
+      }),
+    );
+  });
+}
+setupButtons();
 
 const ws = new WebSocket("ws://localhost:8080");
 

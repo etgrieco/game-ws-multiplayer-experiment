@@ -1,10 +1,11 @@
 import { WebSocketServer } from "ws";
-import { GameData } from "./types";
+import { GameData } from "@shared/game/types.js";
 
 console.log("Server started...");
 
 const wss = new WebSocketServer({ port: 8080 });
 
+/** Singleton holding our games! */
 const sessionsData: Map<string, GameData> = new Map();
 
 wss.on("connection", function connection(ws) {
@@ -43,9 +44,6 @@ function createSession() {
   if (sessionsData.has(uuid)) {
     return createSession();
   }
-
-  sessionsData.set(uuid, {
-    id: uuid,
-  });
-  return { uuid };
+  sessionsData.set(uuid, { id: uuid });
+  return { id: uuid };
 }
