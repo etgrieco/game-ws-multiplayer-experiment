@@ -2,10 +2,15 @@ import { World } from "koota";
 
 export type GameData = {
   id: string;
-  world?: World;
+  world: World;
 };
 
 export type GameSimulation = {
-  data: GameData;
-  tick: () => void;
+  gameData: GameData;
+  start: (cb: () => void) => void;
+};
+
+export type GameSimulationBroadcaster = {
+  gameData: GameData;
+  sync: () => void;
 };
