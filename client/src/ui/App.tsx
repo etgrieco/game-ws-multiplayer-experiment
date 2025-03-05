@@ -8,8 +8,7 @@ export function App() {
   const ws = useStore(gameSessionStore, (s) => s.ws);
   const game = useStore(gameSessionStore, (s) => s.game);
   const initGameError = useStore(gameSessionStore, (s) => s.initGameError);
-  const createSession = useStore(gameSessionStore, (s) => s.createSession);
-  const joinSession = useStore(gameSessionStore, (s) => s.joinSession);
+  const sendEvent = useStore(gameSessionStore, (s) => s.sendEvent);
 
   React.useEffect(() => {
     const state = gameSessionStore.getState();
@@ -34,7 +33,11 @@ export function App() {
     <div className="flex flex-col gap-4 max-w-[1024px] items-center w-full  ">
       <button
         disabled={!ws}
-        onClick={createSession}
+        onClick={() => {
+          sendEvent({
+            type: "CREATE_SESSION",
+          });
+        }}
         className="h-9 px-4 py-2 bg-green-600 text-green bg-green-600-foreground shadow hover:bg-green-600/90 rounded-sm"
       >
         Create Session
@@ -55,7 +58,10 @@ export function App() {
 
             const values = new FormData(e.target as HTMLFormElement);
             const sessionId = values.get("sessionId") as string;
-            joinSession({ sessionId });
+            sendEvent({
+              type: "JOIN_SESSION",
+              data: { id: sessionId },
+            });
           }}
         >
           <div className="flex flex-col gap-2">

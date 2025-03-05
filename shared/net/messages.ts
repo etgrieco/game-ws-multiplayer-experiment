@@ -26,7 +26,6 @@ export type GameSessionServerEvent =
 export type GameSessionClientEvent = { type: string } & (
   | {
       type: "CREATE_SESSION";
-      data: undefined;
     }
   | {
       type: "JOIN_SESSION";

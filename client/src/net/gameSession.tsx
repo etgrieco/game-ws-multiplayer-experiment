@@ -15,8 +15,7 @@ export type WsStore = {
   ws: WebSocket | null;
   initWs: () => void;
   removeWs: () => void;
-  createSession: () => void;
-  joinSession: (params: { sessionId: string }) => void;
+  sendEvent: (ev: GameSessionClientEvent) => void;
 };
 
 export const gameSessionStore = createStore<WsStore>()((set, getStore) => {
@@ -131,24 +130,10 @@ export const gameSessionStore = createStore<WsStore>()((set, getStore) => {
         return { ws };
       });
     },
-    // START WS APIs
-    createSession() {
+    sendEvent(ev) {
       const { ws } = getStore();
       if (!ws) throw new Error("WS not established!");
-      wsSend(ws, {
-        type: "CREATE_SESSION",
-        data: undefined,
-      });
-    },
-    joinSession(params) {
-      const { ws } = getStore();
-      if (!ws) throw new Error("WS not established!");
-      wsSend(ws, {
-        type: "JOIN_SESSION",
-        data: {
-          id: params.sessionId,
-        },
-      });
+      wsSend(ws, ev);
     },
   };
 });
