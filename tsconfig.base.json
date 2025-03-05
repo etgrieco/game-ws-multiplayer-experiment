@@ -6,17 +6,23 @@
     "paths": {
       "@shared/*": ["shared/*"]
     },
-    /** Shared Linting rules */
+    /** Shared Type-checking rules */
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+
+    /** Shared linting rules */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    "noUncheckedIndexedAccess": true,
+    
     /** Other stuff **/
+    "noUncheckedSideEffectImports": true,
     "useDefineForClassFields": true,
     "isolatedModules": true,
-    "moduleDetection": "force",
+    "moduleDetection": "auto",
     "skipLibCheck": true,
   }
 }

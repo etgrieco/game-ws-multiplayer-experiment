@@ -6,7 +6,8 @@
     "lib": ["ES2022"],
     "target": "ES2022",
     "skipLibCheck": true,
-    "moduleResolution": "nodenext"
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true
   },
   "include": ["src", "../shared"]
 }

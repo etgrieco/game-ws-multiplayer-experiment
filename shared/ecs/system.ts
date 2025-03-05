@@ -1,5 +1,5 @@
 import { World } from "koota";
-import { Position2, Velocity2 } from "./trait";
+import { Position2, Velocity2 } from "./trait.js";
 
 export function movePosition2System(world: World) {
   const movables = world.query(Position2, Velocity2);
