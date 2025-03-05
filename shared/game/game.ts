@@ -5,10 +5,10 @@ export const createGameWorld = () => {
   const world = createWorld();
 
   // player 1 thing
-  world.add(Position2(), Velocity2(), OfPlayer({ playerNumber: 1 }));
+  world.spawn(Position2(), Velocity2(), OfPlayer({ playerNumber: 1 }));
 
   // player 2 thing
-  world.add(Position2(), Velocity2(), OfPlayer({ playerNumber: 2 }));
+  world.spawn(Position2(), Velocity2(), OfPlayer({ playerNumber: 2 }));
 
   return world;
 };

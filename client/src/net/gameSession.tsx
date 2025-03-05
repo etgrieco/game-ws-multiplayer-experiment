@@ -1,4 +1,5 @@
 import { movePosition2System } from "@shared/ecs/system";
+import { OfPlayer, Position2 } from "@shared/ecs/trait";
 import { createGameWorld } from "@shared/game/game";
 import { GameSimulation } from "@shared/game/types";
 import {
@@ -48,8 +49,6 @@ export const gameSessionStoreFactory = () =>
 
           ws.addEventListener("close", function () {
             console.log("server connection closed");
-            // attempt to re-connect! (TODO: avoid infinite loop? use a flag?)
-            state.initWs();
           });
 
           ws.addEventListener("message", function (e) {
@@ -150,6 +149,30 @@ export const gameSessionStoreFactory = () =>
                     store.game.start(() => {
                       // re-sync with server?
                     });
+                    break;
+                  }
+                  case "POSITIONS_UPDATE": {
+                    const store = getStore();
+                    // trigger a start
+                    if (!store.game) {
+                      throw new Error("POSITIONS_UPDATE - non-existent game");
+                    }
+
+                    const playerOnePos = jsonData.data.playerPositions[0];
+                    const playerTwoPos = jsonData.data.playerPositions[1];
+
+                    store.game.gameData.world
+                      .query(Position2, OfPlayer)
+                      .updateEach(([p, player]) => {
+                        // re-sync my world from server!
+                        if (player.playerNumber === 1) {
+                          p.x = playerOnePos.x;
+                          p.y = playerOnePos.y;
+                        } else if (player.playerNumber === 2) {
+                          p.x = playerTwoPos.x;
+                          p.y = playerTwoPos.y;
+                        }
+                      });
                     break;
                   }
                   default: {

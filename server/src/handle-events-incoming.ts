@@ -66,9 +66,9 @@ export function handleEventsIncoming(
 
       const [connection1, connection2] = session.connections;
       if (!connection1) {
-        throw new Error("");
+        throw new Error("Connection 1 missing; not starting game");
       } else if (!connection2) {
-        throw new Error("");
+        throw new Error("Connection 2 missing; not starting game");
       }
 
       const broadcaster = setupGameBroadcaster(session.gameSim.gameData, [
@@ -77,6 +77,7 @@ export function handleEventsIncoming(
       ]);
       session.broadcaster = broadcaster;
       session.gameSim.start(broadcaster.sync);
+      console.log("start game loop!");
       wsSend(context.ws, {
         type: "START_SESSION_GAME_RESPONSE",
         data: {

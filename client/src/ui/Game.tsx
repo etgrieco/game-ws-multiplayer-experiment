@@ -2,6 +2,8 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import React, { useRef } from "react";
 import * as THREE from "three";
 import { useGameSessionStore } from "../net/gameSession";
+import { useWorld } from "koota/react";
+import { OfPlayer, Position2 } from "@shared/ecs/trait";
 
 const useGame = () => {
   const game = useGameSessionStore((s) => s.game);
@@ -53,10 +55,22 @@ export function Game() {
 function GameContents() {
   const meshRef = useRef<THREE.Mesh>(null!);
   const meshRefTwo = useRef<THREE.Mesh>(null!);
+  const gameStore = useGame();
 
-  useFrame((_s, delta) => {
-    meshRef.current.rotation.x += delta;
-    meshRefTwo.current.rotation.x += delta;
+  const playerPosQuery = gameStore.gameData.world.query(Position2, OfPlayer);
+  const playerOnePos = playerPosQuery
+    .find((e) => e.get(OfPlayer)!.playerNumber === 1)!
+    .get(Position2)!;
+  const playerTwoPos = playerPosQuery
+    .find((e) => e.get(OfPlayer)!.playerNumber === 2)!
+    .get(Position2)!;
+
+  useFrame((_s, _d) => {
+    meshRef.current.position.x = playerOnePos.x;
+    meshRef.current.position.y = playerOnePos.y;
+
+    meshRefTwo.current.position.x = playerTwoPos.x;
+    meshRefTwo.current.position.x = playerTwoPos.y;
   });
 
   return (

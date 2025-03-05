@@ -23,10 +23,12 @@ export function setupGameSimulation(id: string): GameSimulation {
   return {
     gameData: gameData,
     start(syncCb) {
-      gameLoopFactory(() => {
+      const loop = gameLoopFactory(() => {
         gameLoop(gameData);
         syncCb();
       });
+      // and just kick it off
+      loop();
     },
   };
 }
@@ -38,6 +40,7 @@ export function setupGameBroadcaster(
   return {
     gameData,
     sync() {
+      console.log("call sync");
       const playerPositionsQuery = gameData.world.query(Position2, OfPlayer);
       const entitiesOrdered = [
         playerPositionsQuery.filter(
@@ -70,18 +73,13 @@ function gameLoop(initGameData: GameData) {
 
 function gameLoopFactory(mainMethod: () => void) {
   return function initGameLoop() {
-    const startTime = Date.now();
-
+    const startTime = performance.now();
     // Update game state here (e.g., physics, player positions, ball movement)
     console.log("Game tick at", startTime);
-
+    mainMethod();
     const endTime = performance.now();
     const elapsed = endTime - startTime;
-    const delay = Math.max(0, TICK_RATE - elapsed);
-
-    // DO STUFF
-    mainMethod();
-
-    setTimeout(initGameLoop, delay); // Schedule the next tick
+    const nextScheduledDelay = Math.max(0, TICK_RATE - elapsed);
+    setTimeout(initGameLoop, nextScheduledDelay); // Schedule the next tick
   };
 }
