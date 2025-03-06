@@ -1,6 +1,6 @@
-import { movePosition2System } from "@shared/ecs/system.js";
+import { movePosition2ByVelocitySystem } from "@shared/ecs/system.js";
 import { OfPlayer, Position2 } from "@shared/ecs/trait.js";
-import { createGameWorld } from "@shared/game/game.js";
+import { createInitialGameWorld } from "@shared/game/game.js";
 import {
   GameData,
   GameSimulation,
@@ -17,14 +17,14 @@ const TICK_RATE = 1000 / 60; // 60 updates per second (~16.67ms per frame)
 export function setupGameSimulation(id: string): GameSimulation {
   const gameData: GameSimulation["gameData"] = {
     id,
-    world: createGameWorld(),
+    world: createInitialGameWorld(),
   };
 
   return {
     gameData: gameData,
     start(syncCb) {
-      const loop = gameLoopFactory(() => {
-        gameLoop(gameData);
+      const loop = gameLoopFactory((deltaTime) => {
+        gameLoop(gameData, deltaTime);
         syncCb();
       });
       // and just kick it off
@@ -40,7 +40,6 @@ export function setupGameBroadcaster(
   return {
     gameData,
     sync() {
-      console.log("call sync");
       const playerPositionsQuery = gameData.world.query(Position2, OfPlayer);
       const entitiesOrdered = [
         playerPositionsQuery.filter(
@@ -66,20 +65,23 @@ export function setupGameBroadcaster(
   };
 }
 
-function gameLoop(initGameData: GameData) {
+function gameLoop(initGameData: GameData, deltaTime: number) {
   // do stuff
-  movePosition2System(initGameData.world!);
+  movePosition2ByVelocitySystem(initGameData.world!, deltaTime);
+  // moveVelocityUpDown(initGameData.world!, 0, 100);
 }
 
-function gameLoopFactory(mainMethod: () => void) {
+function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
+  let frameDelta = 0;
   return function initGameLoop() {
     const startTime = performance.now();
     // Update game state here (e.g., physics, player positions, ball movement)
-    console.log("Game tick at", startTime);
-    mainMethod();
+    // console.log("Game tick at", startTime);
+    mainMethod(frameDelta);
     const endTime = performance.now();
     const elapsed = endTime - startTime;
     const nextScheduledDelay = Math.max(0, TICK_RATE - elapsed);
     setTimeout(initGameLoop, nextScheduledDelay); // Schedule the next tick
+    frameDelta = nextScheduledDelay;
   };
 }

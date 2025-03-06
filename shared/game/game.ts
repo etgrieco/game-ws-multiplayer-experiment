@@ -1,9 +1,8 @@
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait";
-import { createWorld } from "koota";
+import { createWorld, World } from "koota";
 
-export const createGameWorld = () => {
-  const world = createWorld();
-
+/** Creates a new world, or spawns initial game entities from a given world */
+export const createInitialGameWorld = (world: World = createWorld()) => {
   // player 1 thing
   world.spawn(Position2(), Velocity2(), OfPlayer({ playerNumber: 1 }));
 

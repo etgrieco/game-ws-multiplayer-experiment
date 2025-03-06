@@ -1,11 +1,13 @@
-import { movePosition2System } from "@shared/ecs/system";
-import { OfPlayer, Position2 } from "@shared/ecs/trait";
-import { createGameWorld } from "@shared/game/game";
+import { movePosition2ByVelocitySystem } from "@shared/ecs/system";
+import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait";
+import { createInitialGameWorld } from "@shared/game/game";
 import { GameSimulation } from "@shared/game/types";
 import {
   GameSessionClientEvent,
   GameSessionServerEvent,
 } from "@shared/net/messages";
+import { createWorld, World } from "koota";
+import { WorldProvider } from "koota/react";
 import React, { PropsWithChildren } from "react";
 import { createStore, useStore } from "zustand";
 
@@ -20,7 +22,7 @@ export type WsStore = {
   sendEvent: (ev: GameSessionClientEvent) => void;
 };
 
-export const gameSessionStoreFactory = () =>
+export const gameSessionStoreFactory = (world: World) =>
   createStore<WsStore>()((set, getStore) => {
     return {
       game: null,
@@ -75,17 +77,8 @@ export const gameSessionStoreFactory = () =>
                       return;
                     }
                     set(() => {
-                      const world = createGameWorld();
                       return {
-                        game: {
-                          start() {
-                            movePosition2System(world);
-                          },
-                          gameData: {
-                            id: data.id,
-                            world: world,
-                          },
-                        },
+                        game: createGameSimulationFactory(data.id, 1, world),
                       };
                     });
                     break;
@@ -105,17 +98,8 @@ export const gameSessionStoreFactory = () =>
                       return;
                     }
                     set(() => {
-                      const world = createGameWorld(); // TODO: hydrate world from server state
                       return {
-                        game: {
-                          start() {
-                            movePosition2System(world);
-                          },
-                          gameData: {
-                            id: data.id,
-                            world: world,
-                          },
-                        },
+                        game: createGameSimulationFactory(data.id, 2, world),
                       };
                     });
                     break;
@@ -146,8 +130,58 @@ export const gameSessionStoreFactory = () =>
                         "START_SESSION_GAME_RESPONSE - cannot start game; mismatched ID",
                       );
                     }
-                    store.game.start(() => {
-                      // re-sync with server?
+
+                    // set up some basic key-bindings
+                    document.addEventListener("keydown", function (ev) {
+                      const gameData = store.game?.gameData;
+                      if (!gameData) {
+                        console.warn("key handler ignored b/c no game data");
+                        return;
+                      }
+                      // TODO: Refactor this as an input queue processed by a client-side system
+                      switch (ev.code) {
+                        case "ArrowLeft": {
+                          // update world
+                          gameData.world
+                            .query(OfPlayer, Position2)
+                            .updateEach(([p, vel]) => {
+                              if (p.isMe) {
+                                vel.x -= 1;
+                                wsSend(ws, {
+                                  type: "PLAYER_UPDATE",
+                                  data: {
+                                    id: gameData.id,
+                                    pos: {
+                                      x: vel.x,
+                                      y: vel.y,
+                                    },
+                                  },
+                                });
+                              }
+                            });
+                          break;
+                        }
+                        case "ArrowRight": {
+                          gameData.world
+                            .query(OfPlayer, Position2)
+                            .updateEach(([p, pos]) => {
+                              if (p.isMe) {
+                                pos.x += 1;
+                                wsSend(ws, {
+                                  type: "PLAYER_UPDATE",
+                                  data: {
+                                    id: gameData.id,
+                                    pos: {
+                                      x: pos.x,
+                                      y: pos.y,
+                                    },
+                                  },
+                                });
+                              }
+                            });
+                          break;
+                        }
+                      }
                     });
                     break;
                   }
@@ -207,6 +241,7 @@ export const gameSessionStoreFactory = () =>
   });
 
 function wsSend(ws: WebSocket, msg: GameSessionClientEvent): void {
+  console.log(msg);
   ws.send(JSON.stringify(msg));
 }
 
@@ -215,9 +250,15 @@ const GameSessionContext = React.createContext<
 >(undefined);
 
 export const GameSessionProvider = (props: PropsWithChildren<{}>) => {
-  const [store] = React.useState(gameSessionStoreFactory);
+  const [world] = React.useState(createWorld());
+  const [store] = React.useState(() => gameSessionStoreFactory(world));
+
   return (
-    <GameSessionContext.Provider value={store} children={props.children} />
+    <WorldProvider world={world}>
+      <GameSessionContext.Provider value={store}>
+        {props.children}
+      </GameSessionContext.Provider>
+    </WorldProvider>
   );
 };
 
@@ -238,3 +279,43 @@ export const useGameSessionStoreVanilla = () => {
   }
   return store;
 };
+
+const TICK_RATE = 1000 / 60; // 60 updates per second (~16.67ms per frame)
+function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
+  let frameDelta = 0;
+  return function initGameLoop() {
+    const startTime = performance.now();
+    // Update game state here (e.g., physics, player positions, ball movement)
+    // console.log("Game tick at", startTime);
+    mainMethod(frameDelta);
+    const endTime = performance.now();
+    const elapsed = endTime - startTime;
+    const nextScheduledDelay = Math.max(0, TICK_RATE - elapsed);
+    setTimeout(initGameLoop, nextScheduledDelay); // Schedule the next tick
+    frameDelta = nextScheduledDelay;
+  };
+}
+
+function createGameSimulationFactory(
+  id: string,
+  myPlayerAssignment: 1 | 2,
+  world: World,
+): GameSimulation {
+  createInitialGameWorld(world);
+  world.query(OfPlayer).updateEach(([p]) => {
+    p.isMe = p.playerNumber === myPlayerAssignment;
+  });
+  return {
+    start(syncCb) {
+      const loop = gameLoopFactory((deltaTime) => {
+        movePosition2ByVelocitySystem(world, deltaTime);
+        syncCb();
+      });
+      loop();
+    },
+    gameData: {
+      id: id,
+      world: world,
+    },
+  };
+}

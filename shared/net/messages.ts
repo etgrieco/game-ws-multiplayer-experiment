@@ -40,4 +40,14 @@ export type GameSessionClientEvent = { type: string } & (
         id: string;
       };
     }
+  | {
+      type: "PLAYER_UPDATE";
+      data: {
+        id: string;
+        pos: {
+          x: number;
+          y: number;
+        };
+      };
+    }
 );
