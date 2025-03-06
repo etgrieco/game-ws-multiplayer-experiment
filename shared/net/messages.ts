@@ -44,7 +44,7 @@ export type GameSessionClientEvent = { type: string } & (
       type: "PLAYER_UPDATE";
       data: {
         id: string;
-        pos: {
+        vel: {
           x: number;
           y: number;
         };

@@ -3,7 +3,7 @@ import { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { wsSend } from "./wsSend.js";
 import { WebSocket as WsWebSocketInstance } from "ws";
 import { setupGameBroadcaster, setupGameSimulation } from "./game-factory.js";
-import { OfPlayer, Position2 } from "@shared/ecs/trait.js";
+import { OfPlayer, Velocity2 } from "@shared/ecs/trait.js";
 
 export function handleEventsIncoming(
   eventData: GameSessionClientEvent,
@@ -119,11 +119,11 @@ export function handleEventsIncoming(
         );
       }
       const game = session.gameSim.gameData;
-      game.world.query(Position2, OfPlayer).updateEach(([pos, player]) => {
+      game.world.query(Velocity2, OfPlayer).updateEach(([vel, player]) => {
         if (player.playerNumber === playerIdx + 1) {
-          console.log("updating positions!", eventData.data.pos);
-          pos.x = eventData.data.pos.x;
-          pos.y = eventData.data.pos.y;
+          console.log("updating velocities!", eventData.data.vel);
+          vel.x = eventData.data.vel.x;
+          vel.y = eventData.data.vel.y;
         }
       });
       break;

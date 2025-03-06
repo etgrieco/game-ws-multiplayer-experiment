@@ -143,7 +143,7 @@ export const gameSessionStoreFactory = (world: World) =>
                         case "ArrowLeft": {
                           // update world
                           gameData.world
-                            .query(OfPlayer, Position2)
+                            .query(OfPlayer, Velocity2)
                             .updateEach(([p, vel]) => {
                               if (p.isMe) {
                                 vel.x -= 1;
@@ -151,7 +151,7 @@ export const gameSessionStoreFactory = (world: World) =>
                                   type: "PLAYER_UPDATE",
                                   data: {
                                     id: gameData.id,
-                                    pos: {
+                                    vel: {
                                       x: vel.x,
                                       y: vel.y,
                                     },
@@ -163,17 +163,17 @@ export const gameSessionStoreFactory = (world: World) =>
                         }
                         case "ArrowRight": {
                           gameData.world
-                            .query(OfPlayer, Position2)
-                            .updateEach(([p, pos]) => {
+                            .query(OfPlayer, Velocity2)
+                            .updateEach(([p, vel]) => {
                               if (p.isMe) {
-                                pos.x += 1;
+                                vel.x += 1;
                                 wsSend(ws, {
                                   type: "PLAYER_UPDATE",
                                   data: {
                                     id: gameData.id,
-                                    pos: {
-                                      x: pos.x,
-                                      y: pos.y,
+                                    vel: {
+                                      x: vel.x,
+                                      y: vel.y,
                                     },
                                   },
                                 });
@@ -308,7 +308,8 @@ function createGameSimulationFactory(
   return {
     start(syncCb) {
       const loop = gameLoopFactory((deltaTime) => {
-        movePosition2ByVelocitySystem(world, deltaTime);
+        // we currently rely solely on the server
+        // movePosition2ByVelocitySystem(world, deltaTime);
         syncCb();
       });
       loop();

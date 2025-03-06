@@ -68,7 +68,6 @@ export function setupGameBroadcaster(
 function gameLoop(initGameData: GameData, deltaTime: number) {
   // do stuff
   movePosition2ByVelocitySystem(initGameData.world!, deltaTime);
-  // moveVelocityUpDown(initGameData.world!, 0, 100);
 }
 
 function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
@@ -76,7 +75,6 @@ function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
   return function initGameLoop() {
     const startTime = performance.now();
     // Update game state here (e.g., physics, player positions, ball movement)
-    // console.log("Game tick at", startTime);
     mainMethod(frameDelta);
     const endTime = performance.now();
     const elapsed = endTime - startTime;
