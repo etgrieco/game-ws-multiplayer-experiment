@@ -9,8 +9,3 @@ export type GameSimulation = {
   gameData: GameData;
   start: (cb: () => void) => void;
 };
-
-export type GameSimulationBroadcaster = {
-  gameData: GameData;
-  sync: () => void;
-};

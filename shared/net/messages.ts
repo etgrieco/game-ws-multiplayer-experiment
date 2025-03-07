@@ -5,12 +5,20 @@ type SuccessOrFailure<T extends any> =
 /** Events sent *from* the server to the client */
 export type GameSessionServerEvent =
   | {
-      type: "CREATE_SESSION_RESPONSE";
-      data: SuccessOrFailure<{ id: string }>;
+      type: "CREATE_NEW_SESSION_RESPONSE";
+      data: SuccessOrFailure<{ id: string; playerId: string }>;
     }
   | {
       type: "JOIN_SESSION_RESPONSE";
-      data: SuccessOrFailure<{ id: string }>;
+      data: SuccessOrFailure<{ id: string; playerId: string }>;
+    }
+  | {
+      type: "REJOIN_EXISTING_SESSION_RESPONSE";
+      data: SuccessOrFailure<{
+        id: string;
+        playerId: string;
+        playerNumber: 1 | 2;
+      }>;
     }
   | {
       type: "START_SESSION_GAME_RESPONSE";
@@ -26,12 +34,19 @@ export type GameSessionServerEvent =
 /** Events sent *from* the client to the server */
 export type GameSessionClientEvent = { type: string } & (
   | {
-      type: "CREATE_SESSION";
+      type: "CREATE_NEW_SESSION";
     }
   | {
       type: "JOIN_SESSION";
       data: {
         id: string;
+      };
+    }
+  | {
+      type: "REJOIN_EXISTING_SESSION";
+      data: {
+        id: string;
+        playerId: string;
       };
     }
   | {

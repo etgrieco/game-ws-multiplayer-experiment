@@ -1,8 +1,6 @@
 import { GameSessionServerEvent } from "@shared/net/messages.js";
+import { WebSocket } from "ws";
 
-/** Trimmed down WS impl */
-export type WS = { send: (msg: string) => void };
-
-export function wsSend(ws: WS, msg: GameSessionServerEvent): void {
+export function wsSend(ws: WebSocket, msg: GameSessionServerEvent): void {
   ws.send(JSON.stringify(msg));
 }

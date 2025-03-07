@@ -1,7 +1,5 @@
-import { movePosition2ByVelocitySystem } from "@shared/ecs/system";
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait";
-import { createInitialGameWorld } from "@shared/game/game";
-import { GameSimulation } from "@shared/game/types";
+import { GameData, GameSimulation } from "@shared/game/types";
 import {
   GameSessionClientEvent,
   GameSessionServerEvent,
@@ -62,7 +60,7 @@ export const gameSessionStoreFactory = (world: World) =>
               try {
                 const jsonData = JSON.parse(e.data) as GameSessionServerEvent;
                 switch (jsonData.type) {
-                  case "CREATE_SESSION_RESPONSE": {
+                  case "CREATE_NEW_SESSION_RESPONSE": {
                     const {
                       data,
                       isSuccess,
@@ -78,7 +76,12 @@ export const gameSessionStoreFactory = (world: World) =>
                     }
                     set(() => {
                       return {
-                        game: createGameSimulationFactory(data.id, 1, world),
+                        game: createGameSimulationFactory(
+                          data.id,
+                          1,
+                          data.playerId,
+                          world,
+                        ),
                       };
                     });
                     break;
@@ -99,9 +102,43 @@ export const gameSessionStoreFactory = (world: World) =>
                     }
                     set(() => {
                       return {
-                        game: createGameSimulationFactory(data.id, 2, world),
+                        game: createGameSimulationFactory(
+                          data.id,
+                          2,
+                          data.playerId,
+                          world,
+                        ),
                       };
                     });
+                    break;
+                  }
+                  case "REJOIN_EXISTING_SESSION_RESPONSE": {
+                    const {
+                      data,
+                      isSuccess,
+                      failureMessage: failure,
+                    } = jsonData.data;
+                    if (!isSuccess) {
+                      set({
+                        initGameError: {
+                          message: failure,
+                        },
+                      });
+                      return;
+                    }
+                    set(() => {
+                      return {
+                        game: createGameSimulationFactory(
+                          data.id,
+                          data.playerNumber,
+                          data.playerId,
+                          world,
+                        ),
+                      };
+                    });
+                    // Now that our game is set up in zustand store, kick off player controls
+                    const store = getStore();
+                    handleStartGame(store.game!.gameData, ws);
                     break;
                   }
                   case "START_SESSION_GAME_RESPONSE": {
@@ -130,59 +167,7 @@ export const gameSessionStoreFactory = (world: World) =>
                         "START_SESSION_GAME_RESPONSE - cannot start game; mismatched ID",
                       );
                     }
-
-                    // set up some basic key-bindings
-                    document.addEventListener("keydown", function (ev) {
-                      const gameData = store.game?.gameData;
-                      if (!gameData) {
-                        console.warn("key handler ignored b/c no game data");
-                        return;
-                      }
-                      // TODO: Refactor this as an input queue processed by a client-side system
-                      switch (ev.code) {
-                        case "ArrowLeft": {
-                          // update world
-                          gameData.world
-                            .query(OfPlayer, Velocity2)
-                            .updateEach(([p, vel]) => {
-                              if (p.isMe) {
-                                vel.x -= 1;
-                                wsSend(ws, {
-                                  type: "PLAYER_UPDATE",
-                                  data: {
-                                    id: gameData.id,
-                                    vel: {
-                                      x: vel.x,
-                                      y: vel.y,
-                                    },
-                                  },
-                                });
-                              }
-                            });
-                          break;
-                        }
-                        case "ArrowRight": {
-                          gameData.world
-                            .query(OfPlayer, Velocity2)
-                            .updateEach(([p, vel]) => {
-                              if (p.isMe) {
-                                vel.x += 1;
-                                wsSend(ws, {
-                                  type: "PLAYER_UPDATE",
-                                  data: {
-                                    id: gameData.id,
-                                    vel: {
-                                      x: vel.x,
-                                      y: vel.y,
-                                    },
-                                  },
-                                });
-                              }
-                            });
-                          break;
-                        }
-                      }
-                    });
+                    handleStartGame(store.game.gameData, ws);
                     break;
                   }
                   case "POSITIONS_UPDATE": {
@@ -299,15 +284,30 @@ function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
 function createGameSimulationFactory(
   id: string,
   myPlayerAssignment: 1 | 2,
+  playerId: string,
   world: World,
 ): GameSimulation {
-  createInitialGameWorld(world);
-  world.query(OfPlayer).updateEach(([p]) => {
-    p.isMe = p.playerNumber === myPlayerAssignment;
-  });
+  // player 1 thing
+  world.spawn(
+    Position2(),
+    Velocity2(),
+    OfPlayer({ playerNumber: 1, isMe: myPlayerAssignment === 1, playerId }),
+  );
+
+  // player 2 thing
+  world.spawn(
+    Position2(),
+    Velocity2(),
+    OfPlayer({
+      playerNumber: 2,
+      isMe: myPlayerAssignment === 2,
+      playerId: playerId,
+    }),
+  );
+
   return {
     start(syncCb) {
-      const loop = gameLoopFactory((deltaTime) => {
+      const loop = gameLoopFactory((_deltaTime) => {
         // we currently rely solely on the server
         // movePosition2ByVelocitySystem(world, deltaTime);
         syncCb();
@@ -319,4 +319,53 @@ function createGameSimulationFactory(
       world: world,
     },
   };
+}
+
+function handleStartGame(gameData: GameData, ws: WebSocket) {
+  document.addEventListener("keydown", function (ev) {
+    if (!gameData) {
+      console.warn("key handler ignored b/c no game data");
+      return;
+    }
+    // TODO: Refactor this as an input queue processed by a client-side system
+    switch (ev.code) {
+      case "ArrowLeft": {
+        // update world
+        gameData.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+          if (p.isMe) {
+            vel.x -= 1;
+            wsSend(ws, {
+              type: "PLAYER_UPDATE",
+              data: {
+                id: gameData.id,
+                vel: {
+                  x: vel.x,
+                  y: vel.y,
+                },
+              },
+            });
+          }
+        });
+        break;
+      }
+      case "ArrowRight": {
+        gameData.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+          if (p.isMe) {
+            vel.x += 1;
+            wsSend(ws, {
+              type: "PLAYER_UPDATE",
+              data: {
+                id: gameData.id,
+                vel: {
+                  x: vel.x,
+                  y: vel.y,
+                },
+              },
+            });
+          }
+        });
+        break;
+      }
+    }
+  });
 }

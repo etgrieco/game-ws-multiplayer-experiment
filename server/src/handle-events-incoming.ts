@@ -1,8 +1,9 @@
 import { GameSessionClientEvent } from "@shared/net/messages.js";
 import { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
-import { WS, wsSend } from "./wsSend.js";
+import { wsSend } from "./wsSend.js";
 import { setupGameBroadcaster, setupGameSimulation } from "./game-factory.js";
-import { OfPlayer, Velocity2 } from "@shared/ecs/trait.js";
+import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait.js";
+import { WebSocket as WS } from "ws";
 
 export function handleEventsIncoming(
   eventData: GameSessionClientEvent,
@@ -12,13 +13,28 @@ export function handleEventsIncoming(
   },
 ) {
   switch (eventData.type) {
-    case "CREATE_SESSION": {
+    case "CREATE_NEW_SESSION": {
+      // by default, assume joiner is always player 1
+      const playerNumber = 1;
+      const playerIdx = 0;
+      const newPlayerId = crypto.randomUUID();
+
       const session = createSession(context.sessionsData, context.ws);
+      // add to connection list
+      session.connections[playerIdx] = context.ws;
+      // Easy reference for player IDs
+      session.players[playerIdx] = newPlayerId;
+      // Add player to world
+      session.gameSim.gameData.world.spawn(
+        Position2(),
+        Velocity2(),
+        OfPlayer({ playerNumber: playerNumber, playerId: newPlayerId }),
+      );
       wsSend(context.ws, {
-        type: "CREATE_SESSION_RESPONSE",
+        type: "CREATE_NEW_SESSION_RESPONSE",
         data: {
           isSuccess: true,
-          data: { id: session.id },
+          data: { id: session.id, playerId: newPlayerId },
         },
       });
       break;
@@ -35,16 +51,94 @@ export function handleEventsIncoming(
         });
         console.error(`JOIN_SESSION - Session ${eventData.data.id} not found`);
       } else {
+        // by default, assume joiner is always player 2
+        const playerNumber = 2;
+        const playerIdx = 1;
+        const newPlayerId = crypto.randomUUID();
+
         // add to connection list
-        session.connections[1] = context.ws;
+        session.connections[playerIdx] = context.ws;
+        // Easy reference for player IDs
+        session.players[playerIdx] = newPlayerId;
+        // Add player to world
+        session.gameSim.gameData.world.spawn(
+          Position2(),
+          Velocity2(),
+          OfPlayer({ playerNumber: playerNumber, playerId: newPlayerId }),
+        );
         wsSend(context.ws, {
           type: "JOIN_SESSION_RESPONSE",
           data: {
             isSuccess: true,
-            data: { id: session.gameSim.gameData.id },
+            data: { id: session.id, playerId: newPlayerId },
           },
         });
       }
+      break;
+    }
+    case "REJOIN_EXISTING_SESSION": {
+      // find the game
+      const session = context.sessionsData.get(eventData.data.id);
+      if (!session) {
+        wsSend(context.ws, {
+          type: "REJOIN_EXISTING_SESSION_RESPONSE",
+          data: {
+            isSuccess: false,
+            failureMessage: "Cannot find session",
+          },
+        });
+        console.error(
+          `REJOIN_EXISTING_SESSION - Session ${eventData.data.id} not found`,
+        );
+        return;
+      }
+
+      // find my player
+      const playerExists = session.gameSim.gameData.world
+        .query(OfPlayer)
+        .find((e) => e.get(OfPlayer)!.playerId === eventData.data.playerId);
+      if (!playerExists) {
+        wsSend(context.ws, {
+          type: "REJOIN_EXISTING_SESSION_RESPONSE",
+          data: {
+            isSuccess: false,
+            failureMessage: "Cannot find player with matching ID",
+          },
+        });
+        console.error(
+          `REJOIN_EXISTING_SESSION - Session ${eventData.data.id} not found`,
+        );
+        return;
+      }
+
+      const playerData = playerExists.get(OfPlayer)!;
+      const broadcaster = session.broadcaster;
+
+      if (!broadcaster) {
+        console.log("Broadcaster not active; creating a new one.");
+        const wsPool = session.connections;
+        wsPool[playerData.playerNumber - 1] = context.ws;
+        session.broadcaster = setupGameBroadcaster(
+          session.gameSim.gameData,
+          wsPool,
+        );
+      } else {
+        // re-assign the broadcaster connections
+        session.connections[playerData.playerNumber - 1] = context.ws;
+        broadcaster.updateConnect(playerData.playerNumber, context.ws);
+      }
+      wsSend(context.ws, {
+        type: "REJOIN_EXISTING_SESSION_RESPONSE",
+        data: {
+          isSuccess: true,
+          data: {
+            id: session.id,
+            playerId: playerData.playerId,
+            playerNumber: playerData.playerNumber,
+          },
+        },
+      });
+
       break;
     }
     case "START_SESSION_GAME": {
@@ -85,12 +179,16 @@ export function handleEventsIncoming(
         throw new Error("Connection 2 missing; not starting game");
       }
 
-      const broadcaster = setupGameBroadcaster(session.gameSim.gameData, [
-        connection1,
-        connection2,
-      ]);
-      session.broadcaster = broadcaster;
-      session.gameSim.start(broadcaster.sync);
+      // We can be starting a new or existing/"paused" game...
+      if (!session.broadcaster) {
+        const broadcaster = setupGameBroadcaster(session.gameSim.gameData, [
+          connection1,
+          connection2,
+        ]);
+        session.broadcaster = broadcaster;
+      }
+
+      session.gameSim.start(session.broadcaster.sync);
       console.log("start game loop!");
       wsSend(context.ws, {
         type: "START_SESSION_GAME_RESPONSE",
@@ -110,9 +208,15 @@ export function handleEventsIncoming(
           `PLAYER_UPDATE - Session ${eventData.data.id} not found. Closing connection.`,
         );
       }
-      const playerIdx = session.connections.indexOf(context.ws);
+      if (!session.broadcaster) {
+        // This can happen if a server restarts, which I guess is kinda legitimate
+        throw new Error("Unexpected state: No broadcaster present.");
+      }
+      const playerIdx = session.broadcaster.connections.indexOf(context.ws);
       if (playerIdx < 0) {
-        context.ws.close();
+        if (context.ws) {
+          context.ws.close();
+        }
         throw new Error(
           "PLAYER_UPDATE - Failed to find matching player. Closing connection.",
         );
@@ -146,10 +250,12 @@ function createSession(
 
   const gameSim = setupGameSimulation(uuid);
   const container: MultiplayerGameContainer = {
+    id: uuid,
     gameSim,
-    connections: [ws, undefined],
-    broadcaster: undefined,
+    connections: [ws, null],
+    players: [null, null],
+    broadcaster: null,
   };
   sessionsData.set(uuid, container);
-  return { id: uuid };
+  return container;
 }

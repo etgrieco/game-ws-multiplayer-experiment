@@ -1,23 +1,22 @@
 import { movePosition2ByVelocitySystem } from "@shared/ecs/system.js";
 import { OfPlayer, Position2 } from "@shared/ecs/trait.js";
-import { createInitialGameWorld } from "@shared/game/game.js";
-import {
-  GameData,
-  GameSimulation,
-  GameSimulationBroadcaster,
-} from "@shared/game/types.js";
-import { WebSocket } from "ws";
+import { GameData, GameSimulation } from "@shared/game/types.js";
 import { wsSend } from "./wsSend.js";
+import { WebSocket as WS } from "ws";
+import { createWorld } from "koota";
 
 // START TRAITS
 
 const TICK_RATE = 1000 / 60; // 60 updates per second (~16.67ms per frame)
 
 /** First step to run to set up game logic + initial state */
-export function setupGameSimulation(id: string): GameSimulation {
+export function setupGameSimulation(
+  id: string,
+  world = createWorld(),
+): GameSimulation {
   const gameData: GameSimulation["gameData"] = {
     id,
-    world: createInitialGameWorld(),
+    world,
   };
 
   return {
@@ -33,12 +32,30 @@ export function setupGameSimulation(id: string): GameSimulation {
   };
 }
 
+export type GameSimulationBroadcaster = {
+  gameData: GameData;
+  sync: () => void;
+  readonly connections: [WS | null, WS | null];
+  updateConnect(playerNumber: 1 | 2, ws: WS): void;
+};
+
 export function setupGameBroadcaster(
   gameData: GameData,
-  wsConnections: WebSocket[],
+  wsConnections: [WS | null, WS | null],
 ): GameSimulationBroadcaster {
+  const privConnections: typeof wsConnections = [
+    wsConnections[0],
+    wsConnections[1],
+  ];
+
   return {
     gameData,
+    /** Updates underlying connection pool */
+    updateConnect(playerNumber, ws) {
+      const playerIdx = playerNumber - 1;
+      privConnections[playerIdx] = ws;
+    },
+    connections: privConnections,
     sync() {
       const playerPositionsQuery = gameData.world.query(Position2, OfPlayer);
       const entitiesOrdered = [
@@ -50,7 +67,15 @@ export function setupGameBroadcaster(
         )[0]!,
       ] as const;
 
-      wsConnections.forEach((ws) => {
+      let idx = 0;
+      for (const ws of privConnections) {
+        if (!ws) {
+          break;
+        }
+        if (ws.status === "CLOSED") {
+          console.error(`Connection is closed for idx ${idx}; skipping`);
+          break;
+        }
         wsSend(ws, {
           type: "POSITIONS_UPDATE",
           data: {
@@ -60,7 +85,8 @@ export function setupGameBroadcaster(
             ],
           },
         });
-      });
+        idx++;
+      }
     },
   };
 }

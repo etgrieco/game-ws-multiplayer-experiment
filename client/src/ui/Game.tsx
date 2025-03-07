@@ -2,7 +2,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import React, { useRef } from "react";
 import * as THREE from "three";
 import { useGameSessionStore } from "../net/gameSession";
-import { useQuery, useWorld } from "koota/react";
+import { useWorld } from "koota/react";
 import { OfPlayer, Position2 } from "@shared/ecs/trait";
 
 const useGame = () => {

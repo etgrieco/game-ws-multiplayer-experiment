@@ -37,7 +37,7 @@ export function GameStart() {
         disabled={!ws}
         onClick={() => {
           sendEvent({
-            type: "CREATE_SESSION",
+            type: "CREATE_NEW_SESSION",
           });
         }}
         className="h-9 px-4 py-2 bg-green-600 text-green bg-green-600-foreground shadow hover:bg-green-600/90 rounded-sm"
