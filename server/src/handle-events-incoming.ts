@@ -1,14 +1,13 @@
 import { GameSessionClientEvent } from "@shared/net/messages.js";
 import { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
-import { wsSend } from "./wsSend.js";
-import { WebSocket as WsWebSocketInstance } from "ws";
+import { WS, wsSend } from "./wsSend.js";
 import { setupGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { OfPlayer, Velocity2 } from "@shared/ecs/trait.js";
 
 export function handleEventsIncoming(
   eventData: GameSessionClientEvent,
   context: {
-    ws: WsWebSocketInstance;
+    ws: WS;
     sessionsData: Map<string, MultiplayerGameContainer>;
   },
 ) {
@@ -138,7 +137,7 @@ export function handleEventsIncoming(
 
 function createSession(
   sessionsData: Map<string, MultiplayerGameContainer>,
-  ws: WsWebSocketInstance,
+  ws: WS,
 ) {
   const uuid = crypto.randomUUID();
   if (sessionsData.has(uuid)) {
