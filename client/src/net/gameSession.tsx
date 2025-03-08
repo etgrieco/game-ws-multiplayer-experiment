@@ -235,7 +235,7 @@ const GameSessionContext = React.createContext<
 >(undefined);
 
 export const GameSessionProvider = (props: PropsWithChildren<{}>) => {
-  const [world] = React.useState(createWorld());
+  const [world] = React.useState(() => createWorld());
   const [store] = React.useState(() => gameSessionStoreFactory(world));
 
   return (
