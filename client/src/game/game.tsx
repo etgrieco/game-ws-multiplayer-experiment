@@ -4,7 +4,7 @@ import { GameSessionClientEvent } from "@shared/net/messages";
 import { World } from "koota";
 import React from "react";
 import { createStore, useStore } from "zustand";
-import { GameContext } from "../net/gameSession";
+import { GameContext } from "@/net/gameSession";
 
 type GameMachineState =
   | {

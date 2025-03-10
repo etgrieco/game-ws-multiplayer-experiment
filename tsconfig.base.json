@@ -2,10 +2,6 @@
   "compilerOptions": {
     "target": "ES2020",
     "esModuleInterop": true,
-    "baseUrl": "./",
-    "paths": {
-      "@shared/*": ["shared/*"]
-    },
     /** Shared Type-checking rules */
     "strict": true,
     "noUncheckedIndexedAccess": true,

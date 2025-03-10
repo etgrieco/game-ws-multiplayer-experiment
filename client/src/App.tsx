@@ -1,16 +1,16 @@
 import React from "react";
-import {
-  GameComponentsProvider,
-  useGameSessionStore,
-} from "../net/gameSession";
-import { GameStart } from "./GameStart";
+import { useGameSessionStore } from "./net/gameSession";
+import { GameStart } from "./ui/GameStart";
 import { useQuery } from "koota/react";
 import { OfPlayer } from "@shared/ecs/trait";
-import { useGameStore } from "../game/game";
+import { useGameStore } from "./game/game";
+import { GameComponentsProvider } from "./ui/GameComponets";
+import { Toaster } from "@/components/ui/sonner";
 
 export function App() {
   return (
     <GameComponentsProvider>
+      <Toaster />
       <RestoreActiveSession />
       <SyncSaveSession />
       <GameStart />
@@ -31,7 +31,6 @@ const getPrevSession = () => {
   }
   return null;
 };
-
 const setPrevSession = (data: SessionData) => {
   sessionStorage.setItem(sessionKey, JSON.stringify(data));
 };

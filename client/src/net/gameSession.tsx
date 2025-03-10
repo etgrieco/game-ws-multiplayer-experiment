@@ -1,12 +1,10 @@
+import React from "react";
 import {
   GameSessionClientEvent,
   GameSessionServerEvent,
 } from "@shared/net/messages";
-import { createWorld } from "koota";
-import { WorldProvider } from "koota/react";
-import React, { PropsWithChildren } from "react";
 import { createStore, useStore } from "zustand";
-import { GameStore, gameStoreFactory } from "../game/game";
+import { GameStore, gameStoreFactory } from "@/game/game";
 
 export type WsStore = {
   ws: WebSocket | null;
@@ -185,45 +183,13 @@ function wsSend(ws: WebSocket, msg: GameSessionClientEvent): void {
   ws.send(JSON.stringify(msg));
 }
 
-const GameSessionContext = React.createContext<
+export const GameSessionContext = React.createContext<
   undefined | ReturnType<typeof gameSessionStoreFactory>
 >(undefined);
 
 export const GameContext = React.createContext<
   undefined | ReturnType<typeof gameStoreFactory>
 >(undefined);
-
-function createAppComponents() {
-  const world = createWorld();
-  const gameStore = gameStoreFactory(world);
-  const sessionStore = gameSessionStoreFactory(() => gameStore.getState());
-
-  // wire up session to game
-  gameStore.getState().connectGameNet((...args) => {
-    sessionStore.getState().sendEvent(...args);
-  });
-
-  return {
-    world,
-    gameStore,
-    sessionStore,
-  };
-}
-
-export const GameComponentsProvider = (props: PropsWithChildren<{}>) => {
-  const [{ world, sessionStore, gameStore }] =
-    React.useState(createAppComponents);
-
-  return (
-    <WorldProvider world={world}>
-      <GameSessionContext.Provider value={sessionStore}>
-        <GameContext.Provider value={gameStore}>
-          {props.children}
-        </GameContext.Provider>
-      </GameSessionContext.Provider>
-    </WorldProvider>
-  );
-};
 
 export function useGameSessionStore<T extends any = WsStore>(
   selector?: (s: WsStore) => T,

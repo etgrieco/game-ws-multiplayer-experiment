@@ -1,8 +1,8 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import React, { useRef } from "react";
 import * as THREE from "three";
-import { useGameSessionStore } from "../net/gameSession";
-import { useGameStore } from "../game/game";
+import { useGameSessionStore } from "@/net/gameSession";
+import { useGameStore } from "@/game/game";
 import { useWorld } from "koota/react";
 import { OfPlayer, Position2 } from "@shared/ecs/trait";
 
