@@ -190,12 +190,16 @@ export function handleEventsIncoming(
 
       session.gameSim.start(session.broadcaster.sync);
       console.log("start game loop!");
-      wsSend(context.ws, {
-        type: "START_SESSION_GAME_RESPONSE",
-        data: {
-          isSuccess: true,
-          data: { id: session.gameSim.gameData.sessionId },
-        },
+
+      // Send to all players!
+      [connection1, connection2].forEach((ws) => {
+        wsSend(ws, {
+          type: "START_SESSION_GAME_RESPONSE",
+          data: {
+            isSuccess: true,
+            data: { id: session.gameSim.gameData.sessionId },
+          },
+        });
       });
       break;
     }

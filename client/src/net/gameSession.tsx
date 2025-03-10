@@ -97,6 +97,9 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                       return;
                     }
                     gameStore.setupGame(data.id, 2, data.playerId);
+                    gameStore.setGameMachineState({
+                      name: "SESSION_CONNECTED_WITH_GAME_READY",
+                    });
                     break;
                   }
                   case "REJOIN_EXISTING_SESSION_RESPONSE": {

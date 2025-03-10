@@ -71,7 +71,7 @@ function GameContents() {
     meshRef.current.position.y = playerOnePos.y;
 
     meshRefTwo.current.position.x = playerTwoPos.x;
-    meshRefTwo.current.position.x = playerTwoPos.y;
+    meshRefTwo.current.position.y = playerTwoPos.y;
   });
 
   return (
