@@ -1,16 +1,20 @@
 import React from "react";
-import { GameSessionProvider, useGameSessionStore } from "../net/gameSession";
+import {
+  GameComponentsProvider,
+  useGameSessionStore,
+} from "../net/gameSession";
 import { GameStart } from "./GameStart";
 import { useQuery } from "koota/react";
 import { OfPlayer } from "@shared/ecs/trait";
+import { useGameStore } from "../game/game";
 
 export function App() {
   return (
-    <GameSessionProvider>
+    <GameComponentsProvider>
       <RestoreActiveSession />
       <SyncSaveSession />
       <GameStart />
-    </GameSessionProvider>
+    </GameComponentsProvider>
   );
 }
 
@@ -65,7 +69,7 @@ function RestoreActiveSession() {
 }
 
 function SyncSaveSession() {
-  const gameId = useGameSessionStore((s) => s.game?.gameData.sessionId);
+  const gameId = useGameStore((s) => s.game?.gameData.sessionId);
   const players = useQuery(OfPlayer);
   const me = players.find((p) => p.get(OfPlayer)!.isMe);
 

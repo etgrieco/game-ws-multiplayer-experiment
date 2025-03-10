@@ -1,25 +1,26 @@
 import React from "react";
-import {
-  useGameSessionStore,
-  useGameSessionStoreVanilla,
-} from "../net/gameSession";
+import { useGameSessionStore } from "../net/gameSession";
+import { useGameStore } from "../game/game";
 import { Game } from "./Game";
 
 export function GameStart() {
   const ws = useGameSessionStore((s) => s.ws);
-  const game = useGameSessionStore((s) => s.game);
-  const initGameError = useGameSessionStore((s) => s.initGameError);
+  const game = useGameStore((s) => s.game);
+  const initGameError = useGameStore((s) => {
+    if (s.gameMachineState.name === "INIT_GAME_ERROR") {
+      return s.gameMachineState.data;
+    }
+    return undefined;
+  });
   const sendEvent = useGameSessionStore((s) => s.sendEvent);
-  const gameSessionStore = useGameSessionStoreVanilla();
+  const gameSessionStore = useGameSessionStore();
 
   React.useEffect(() => {
-    const state = gameSessionStore.getState();
-
-    if (!state.ws) {
-      state.initWs();
+    if (!gameSessionStore.ws) {
+      gameSessionStore.initWs();
     }
     return () => {
-      state.removeWs();
+      gameSessionStore.removeWs();
     };
   }, []);
 
