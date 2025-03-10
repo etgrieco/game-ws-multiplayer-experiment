@@ -65,7 +65,7 @@ function RestoreActiveSession() {
 }
 
 function SyncSaveSession() {
-  const gameId = useGameSessionStore((s) => s.game?.gameData.id);
+  const gameId = useGameSessionStore((s) => s.game?.gameData.sessionId);
   const players = useQuery(OfPlayer);
   const me = players.find((p) => p.get(OfPlayer)!.isMe);
 

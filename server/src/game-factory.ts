@@ -15,7 +15,7 @@ export function setupGameSimulation(
   world = createWorld(),
 ): GameSimulation {
   const gameData: GameSimulation["gameData"] = {
-    id,
+    sessionId: id,
     world,
   };
 

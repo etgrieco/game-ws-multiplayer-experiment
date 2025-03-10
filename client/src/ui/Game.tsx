@@ -18,12 +18,12 @@ function GameUI() {
 
   return (
     <div className="w-full max-w-[1024px] max-h-[768px] h-full absolute">
-      <div className="text-2xl">GAME ID: {game.gameData.id}</div>
+      <div className="text-2xl">GAME ID: {game.gameData.sessionId}</div>
       <button
         onClick={() => {
           sendEvent({
             type: "START_SESSION_GAME",
-            data: { id: game.gameData.id },
+            data: { id: game.gameData.sessionId },
           });
         }}
       >

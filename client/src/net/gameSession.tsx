@@ -162,7 +162,7 @@ export const gameSessionStoreFactory = (world: World) =>
                         "START_SESSION_GAME_RESPONSE - cannot start non-existent game",
                       );
                     }
-                    if (data.id !== store.game.gameData.id) {
+                    if (data.id !== store.game.gameData.sessionId) {
                       console.error(
                         "START_SESSION_GAME_RESPONSE - cannot start game; mismatched ID",
                       );
@@ -315,7 +315,7 @@ function createGameSimulationFactory(
       loop();
     },
     gameData: {
-      id: id,
+      sessionId: id,
       world: world,
     },
   };
@@ -337,7 +337,7 @@ function handleStartGame(gameData: GameData, ws: WebSocket) {
             wsSend(ws, {
               type: "PLAYER_UPDATE",
               data: {
-                id: gameData.id,
+                id: gameData.sessionId,
                 vel: {
                   x: vel.x,
                   y: vel.y,
@@ -355,7 +355,7 @@ function handleStartGame(gameData: GameData, ws: WebSocket) {
             wsSend(ws, {
               type: "PLAYER_UPDATE",
               data: {
-                id: gameData.id,
+                id: gameData.sessionId,
                 vel: {
                   x: vel.x,
                   y: vel.y,

@@ -1,7 +1,7 @@
 import { World } from "koota";
 
 export type GameData = {
-  id: string;
+  sessionId: string;
   world: World;
 };
 

@@ -194,7 +194,7 @@ export function handleEventsIncoming(
         type: "START_SESSION_GAME_RESPONSE",
         data: {
           isSuccess: true,
-          data: { id: session.gameSim.gameData.id },
+          data: { id: session.gameSim.gameData.sessionId },
         },
       });
       break;
