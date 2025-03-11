@@ -4,6 +4,7 @@ type SessionData = {
   playerId: string;
   players: 2; // Hard-code to 2 for now
 };
+
 const subscribeStorageFactory = <TSnapshot extends any = any>(
   storageKey: string,
   /** Depends upon a storage interface that emits the applicable 'storage' event on window(s) upon storage manipulation */
@@ -66,3 +67,7 @@ const subscribeStorageFactory = <TSnapshot extends any = any>(
 const sessionKey = "PREV_SESSION";
 export const prevSessionSubscriptionController =
   subscribeStorageFactory<SessionData>(sessionKey, sessionStorage);
+
+export const getStoredSessionData = () => {
+  return prevSessionSubscriptionController.getSnapshot();
+};

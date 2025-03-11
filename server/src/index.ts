@@ -68,6 +68,7 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
     map.set(id, {
       id,
       broadcaster: null,
+      gameStatus: "PAUSED_AWAITING_PLAYERS",
       connections: [null, null],
       gameSim: setupGameSimulation(id, world),
       players: players,

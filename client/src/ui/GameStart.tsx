@@ -157,29 +157,10 @@ function CreateOrJoinInterface(props: {
 
 export function GameStart() {
   const game = useGameStore((s) => s.game);
+  const gameMachineState = useGameStore((s) => s.gameMachineState);
   const sendEvent = useGameSessionStore((s) => s.sendEvent);
   const gameSessionStore = useGameSessionStore();
   const sessionCode = useGameStore((s) => s.game?.gameData.sessionId);
-
-  React.useEffect(() => {
-    if (!gameSessionStore.ws) {
-      gameSessionStore.initWs(
-        () => {
-          toast("Connected to game server 🔌", {
-            position: "top-center",
-          });
-        },
-        function onFailure() {
-          toast("Failed to initialize connection to game server ❌", {
-            position: "top-right",
-          });
-        },
-      );
-    }
-    return () => {
-      gameSessionStore.disconnectWs();
-    };
-  }, []);
 
   const gameStore = useVanillaGameStore();
   React.useEffect(
@@ -239,35 +220,40 @@ export function GameStart() {
 
     return (
       <div className="text-primary">
-        {sessionCode && (
-          <div className="p-4 bg-slate-700/50 rounded-md">
-            <p className="text-sm text-secondary">
-              Share this code with friends:
-            </p>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between p-3 rounded">
-                <code className="text-lg font-mono text-primary font-bold tracking-wider">
-                  {sessionCode}
-                </code>
-                <Button variant="ghost" size="sm" onClick={copySessionCode}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="self-end">
-                <Button
-                  onClick={() => {
-                    gameSessionStore.sendEvent({
-                      type: "START_SESSION_GAME",
-                      data: { id: game.gameData.sessionId },
-                    });
-                  }}
-                >
-                  Start Game
-                </Button>
+        {gameMachineState.name === "SESSION_CONNECTED_WITH_GAME_READY" ? (
+          <div>Ready to start?</div>
+        ) : null}
+        {sessionCode &&
+          gameMachineState.name ===
+            "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER" && (
+            <div className="p-4 bg-slate-700/50 rounded-md">
+              <p className="text-sm text-secondary">
+                Share this code with friends:
+              </p>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between p-3 rounded">
+                  <code className="text-lg font-mono text-primary font-bold tracking-wider">
+                    {sessionCode}
+                  </code>
+                  <Button variant="ghost" size="sm" onClick={copySessionCode}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="self-end">
+                  <Button
+                    onClick={() => {
+                      gameSessionStore.sendEvent({
+                        type: "START_SESSION_GAME",
+                        data: { id: game.gameData.sessionId },
+                      });
+                    }}
+                  >
+                    Start Game
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
         <Game />
       </div>
     );

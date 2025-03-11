@@ -19,7 +19,9 @@ export function setupGameSimulation(
 
   return {
     gameData: gameData,
+    status: "PAUSED",
     start(syncCb) {
+      this.status = "RUNNING";
       const loop = gameLoopFactory((deltaTime) => {
         gameLoop(gameData, deltaTime);
         syncCb();

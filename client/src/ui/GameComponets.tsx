@@ -12,36 +12,32 @@ import { gameStoreFactory } from "@/game/game";
 function createAppComponents() {
   const world = createWorld();
   const gameStore = gameStoreFactory(world);
-  const sessionStore = gameSessionStoreFactory(() => gameStore.getState());
+  const wsStore = gameSessionStoreFactory(() => gameStore.getState());
 
   // wire up session to game
   gameStore.getState().connectGameNet((...args) => {
-    sessionStore.getState().sendEvent(...args);
+    wsStore.getState().sendEvent(...args);
   });
 
   // add some side-effects
-  const unsub = setupWsCloseReconnectionHandler(sessionStore, () =>
+  const subscribe = setupWsCloseReconnectionHandler(wsStore, () =>
     gameStore.getState(),
   );
 
   return {
     world,
     gameStore,
-    sessionStore,
-    handleCleanup: () => {
-      unsub();
-    },
+    sessionStore: wsStore,
+    handleSubscribe: subscribe,
   };
 }
 
 export const GameComponentsProvider = (props: PropsWithChildren<{}>) => {
-  const [{ world, sessionStore, gameStore, handleCleanup }] =
+  const [{ world, sessionStore, gameStore, handleSubscribe }] =
     React.useState(createAppComponents);
 
   React.useEffect(() => {
-    return () => {
-      handleCleanup();
-    };
+    return handleSubscribe();
   }, []);
 
   return (

@@ -1,3 +1,5 @@
+import { MultiplayerGameStatus } from "@shared/game/types";
+
 type SuccessOrFailure<T extends any> =
   | { data: T; isSuccess: true; failureMessage?: undefined }
   | { data?: undefined; failureMessage: string; isSuccess: false };
@@ -12,7 +14,11 @@ export type GameSessionServerEvent =
   | {
       type: "JOIN_SESSION_RESPONSE";
       id: string;
-      data: SuccessOrFailure<{ id: string; playerId: string }>;
+      data: SuccessOrFailure<{
+        id: string;
+        playerId: string;
+        gameStatus: MultiplayerGameStatus;
+      }>;
     }
   | {
       type: "REJOIN_EXISTING_SESSION_RESPONSE";
@@ -21,12 +27,13 @@ export type GameSessionServerEvent =
         id: string;
         playerId: string;
         playerNumber: 1 | 2;
+        gameStatus: MultiplayerGameStatus;
       }>;
     }
   | {
       type: "START_SESSION_GAME_RESPONSE";
       id: string;
-      data: SuccessOrFailure<{ id: string }>;
+      data: SuccessOrFailure<{ id: string; gameStatus: MultiplayerGameStatus }>;
     }
   | {
       type: "POSITIONS_UPDATE";

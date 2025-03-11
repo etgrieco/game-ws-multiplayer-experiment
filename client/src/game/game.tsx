@@ -14,6 +14,9 @@ type GameMachineState =
     }
   | {
       name: "SESSION_CONNECTED_WITH_GAME_READY";
+    }
+  | {
+      name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER";
     };
 
 export type GameStore = Readonly<{
@@ -48,11 +51,6 @@ export const gameStoreFactory = (mainWorld: World) => {
       },
       connectGameNet(newSender) {
         sendNetEvent = newSender;
-        set({
-          gameMachineState: {
-            name: "SESSION_CONNECTED_WITH_GAME_PLAYING",
-          },
-        });
       },
       setGameMachineState(newState) {
         set({ gameMachineState: newState });
@@ -208,7 +206,9 @@ function createGameSimulationFactory(
   );
 
   return {
+    status: "PAUSED",
     start(syncCb) {
+      this.status = "RUNNING";
       const loop = gameLoopFactory((_deltaTime) => {
         // we currently rely solely on the server
         // movePosition2ByVelocitySystem(world, deltaTime);

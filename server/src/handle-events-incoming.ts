@@ -66,11 +66,16 @@ export function handleEventsIncoming(
           Velocity2(),
           OfPlayer({ playerNumber: playerNumber, playerId: newPlayerId }),
         );
+        session.gameStatus = "PAUSED_AWAITING_START";
         wsSend(context.ws, {
           type: "JOIN_SESSION_RESPONSE",
           data: {
             isSuccess: true,
-            data: { id: session.id, playerId: newPlayerId },
+            data: {
+              id: session.id,
+              playerId: newPlayerId,
+              gameStatus: session.gameStatus,
+            },
           },
         });
       }
@@ -127,6 +132,21 @@ export function handleEventsIncoming(
         session.connections[playerData.playerNumber - 1] = context.ws;
         broadcaster.updateConnect(playerData.playerNumber, context.ws);
       }
+
+      session.gameStatus = (() => {
+        if (session.gameSim.status === "RUNNING") {
+          return "PLAYING";
+        }
+        // if every connection ready...
+        if (
+          session.broadcaster?.connections.every(
+            (c) => c?.readyState && c.readyState === c.OPEN,
+          )
+        ) {
+          return "PAUSED_AWAITING_START";
+        }
+        return "PAUSED_AWAITING_PLAYERS";
+      })();
       wsSend(context.ws, {
         type: "REJOIN_EXISTING_SESSION_RESPONSE",
         data: {
@@ -135,6 +155,7 @@ export function handleEventsIncoming(
             id: session.id,
             playerId: playerData.playerId,
             playerNumber: playerData.playerNumber,
+            gameStatus: session.gameStatus,
           },
         },
       });
@@ -197,7 +218,10 @@ export function handleEventsIncoming(
           type: "START_SESSION_GAME_RESPONSE",
           data: {
             isSuccess: true,
-            data: { id: session.gameSim.gameData.sessionId },
+            data: {
+              id: session.gameSim.gameData.sessionId,
+              gameStatus: session.gameStatus,
+            },
           },
         });
       });
@@ -255,6 +279,7 @@ function createSession(
   const container: MultiplayerGameContainer = {
     id: uuid,
     gameSim,
+    gameStatus: "PAUSED_AWAITING_PLAYERS",
     connections: [ws, null],
     players: [null, null],
     broadcaster: null,
