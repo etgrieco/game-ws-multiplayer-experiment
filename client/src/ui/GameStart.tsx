@@ -50,24 +50,24 @@ function SomeCard(props: {
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-slate-700">
+          <TabsList className="grid w-full grid-cols-3 bg-primary/70">
             <TabsTrigger
               value="create"
-              className="data-[state=active]:bg-primary"
+              className="data-[state=active]:bg-primary data-[state=active]:text-secondary"
             >
               <GamePlus className="mr-2 h-4 w-4" />
               Create
             </TabsTrigger>
             <TabsTrigger
               value="join"
-              className="data-[state=active]:bg-primary"
+              className="data-[state=active]:bg-primary data-[state=active]:text-secondary"
             >
               <Users className="mr-2 h-4 w-4" />
               Join
             </TabsTrigger>
             <TabsTrigger
               value="restore"
-              className="data-[state=active]:bg-primary"
+              className="data-[state=active]:bg-primary data-[state=active]:text-secondary"
             >
               <History className="mr-2 h-4 w-4" />
               Restore
