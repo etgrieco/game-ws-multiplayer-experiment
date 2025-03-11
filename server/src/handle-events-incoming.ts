@@ -117,8 +117,8 @@ export function handleEventsIncoming(
       }
 
       const playerData = playerExists.get(OfPlayer)!;
-      const broadcaster = session.broadcaster;
 
+      let broadcaster = session.broadcaster;
       if (!broadcaster) {
         console.log("Broadcaster not active; creating a new one.");
         const wsPool = session.connections;
@@ -127,6 +127,7 @@ export function handleEventsIncoming(
           session.gameSim.gameData,
           wsPool,
         );
+        broadcaster = session.broadcaster;
       } else {
         // re-assign the broadcaster connections
         session.connections[playerData.playerNumber - 1] = context.ws;
@@ -139,7 +140,7 @@ export function handleEventsIncoming(
         }
         // if every connection ready...
         if (
-          session.broadcaster?.connections.every(
+          broadcaster.connections.every(
             (c) => c?.readyState && c.readyState === c.OPEN,
           )
         ) {
@@ -147,6 +148,7 @@ export function handleEventsIncoming(
         }
         return "PAUSED_AWAITING_PLAYERS";
       })();
+
       wsSend(context.ws, {
         type: "REJOIN_EXISTING_SESSION_RESPONSE",
         data: {
@@ -159,7 +161,17 @@ export function handleEventsIncoming(
           },
         },
       });
-
+      // also, tell the players about game status
+      broadcaster.connections.forEach((ws) => {
+        if (!ws) return;
+        wsSend(ws, {
+          type: "GAME_STATUS_UPDATE",
+          data: {
+            gameStatus: session.gameStatus,
+            sessionId: session.id,
+          },
+        });
+      });
       break;
     }
     case "START_SESSION_GAME": {

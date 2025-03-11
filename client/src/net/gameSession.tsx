@@ -84,6 +84,38 @@ export function setupWsCloseReconnectionHandler(
   gameStoreProvider: () => GameStore,
 ) {
   const reconnectionAttemptIds: number[] = [];
+  function setupWsReconnection(ws: WebSocket) {
+    const abortController = new AbortController();
+    reconnectionAttemptIds.forEach((id) => window.clearTimeout(id));
+    ws.addEventListener(
+      "close",
+      () => {
+        const currStoreState = wsStore.getState();
+        // if the WS reference no longer persists, then we can assume the disconnect was intentional
+        if (!currStoreState.ws) {
+          return;
+        }
+        wsStore.setState({ ws: null });
+        gameStoreProvider().sendGameError({
+          id: window.crypto.randomUUID(),
+          message: "Socket disconnection: Reconnecting...",
+        });
+        const lastTimeoutId = window.setTimeout(function handleReconnect() {
+          wsStore.getState().initWs(function onSuccess() {
+            reconnectionAttemptIds.length = 0;
+            gameStoreProvider().sendGameMessage({
+              message: "Yay! Connected ✅",
+              id: window.crypto.randomUUID(),
+            });
+          });
+          // enqueue a re-connect attempt
+        }, 3_000);
+        reconnectionAttemptIds.push(lastTimeoutId);
+        abortController.abort();
+      },
+      { signal: abortController.signal },
+    );
+  }
   return () => {
     // establish initial connection
     wsStore.getState().initWs(
@@ -115,43 +147,20 @@ export function setupWsCloseReconnectionHandler(
         });
       },
     );
+
+    // if previous succeeded, wire up a close handler!
+    const firstWs = wsStore.getState().ws;
+    if (firstWs) {
+      setupWsReconnection(firstWs);
+    }
     const unsubscribe = wsStore.subscribe((state, prevState) => {
       if (state.ws && state.ws !== prevState.ws) {
-        const abortController = new AbortController();
-        reconnectionAttemptIds.forEach((id) => window.clearTimeout(id));
-        state.ws.addEventListener(
-          "close",
-          () => {
-            const currStoreState = wsStore.getState();
-            // if the WS reference no longer persists, then we can assume the disconnect was intentional
-            if (!currStoreState.ws) {
-              return;
-            }
-            wsStore.setState({ ws: null });
-            gameStoreProvider().sendGameError({
-              id: window.crypto.randomUUID(),
-              message: "Socket disconnection: Reconnecting...",
-            });
-            const lastTimeoutId = window.setTimeout(function handleReconnect() {
-              wsStore.getState().initWs(function onSuccess() {
-                reconnectionAttemptIds.length = 0;
-                gameStoreProvider().sendGameMessage({
-                  message: "Yay! Connected ✅",
-                  id: window.crypto.randomUUID(),
-                });
-              });
-              // enqueue a re-connect attempt
-            }, 3_000);
-            reconnectionAttemptIds.push(lastTimeoutId);
-            abortController.abort();
-          },
-          { signal: abortController.signal },
-        );
+        setupWsReconnection(state.ws);
       }
     });
     return () => {
       // cleanup procedure should both cleanup WS state, as well as unsubscribe from store changes
-      wsStore.getState().disconnectWs();
+      // wsStore.getState().disconnectWs();
       unsubscribe();
     };
   };
@@ -221,7 +230,12 @@ function createWsConnection(
                 );
               }
               if (data.gameStatus === "PLAYING") {
-                game.startGame(data.sessionId);
+                if (
+                  game.gameMachineState.name !==
+                  "SESSION_CONNECTED_WITH_GAME_PLAYING"
+                ) {
+                  game.startGame(data.sessionId);
+                }
               } else if (data.gameStatus === "PAUSED_AWAITING_PLAYERS") {
                 game.setGameMachineState({
                   name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",

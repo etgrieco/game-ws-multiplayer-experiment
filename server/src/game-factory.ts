@@ -73,7 +73,7 @@ export function setupGameBroadcaster(
           break;
         }
         if (ws.readyState === ws.CLOSED) {
-          console.error(`Connection is closed for idx ${idx}; skipping`);
+          console.error(`Connection is closed for [${idx}]; skipping update`);
           break;
         }
         wsSend(ws, {

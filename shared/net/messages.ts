@@ -41,6 +41,14 @@ export type GameSessionServerEvent =
       data: {
         playerPositions: [{ x: number; y: number }, { x: number; y: number }];
       };
+    }
+  | {
+      type: "GAME_STATUS_UPDATE";
+      id: string;
+      data: {
+        sessionId: string;
+        gameStatus: MultiplayerGameStatus;
+      };
     };
 
 /** Events sent *from* the client to the server */
