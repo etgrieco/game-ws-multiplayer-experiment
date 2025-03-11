@@ -10,6 +10,7 @@ type GameMachineState =
   | {
       name: "INIT_GAME_ERROR";
       data: {
+        id: string;
         message: string;
       };
     }
@@ -226,12 +227,17 @@ function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
     frameDelta = nextScheduledDelay;
   };
 }
+
 export function useGameStore<T extends any = GameStore>(
   selector?: (s: GameStore) => T,
 ): T {
+  return useStore(useVanillaGameStore(), selector!);
+}
+
+export function useVanillaGameStore() {
   const store = React.use(GameContext);
   if (!store) {
     throw new Error("Game session not available in provider");
   }
-  return useStore(store, selector!);
+  return store;
 }

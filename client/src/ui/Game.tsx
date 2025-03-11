@@ -1,36 +1,12 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import React, { useRef } from "react";
 import * as THREE from "three";
-import { useGameSessionStore } from "@/net/gameSession";
-import { useGameStore } from "@/game/game";
 import { useWorld } from "koota/react";
 import { OfPlayer, Position2 } from "@shared/ecs/trait";
 
-const useGame = () => {
-  const game = useGameStore((s) => s.game);
-  if (!game) {
-    throw new Error("The game is not yet initialized");
-  }
-  return game;
-};
 function GameUI() {
-  const game = useGame();
-  const sessionSendEvent = useGameSessionStore((s) => s.sendEvent);
-
   return (
-    <div className="w-full max-w-[1024px] max-h-[768px] h-full absolute">
-      <div className="text-2xl">GAME ID: {game.gameData.sessionId}</div>
-      <button
-        onClick={() => {
-          sessionSendEvent({
-            type: "START_SESSION_GAME",
-            data: { id: game.gameData.sessionId },
-          });
-        }}
-      >
-        Start game
-      </button>
-    </div>
+    <div className="w-full max-w-[1024px] max-h-[768px] h-full absolute"></div>
   );
 }
 

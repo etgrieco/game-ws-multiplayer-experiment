@@ -173,10 +173,10 @@ export function handleEventsIncoming(
           type: "START_SESSION_GAME_RESPONSE",
           data: {
             isSuccess: false,
-            failureMessage: "Connection 2 missing; not starting game",
+            failureMessage: "Player 2 not yet connected; not starting game",
           },
         });
-        throw new Error("Connection 2 missing; not starting game");
+        throw new Error("Player 2 not yet connected; not starting game");
       }
 
       // We can be starting a new or existing/"paused" game...

@@ -6,14 +6,17 @@ type SuccessOrFailure<T extends any> =
 export type GameSessionServerEvent =
   | {
       type: "CREATE_NEW_SESSION_RESPONSE";
+      id: string;
       data: SuccessOrFailure<{ id: string; playerId: string }>;
     }
   | {
       type: "JOIN_SESSION_RESPONSE";
+      id: string;
       data: SuccessOrFailure<{ id: string; playerId: string }>;
     }
   | {
       type: "REJOIN_EXISTING_SESSION_RESPONSE";
+      id: string;
       data: SuccessOrFailure<{
         id: string;
         playerId: string;
@@ -22,10 +25,12 @@ export type GameSessionServerEvent =
     }
   | {
       type: "START_SESSION_GAME_RESPONSE";
+      id: string;
       data: SuccessOrFailure<{ id: string }>;
     }
   | {
       type: "POSITIONS_UPDATE";
+      id: string;
       data: {
         playerPositions: [{ x: number; y: number }, { x: number; y: number }];
       };

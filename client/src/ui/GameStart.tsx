@@ -1,6 +1,6 @@
 import React from "react";
 import { useGameSessionStore } from "@/net/gameSession";
-import { useGameStore } from "@/game/game";
+import { useGameStore, useVanillaGameStore } from "@/game/game";
 import { Game } from "./Game";
 import {
   GamepadIcon as GamePlus,
@@ -20,23 +20,24 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Label } from "@radix-ui/react-label";
+import { Input } from "@/components/ui/input";
+import { prevSessionSubscriptionController } from "./sessionStorageController";
 
-const recentSessions = [
-  {
-    id: "id",
-    name: "SESSION 1",
-    players: 2,
-    lastPlayed: new Date(),
-  },
-];
-
-function SomeCard(props: {
+function CreateOrJoinInterface(props: {
   createSession: () => void;
-  handleMySessionCode: (code: string) => void;
+  joinSession: (sessionId: string) => void;
+  restoreSession: (sessionId: string, playerId: string) => void;
 }) {
-  const [activeTab, setActiveTab] = React.useState("create");
-  const [sessionName, setSessionName] = React.useState("");
-  // const [recentSessions, setRecentSessions] = React.useState<GameSession[]>([]);
+  const [sessionCode, setSessionCode] = React.useState("");
+  const storageSession = React.useSyncExternalStore(
+    prevSessionSubscriptionController.subscribe,
+    prevSessionSubscriptionController.getSnapshot,
+  );
+  const [activeTab, setActiveTab] = React.useState<
+    "create" | "join" | "restore"
+  >(storageSession?.gameId ? "restore" : "create");
+  const recentSessions = [storageSession].flatMap((s) => (s ? [s] : []));
 
   return (
     <Card className="w-full max-w-md border-slate-700 bg-slate-800/50 shadow-xl backdrop-blur">
@@ -49,7 +50,13 @@ function SomeCard(props: {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            setActiveTab(v as typeof activeTab);
+          }}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-3 bg-primary/70">
             <TabsTrigger
               value="create"
@@ -76,18 +83,16 @@ function SomeCard(props: {
 
           <TabsContent value="join" className="mt-4 space-y-4">
             <div className="space-y-2">
-              SESSION CODE INPUT
-              {/* <Label htmlFor="session-code" className="text-slate-200">
+              <Label htmlFor="session-code" className="text-slate-200">
                 Session Code
               </Label>
               <Input
                 id="session-code"
-                placeholder="Enter 6-digit session code"
+                placeholder="Enter session code (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"
                 value={sessionCode}
                 onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
                 className="bg-slate-700 text-white border-slate-600 tracking-wider font-mono"
-                maxLength={6}
-              /> */}
+              />
             </div>
           </TabsContent>
 
@@ -96,18 +101,23 @@ function SomeCard(props: {
               <div className="space-y-3">
                 {recentSessions.map((session) => (
                   <div
-                    key={session.id}
+                    key={session?.gameId}
                     className="flex items-center justify-between p-3 bg-slate-700/50 rounded-md hover:bg-slate-700 transition-colors cursor-pointer"
-                    onClick={() => console.log(session)}
+                    onClick={() => {
+                      props.restoreSession(session.gameId, session.playerId);
+                    }}
                   >
                     <div>
-                      <h3 className="font-medium text-white">{session.name}</h3>
+                      <h3 className="font-medium text-white">
+                        {session?.gameId}
+                      </h3>
                       <div className="flex items-center text-xs text-slate-400 mt-1">
                         <Users className="h-3 w-3 mr-1" />
                         <span>{session.players} players</span>
                         <span className="mx-2">•</span>
                         <span>
-                          Last played {formatRelativeTime(session.lastPlayed)}
+                          Last played{" "}
+                          {formatRelativeTime(new Date(session.lastUpdated))}
                         </span>
                       </div>
                     </div>
@@ -116,7 +126,7 @@ function SomeCard(props: {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-6 text-slate-400">
+              <div className="text-center py-6 text-secondary-foreground">
                 <History className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p>No recent sessions found</p>
               </div>
@@ -129,8 +139,15 @@ function SomeCard(props: {
           <Button onClick={props.createSession}>Create Session</Button>
         )}
         {activeTab === "join" && (
-          // <Button onClick={handleJoinSession}>Join Game</Button>
-          <button onClick={() => console.log("join game")}>Join Game</button>
+          <Button
+            disabled={!sessionCode}
+            onClick={() => {
+              if (!sessionCode) return;
+              props.joinSession(sessionCode);
+            }}
+          >
+            Join Game
+          </Button>
         )}
       </CardFooter>
     </Card>
@@ -138,14 +155,7 @@ function SomeCard(props: {
 }
 
 export function GameStart() {
-  const ws = useGameSessionStore((s) => s.ws);
   const game = useGameStore((s) => s.game);
-  const initGameError = useGameStore((s) => {
-    if (s.gameMachineState.name === "INIT_GAME_ERROR") {
-      return s.gameMachineState.data;
-    }
-    return undefined;
-  });
   const sendEvent = useGameSessionStore((s) => s.sendEvent);
   const gameSessionStore = useGameSessionStore();
   const sessionCode = useGameStore((s) => s.game?.gameData.sessionId);
@@ -159,9 +169,26 @@ export function GameStart() {
     };
   }, []);
 
-  if (initGameError) {
-    return <div>Error: {initGameError.message}</div>;
-  }
+  const gameStore = useVanillaGameStore();
+  React.useEffect(function toastOnNewIncomingError() {
+    let currInitError: { id: string; message: string } | undefined;
+    const machineState = gameStore.getState().gameMachineState;
+    if (machineState.name === "INIT_GAME_ERROR") {
+      currInitError = machineState.data;
+    }
+    return gameStore.subscribe((state) => {
+      const machineState = state.gameMachineState;
+      const newInitError =
+        machineState.name === "INIT_GAME_ERROR" ? machineState.data : null;
+      if (newInitError && !Object.is(currInitError?.id, newInitError.id)) {
+        currInitError = newInitError;
+        toast(<span className="text-red-500 font-bold">Error</span>, {
+          description: newInitError.message,
+          position: "top-center",
+        });
+      }
+    });
+  }, []);
 
   if (game) {
     // Copy session code to clipboard
@@ -179,17 +206,31 @@ export function GameStart() {
     return (
       <div className="text-primary">
         {sessionCode && (
-          <div className="mt-4 p-4 bg-slate-700/50 rounded-md">
-            <p className="text-sm text-secondary mb-2">
+          <div className="p-4 bg-slate-700/50 rounded-md">
+            <p className="text-sm text-secondary">
               Share this code with friends:
             </p>
-            <div className="flex items-center justify-between p-3 rounded">
-              <code className="text-lg font-mono text-primary font-bold tracking-wider">
-                {sessionCode}
-              </code>
-              <Button variant="ghost" size="sm" onClick={copySessionCode}>
-                <Copy className="h-4 w-4" />
-              </Button>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between p-3 rounded">
+                <code className="text-lg font-mono text-primary font-bold tracking-wider">
+                  {sessionCode}
+                </code>
+                <Button variant="ghost" size="sm" onClick={copySessionCode}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="self-end">
+                <Button
+                  onClick={() => {
+                    gameSessionStore.sendEvent({
+                      type: "START_SESSION_GAME",
+                      data: { id: game.gameData.sessionId },
+                    });
+                  }}
+                >
+                  Start Game
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -200,63 +241,28 @@ export function GameStart() {
 
   return (
     <div className="flex flex-col gap-4 max-w-[1024px] items-center w-full">
-      <SomeCard
+      <CreateOrJoinInterface
         createSession={() => {
           sendEvent({
             type: "CREATE_NEW_SESSION",
           });
         }}
-        handleMySessionCode={() => {}}
-      />
-      <button
-        disabled={!ws}
-        onClick={() => {
+        joinSession={(sessionId) => {
           sendEvent({
-            type: "CREATE_NEW_SESSION",
+            type: "JOIN_SESSION",
+            data: { sessionId: sessionId },
           });
         }}
-        className="h-9 px-4 py-2 bg-green-600 text-green bg-green-600-foreground shadow hover:bg-green-600/90 rounded-sm"
-      >
-        Create Session
-      </button>
-
-      <div className="text-lg">OR</div>
-
-      <div>
-        <div>Join a Session</div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (!ws) {
-              throw new Error("WS connection unavailable");
-            }
-
-            const values = new FormData(e.target as HTMLFormElement);
-            const sessionId = values.get("sessionId") as string;
-            sendEvent({
-              type: "JOIN_SESSION",
-              data: { id: sessionId },
-            });
-          }}
-        >
-          <div className="flex flex-col gap-2">
-            <fieldset>
-              <label htmlFor="sessionId">Session ID: </label>
-              <input
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                id="sessionId"
-                name="sessionId"
-                type="text"
-              ></input>
-            </fieldset>
-            <button className="h-9 px-4 py-2 bg-green-600 text-green bg-green-600-foreground shadow hover:bg-green-600/90 rounded-sm">
-              Join
-            </button>
-          </div>
-        </form>
-      </div>
+        restoreSession={(sessionId, playerId) => {
+          sendEvent({
+            type: "REJOIN_EXISTING_SESSION",
+            data: {
+              id: sessionId,
+              playerId: playerId,
+            },
+          });
+        }}
+      />
     </div>
   );
 }

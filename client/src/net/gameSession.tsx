@@ -69,6 +69,7 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                       game.setGameMachineState({
                         name: "INIT_GAME_ERROR",
                         data: {
+                          id: jsonData.id,
                           message: failure,
                         },
                       });
@@ -90,7 +91,7 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                     if (!isSuccess) {
                       gameStore.setGameMachineState({
                         name: "INIT_GAME_ERROR",
-                        data: { message: failure },
+                        data: { id: jsonData.id, message: failure },
                       });
                       return;
                     }
@@ -111,6 +112,7 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                       game.setGameMachineState({
                         name: "INIT_GAME_ERROR",
                         data: {
+                          id: jsonData.id,
                           message: failure,
                         },
                       });
@@ -133,6 +135,7 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                       game.setGameMachineState({
                         name: "INIT_GAME_ERROR",
                         data: {
+                          id: jsonData.id,
                           message: failure,
                         },
                       });
