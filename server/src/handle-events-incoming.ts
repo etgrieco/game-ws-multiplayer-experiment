@@ -228,7 +228,6 @@ export function handleEventsIncoming(
       const game = session.gameSim.gameData;
       game.world.query(Velocity2, OfPlayer).updateEach(([vel, player]) => {
         if (player.playerNumber === playerIdx + 1) {
-          console.log("updating velocities!", eventData.data.vel);
           vel.x = eventData.data.vel.x;
           vel.y = eventData.data.vel.y;
         }

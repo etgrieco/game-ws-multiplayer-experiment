@@ -5,9 +5,7 @@ import { wsSend } from "./wsSend.js";
 import { WebSocket as WS } from "ws";
 import { createWorld } from "koota";
 
-// START TRAITS
-
-const TICK_RATE = 1000 / 60; // 60 updates per second (~16.67ms per frame)
+const TICK_RATE = 1000 / 10; // 60 updates per second (~16.67ms per frame)
 
 /** First step to run to set up game logic + initial state */
 export function setupGameSimulation(
@@ -72,7 +70,7 @@ export function setupGameBroadcaster(
         if (!ws) {
           break;
         }
-        if (ws.status === "CLOSED") {
+        if (ws.readyState === ws.CLOSED) {
           console.error(`Connection is closed for idx ${idx}; skipping`);
           break;
         }

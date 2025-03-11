@@ -29,6 +29,12 @@ export function Game() {
     </div>
   );
 }
+
+const lerpFactor = 0.1;
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+
 function GameContents() {
   const meshRef = useRef<THREE.Mesh>(null!);
   const meshRefTwo = useRef<THREE.Mesh>(null!);
@@ -43,11 +49,28 @@ function GameContents() {
       .find((e) => e.get(OfPlayer)!.playerNumber === 2)!
       .get(Position2)!;
 
-    meshRef.current.position.x = playerOnePos.x;
-    meshRef.current.position.y = playerOnePos.y;
+    meshRef.current.position.x = lerp(
+      meshRef.current.position.x,
+      playerOnePos.x,
+      lerpFactor,
+    );
 
-    meshRefTwo.current.position.x = playerTwoPos.x;
-    meshRefTwo.current.position.y = playerTwoPos.y;
+    meshRef.current.position.y = lerp(
+      meshRef.current.position.y,
+      playerOnePos.y,
+      lerpFactor,
+    );
+
+    meshRefTwo.current.position.x = lerp(
+      meshRefTwo.current.position.x,
+      playerTwoPos.x,
+      lerpFactor,
+    );
+    meshRefTwo.current.position.y = lerp(
+      meshRefTwo.current.position.y,
+      playerTwoPos.y,
+      lerpFactor,
+    );
   });
 
   return (
