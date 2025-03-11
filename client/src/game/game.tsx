@@ -229,7 +229,6 @@ function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
   return function initGameLoop() {
     const startTime = performance.now();
     // Update game state here (e.g., physics, player positions, ball movement)
-    // console.log("Game tick at", startTime);
     mainMethod(frameDelta);
     const endTime = performance.now();
     const elapsed = endTime - startTime;

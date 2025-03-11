@@ -52,7 +52,7 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) => {
 };
 
 function wsSend(ws: WebSocket, msg: GameSessionClientEvent): void {
-  console.log("sent message", msg);
+  console.log("SEND", msg);
   ws.send(JSON.stringify(msg));
 }
 
@@ -170,7 +170,7 @@ function createWsConnection(
     "open",
     function () {
       didInitiallyConnect = true;
-      console.log("connected to the server");
+      console.debug("connected to the server");
       onOpen?.();
     },
     { signal: wsAbortController.signal },
@@ -179,7 +179,7 @@ function createWsConnection(
   ws.addEventListener(
     "close",
     function () {
-      console.log("server connection closed");
+      console.debug("server connection closed");
       // Cleans up all listeners for this WS instance, clearing it for GC
       wsAbortController.abort();
       console.debug("abort handled 🧹");
@@ -267,7 +267,6 @@ function createWsConnection(
                 return;
               }
               game.setupGame(data.id, data.playerNumber, data.playerId);
-              console.log("REJOIN GAME STATUS", data.gameStatus);
               if (data.gameStatus === "PAUSED_AWAITING_PLAYERS") {
                 game.setGameMachineState({
                   name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
