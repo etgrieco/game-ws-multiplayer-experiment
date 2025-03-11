@@ -221,7 +221,21 @@ export function GameStart() {
     return (
       <div className="text-primary">
         {gameMachineState.name === "SESSION_CONNECTED_WITH_GAME_READY" ? (
-          <div>Ready to start?</div>
+          <div>
+            Ready to start?{" "}
+            <Button
+              onClick={() => {
+                sendEvent({
+                  type: "START_SESSION_GAME",
+                  data: {
+                    id: game.gameData.sessionId,
+                  },
+                });
+              }}
+            >
+              Start game
+            </Button>
+          </div>
         ) : null}
         {sessionCode &&
           gameMachineState.name ===

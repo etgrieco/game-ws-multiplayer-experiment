@@ -212,6 +212,27 @@ function createWsConnection(
         }
         try {
           switch (jsonData.type) {
+            case "GAME_STATUS_UPDATE": {
+              const data = jsonData.data;
+              const game = gameStoreProvider();
+              if (data.sessionId !== game.game?.gameData.sessionId) {
+                throw new Error(
+                  "received session update about another game; weird!",
+                );
+              }
+              if (data.gameStatus === "PLAYING") {
+                game.startGame(data.sessionId);
+              } else if (data.gameStatus === "PAUSED_AWAITING_PLAYERS") {
+                game.setGameMachineState({
+                  name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
+                });
+              } else if (data.gameStatus === "PAUSED_AWAITING_START") {
+                game.setGameMachineState({
+                  name: "SESSION_CONNECTED_WITH_GAME_READY",
+                });
+              }
+              break;
+            }
             case "CREATE_NEW_SESSION_RESPONSE": {
               const {
                 data,

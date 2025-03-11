@@ -88,7 +88,9 @@ export const gameStoreFactory = (mainWorld: World) => {
           gameStore.gameMachineState.name !==
           "SESSION_CONNECTED_WITH_GAME_READY"
         ) {
-          throw new Error("Cannot start game outside of game ready state.");
+          throw new Error(
+            `Cannot start game outside of game ready state. (${gameStore.gameMachineState.name})`,
+          );
         }
         if (sessionId !== game.sessionId) {
           throw new Error("Mismatched session IDs");
