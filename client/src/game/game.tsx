@@ -3,8 +3,7 @@ import { GameSimulation } from "@shared/game/types";
 import { GameSessionClientEvent } from "@shared/net/messages";
 import { World } from "koota";
 import React from "react";
-import { createStore, StoreApi, useStore } from "zustand";
-import { GameContext } from "@/net/gameSession";
+import { createStore, useStore } from "zustand";
 
 type GameMachineState =
   | {
@@ -22,7 +21,9 @@ export type GameStore = Readonly<{
   gameMachineState: GameMachineState;
   setGameMachineState(newState: GameMachineState): void;
   lastGameError: { message: string; id: string } | null;
+  lastGameMessage: { message: string; id: string } | null;
   sendGameError: (err: { message: string; id: string }) => void;
+  sendGameMessage: (msg: { message: string; id: string }) => void;
   setupGame: (id: string, myPlayerAssignment: 1 | 2, playerId: string) => void;
   connectGameNet: (newSender: (ev: GameSessionClientEvent) => void) => void;
   startGame: (sessionId: string) => void;
@@ -57,6 +58,15 @@ export const gameStoreFactory = (mainWorld: World) => {
         set({ gameMachineState: newState });
       },
       lastGameError: null,
+      lastGameMessage: null,
+      sendGameMessage({ id, message }) {
+        set({
+          lastGameMessage: {
+            id,
+            message,
+          },
+        });
+      },
       sendGameError({ id, message }) {
         set({ lastGameError: { id, message } });
       },
@@ -228,6 +238,10 @@ function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
     frameDelta = nextScheduledDelay;
   };
 }
+
+export const GameContext = React.createContext<
+  undefined | ReturnType<typeof gameStoreFactory>
+>(undefined);
 
 export function useGameStore<T extends any = GameStore>(
   selector?: (s: GameStore) => T,

@@ -163,30 +163,63 @@ export function GameStart() {
 
   React.useEffect(() => {
     if (!gameSessionStore.ws) {
-      gameSessionStore.initWs();
+      gameSessionStore.initWs(
+        () => {
+          toast("Connected to game server 🔌", {
+            position: "top-center",
+          });
+        },
+        function onFailure() {
+          toast("Failed to initialize connection to game server ❌", {
+            position: "top-right",
+          });
+        },
+      );
     }
     return () => {
-      gameSessionStore.removeWs();
+      gameSessionStore.disconnectWs();
     };
   }, []);
 
   const gameStore = useVanillaGameStore();
-  React.useEffect(function toastOnNewIncomingError() {
-    let currError: { id: string; message: string } | undefined;
-    const lastGameError = gameStore.getState().lastGameError;
-    if (lastGameError) {
-      currError = lastGameError;
-    }
-    return gameStore.subscribe(({ lastGameError }) => {
-      if (lastGameError && !Object.is(currError?.id, lastGameError.id)) {
+  React.useEffect(
+    function toastOnNewIncomingError() {
+      let currError: { id: string; message: string } | undefined;
+      const lastGameError = gameStore.getState().lastGameError;
+      if (lastGameError) {
         currError = lastGameError;
-        toast(<span className="text-red-500 font-bold">Error</span>, {
-          description: lastGameError.message,
-          position: "top-center",
-        });
       }
-    });
-  }, []);
+      return gameStore.subscribe(({ lastGameError }) => {
+        if (lastGameError && !Object.is(currError?.id, lastGameError.id)) {
+          currError = lastGameError;
+          toast(<span className="text-red-500 font-bold">Error</span>, {
+            description: lastGameError.message,
+            position: "top-center",
+          });
+        }
+      });
+    },
+    [gameStore],
+  );
+
+  React.useEffect(
+    function toastOnIncomingMessage() {
+      let currError: { id: string; message: string } | undefined;
+      const lastGameMessage = gameStore.getState().lastGameMessage;
+      if (lastGameMessage) {
+        currError = lastGameMessage;
+      }
+      return gameStore.subscribe(({ lastGameMessage }) => {
+        if (lastGameMessage && !Object.is(currError?.id, lastGameMessage.id)) {
+          currError = lastGameMessage;
+          toast(lastGameMessage.message, {
+            position: "top-center",
+          });
+        }
+      });
+    },
+    [gameStore],
+  );
 
   if (game) {
     // Copy session code to clipboard

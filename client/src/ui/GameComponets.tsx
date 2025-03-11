@@ -2,10 +2,11 @@ import React, { PropsWithChildren } from "react";
 import { createWorld } from "koota";
 import { WorldProvider } from "koota/react";
 import {
-  GameContext,
   GameSessionContext,
   gameSessionStoreFactory,
+  setupWsCloseReconnectionHandler,
 } from "@/net/gameSession";
+import { GameContext } from "@/game/game";
 import { gameStoreFactory } from "@/game/game";
 
 function createAppComponents() {
@@ -18,16 +19,30 @@ function createAppComponents() {
     sessionStore.getState().sendEvent(...args);
   });
 
+  // add some side-effects
+  const unsub = setupWsCloseReconnectionHandler(sessionStore, () =>
+    gameStore.getState(),
+  );
+
   return {
     world,
     gameStore,
     sessionStore,
+    handleCleanup: () => {
+      unsub();
+    },
   };
 }
 
 export const GameComponentsProvider = (props: PropsWithChildren<{}>) => {
-  const [{ world, sessionStore, gameStore }] =
+  const [{ world, sessionStore, gameStore, handleCleanup }] =
     React.useState(createAppComponents);
+
+  React.useEffect(() => {
+    return () => {
+      handleCleanup();
+    };
+  }, []);
 
   return (
     <WorldProvider world={world}>
