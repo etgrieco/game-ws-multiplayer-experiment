@@ -250,7 +250,7 @@ export function GameStart() {
         joinSession={(sessionId) => {
           sendEvent({
             type: "JOIN_SESSION",
-            data: { sessionId: sessionId },
+            data: { id: sessionId },
           });
         }}
         restoreSession={(sessionId, playerId) => {

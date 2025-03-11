@@ -40,7 +40,7 @@ export function handleEventsIncoming(
       break;
     }
     case "JOIN_SESSION": {
-      const session = context.sessionsData.get(eventData.data.id);
+      const session = context.sessionsData.get(eventData.data.id.toLowerCase());
       if (!session) {
         wsSend(context.ws, {
           type: "JOIN_SESSION_RESPONSE",
