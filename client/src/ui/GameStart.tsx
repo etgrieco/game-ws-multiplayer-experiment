@@ -8,6 +8,7 @@ import {
   History,
   ArrowRight,
   Copy,
+  ClipboardCheck,
 } from "lucide-react";
 import {
   Card,
@@ -171,19 +172,16 @@ export function GameStart() {
 
   const gameStore = useVanillaGameStore();
   React.useEffect(function toastOnNewIncomingError() {
-    let currInitError: { id: string; message: string } | undefined;
-    const machineState = gameStore.getState().gameMachineState;
-    if (machineState.name === "INIT_GAME_ERROR") {
-      currInitError = machineState.data;
+    let currError: { id: string; message: string } | undefined;
+    const lastGameError = gameStore.getState().lastGameError;
+    if (lastGameError) {
+      currError = lastGameError;
     }
-    return gameStore.subscribe((state) => {
-      const machineState = state.gameMachineState;
-      const newInitError =
-        machineState.name === "INIT_GAME_ERROR" ? machineState.data : null;
-      if (newInitError && !Object.is(currInitError?.id, newInitError.id)) {
-        currInitError = newInitError;
+    return gameStore.subscribe(({ lastGameError }) => {
+      if (lastGameError && !Object.is(currError?.id, lastGameError.id)) {
+        currError = lastGameError;
         toast(<span className="text-red-500 font-bold">Error</span>, {
-          description: newInitError.message,
+          description: lastGameError.message,
           position: "top-center",
         });
       }
@@ -198,8 +196,11 @@ export function GameStart() {
       }
       navigator.clipboard.writeText(sessionCode);
       toast("Copied!", {
+        id: "copy-confirm",
         description: "Session code copied to clipboard",
-        position: "top-right",
+        position: "top-center",
+        dismissible: true,
+        icon: <ClipboardCheck />,
       });
     };
 

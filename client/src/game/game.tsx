@@ -3,17 +3,10 @@ import { GameSimulation } from "@shared/game/types";
 import { GameSessionClientEvent } from "@shared/net/messages";
 import { World } from "koota";
 import React from "react";
-import { createStore, useStore } from "zustand";
+import { createStore, StoreApi, useStore } from "zustand";
 import { GameContext } from "@/net/gameSession";
 
 type GameMachineState =
-  | {
-      name: "INIT_GAME_ERROR";
-      data: {
-        id: string;
-        message: string;
-      };
-    }
   | {
       name: "INIT";
     }
@@ -28,14 +21,16 @@ export type GameStore = Readonly<{
   game: GameSimulation | null;
   gameMachineState: GameMachineState;
   setGameMachineState(newState: GameMachineState): void;
+  lastGameError: { message: string; id: string } | null;
+  sendGameError: (err: { message: string; id: string }) => void;
   setupGame: (id: string, myPlayerAssignment: 1 | 2, playerId: string) => void;
   connectGameNet: (newSender: (ev: GameSessionClientEvent) => void) => void;
   startGame: (sessionId: string) => void;
   updatePositions: (playerPositions: { x: number; y: number }[]) => void;
 }>;
 
-export const gameStoreFactory = (mainWorld: World) =>
-  createStore<GameStore>()((set, getStore) => {
+export const gameStoreFactory = (mainWorld: World) => {
+  const store = createStore<GameStore>()((set, getStore) => {
     let sendNetEvent: undefined | ((ev: GameSessionClientEvent) => void);
     const verifiedInits = {
       get sendNetEvent() {
@@ -60,6 +55,10 @@ export const gameStoreFactory = (mainWorld: World) =>
       },
       setGameMachineState(newState) {
         set({ gameMachineState: newState });
+      },
+      lastGameError: null,
+      sendGameError({ id, message }) {
+        set({ lastGameError: { id, message } });
       },
       setupGame(id, myPlayerAssignment, playerId) {
         set({
@@ -152,6 +151,8 @@ export const gameStoreFactory = (mainWorld: World) =>
       },
     };
   });
+  return store;
+};
 
 function setupGameControls(cbs: {
   handleMovePlayerLeft(): void;

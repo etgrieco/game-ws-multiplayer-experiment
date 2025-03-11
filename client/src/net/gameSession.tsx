@@ -66,12 +66,9 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                     } = jsonData.data;
                     const game = gameStoreProvider();
                     if (!isSuccess) {
-                      game.setGameMachineState({
-                        name: "INIT_GAME_ERROR",
-                        data: {
-                          id: jsonData.id,
-                          message: failure,
-                        },
+                      game.sendGameError({
+                        id: jsonData.id,
+                        message: failure,
                       });
                       return;
                     }
@@ -82,21 +79,21 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                     break;
                   }
                   case "JOIN_SESSION_RESPONSE": {
-                    const gameStore = gameStoreProvider();
+                    const game = gameStoreProvider();
                     const {
                       data,
                       isSuccess,
                       failureMessage: failure,
                     } = jsonData.data;
                     if (!isSuccess) {
-                      gameStore.setGameMachineState({
-                        name: "INIT_GAME_ERROR",
-                        data: { id: jsonData.id, message: failure },
+                      game.sendGameError({
+                        id: jsonData.id,
+                        message: failure,
                       });
                       return;
                     }
-                    gameStore.setupGame(data.id, 2, data.playerId);
-                    gameStore.setGameMachineState({
+                    game.setupGame(data.id, 2, data.playerId);
+                    game.setGameMachineState({
                       name: "SESSION_CONNECTED_WITH_GAME_READY",
                     });
                     break;
@@ -109,12 +106,9 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                       failureMessage: failure,
                     } = jsonData.data;
                     if (!isSuccess) {
-                      game.setGameMachineState({
-                        name: "INIT_GAME_ERROR",
-                        data: {
-                          id: jsonData.id,
-                          message: failure,
-                        },
+                      game.sendGameError({
+                        id: jsonData.id,
+                        message: failure,
                       });
                       return;
                     }
@@ -132,12 +126,9 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) =>
                       failureMessage: failure,
                     } = jsonData.data;
                     if (!isSuccess) {
-                      game.setGameMachineState({
-                        name: "INIT_GAME_ERROR",
-                        data: {
-                          id: jsonData.id,
-                          message: failure,
-                        },
+                      game.sendGameError({
+                        id: jsonData.id,
+                        message: failure,
                       });
                       return;
                     }
