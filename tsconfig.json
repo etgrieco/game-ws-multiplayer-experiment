@@ -6,9 +6,6 @@
       },
       {
         "path": "./client/tsconfig.browser.json"
-      },
-      {
-        "path": "./server/tsconfig.node.json"
       }
   ],
 }
