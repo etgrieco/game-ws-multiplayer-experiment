@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from "react";
-import { createWorld } from "koota";
+import { createWorld, universe } from "koota";
 import { WorldProvider } from "koota/react";
 import {
   GameSessionContext,
@@ -10,6 +10,7 @@ import { GameContext } from "@/game/game";
 import { gameStoreFactory } from "@/game/game";
 
 function createAppComponents() {
+  universe.reset();
   const world = createWorld();
   const gameStore = gameStoreFactory(world);
   const wsStore = gameSessionStoreFactory(() => gameStore.getState());
@@ -24,6 +25,7 @@ function createAppComponents() {
     gameStore.getState(),
   );
 
+  console.log("creating...");
   return {
     world,
     gameStore,

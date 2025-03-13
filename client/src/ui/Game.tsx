@@ -5,14 +5,12 @@ import { useWorld } from "koota/react";
 import { OfPlayer, Position2 } from "@shared/ecs/trait";
 
 function GameUI() {
-  return (
-    <div className="w-full max-w-[1024px] max-h-[768px] h-full absolute"></div>
-  );
+  return <div className="w-full max-w-[1024px] max-h-[768px] h-full"></div>;
 }
 
 export function Game() {
   return (
-    <div className="flex flex-col w-full max-w-[1024px] relative">
+    <div className="flex flex-col w-full max-w-[1024px]">
       <Canvas>
         <ambientLight intensity={Math.PI / 2} />
         <spotLight

@@ -83,10 +83,33 @@ export function setupWsCloseReconnectionHandler(
   wsStore: StoreApi<WsStore>,
   gameStoreProvider: () => GameStore,
 ) {
-  let lastReconnectionAttemptTimeoutId: number | undefined;
+  function connectToGame(onConnect?: () => void, onFailure?: () => void) {
+    return wsStore.getState().initWs(function onSuccess() {
+      onConnect?.();
+      // If we have a session in-memory, reconnect to that!
+      const existingGameData = gameStoreProvider().game?.gameData;
+      if (existingGameData) {
+        const sessionData = getStoredSessionData();
+        if (!sessionData) {
+          throw new Error(
+            "I expect to have session data if a game is running!",
+          );
+        }
+        wsStore.getState().sendEvent({
+          type: "REJOIN_EXISTING_SESSION",
+          data: {
+            id: existingGameData.sessionId,
+            playerId: sessionData.playerId,
+          },
+        });
+      }
+    }, onFailure);
+  }
 
+  let lastReconnectionAttemptTimeoutId: number | undefined;
   function setupWsReconnection(ws: WebSocket) {
     const abortController = new AbortController();
+    // If any pending re-connects enqueued, don't execute
     window.clearTimeout(lastReconnectionAttemptTimeoutId);
     ws.addEventListener(
       "close",
@@ -101,19 +124,14 @@ export function setupWsCloseReconnectionHandler(
           id: window.crypto.randomUUID(),
           message: "Socket disconnection: Reconnecting...",
         });
-        lastReconnectionAttemptTimeoutId = window.setTimeout(
-          function handleReconnect() {
-            wsStore.getState().initWs(function onSuccess() {
-              lastReconnectionAttemptTimeoutId = undefined;
-              gameStoreProvider().sendGameMessage({
-                message: "Yay! Connected ✅",
-                id: window.crypto.randomUUID(),
-              });
+        lastReconnectionAttemptTimeoutId = window.setTimeout(() => {
+          connectToGame(function onSuccess() {
+            gameStoreProvider().sendGameMessage({
+              message: "Yay! Connected ✅",
+              id: window.crypto.randomUUID(),
             });
-            // enqueue a re-connect attempt
-          },
-          3_000,
-        );
+          });
+        }, 3_000);
         abortController.abort();
       },
       { signal: abortController.signal },
@@ -121,31 +139,13 @@ export function setupWsCloseReconnectionHandler(
   }
 
   return () => {
-    // establish initial connection
-    wsStore.getState().initWs(
-      () => {
+    connectToGame(
+      function toastOnSuccess() {
         toast("Connected to game server 🔌", {
           position: "top-center",
         });
-        // If we have a session in-memory, reconnect to that!
-        const existingGameData = gameStoreProvider().game?.gameData;
-        if (existingGameData) {
-          const sessionData = getStoredSessionData();
-          if (!sessionData) {
-            throw new Error(
-              "I expect to have session data if a game is running!",
-            );
-          }
-          wsStore.getState().sendEvent({
-            type: "REJOIN_EXISTING_SESSION",
-            data: {
-              id: existingGameData.sessionId,
-              playerId: sessionData.playerId,
-            },
-          });
-        }
       },
-      function onFailure() {
+      function toastOnFailure() {
         toast("Failed to initialize connection to game server ❌", {
           position: "top-right",
         });
@@ -158,13 +158,14 @@ export function setupWsCloseReconnectionHandler(
       setupWsReconnection(firstWs);
     }
     const unsubscribe = wsStore.subscribe((state, prevState) => {
+      // handle subscribing to any new created connections
       if (state.ws && state.ws !== prevState.ws) {
         setupWsReconnection(state.ws);
       }
     });
     return () => {
       // cleanup procedure should both cleanup WS state, as well as unsubscribe from store changes
-      // wsStore.getState().disconnectWs();
+      wsStore.getState().disconnectWs();
       unsubscribe();
     };
   };
