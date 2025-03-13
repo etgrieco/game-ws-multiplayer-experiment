@@ -151,7 +151,7 @@ export function handleEventsIncoming(
         }
         // if every connection ready...
         if (
-          broadcaster.connections.every(
+          session.connections.every(
             (c) => c?.readyState && c.readyState === c.OPEN,
           )
         ) {
@@ -173,7 +173,7 @@ export function handleEventsIncoming(
         },
       });
       // also, tell the players about game status
-      broadcaster.connections.forEach((ws) => {
+      session.connections.forEach((ws) => {
         if (!ws) return;
         wsSend(ws, {
           type: "GAME_STATUS_UPDATE",
@@ -263,7 +263,7 @@ export function handleEventsIncoming(
         // This can happen if a server restarts, which I guess is kinda legitimate
         throw new Error("Unexpected state: No broadcaster present.");
       }
-      const playerIdx = session.broadcaster.connections.indexOf(context.ws);
+      const playerIdx = session.connections.indexOf(context.ws);
       if (playerIdx < 0) {
         if (context.ws) {
           context.ws.close();
