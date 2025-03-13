@@ -1,7 +1,7 @@
 import { GameSessionClientEvent } from "@shared/net/messages.js";
 import { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { wsSend } from "./wsSend.js";
-import { setupGameBroadcaster, setupGameSimulation } from "./game-factory.js";
+import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait.js";
 import { WebSocket as WS } from "ws";
 
@@ -21,7 +21,7 @@ export function handleEventsIncoming(
 
       const session = createSession(context.sessionsData, context.ws);
       // add to connection list
-      session.connections[playerIdx] = context.ws;
+      session.broadcaster.updateConnect(playerNumber, context.ws);
       // Easy reference for player IDs
       session.players[playerIdx] = newPlayerId;
       // Add player to world
@@ -57,7 +57,7 @@ export function handleEventsIncoming(
         const newPlayerId = crypto.randomUUID();
 
         // add to connection list
-        session.connections[playerIdx] = context.ws;
+        session.broadcaster.updateConnect(playerNumber, context.ws);
         // Easy reference for player IDs
         session.players[playerIdx] = newPlayerId;
         // Add player to world
@@ -79,8 +79,8 @@ export function handleEventsIncoming(
           },
         });
         // also, tell players about game status
-        session.connections.forEach((ws) => {
-          if (!ws || ws.readyState !== ws.OPEN) return;
+        session.broadcaster.connections.forEach((ws) => {
+          if (!ws || ws.readyState !== WS.OPEN) return;
           wsSend(ws, {
             type: "GAME_STATUS_UPDATE",
             data: {
@@ -129,21 +129,7 @@ export function handleEventsIncoming(
 
       const playerData = playerExists.get(OfPlayer)!;
 
-      let broadcaster = session.broadcaster;
-      if (!broadcaster) {
-        console.log("Broadcaster not active; creating a new one.");
-        const wsPool = session.connections;
-        wsPool[playerData.playerNumber - 1] = context.ws;
-        session.broadcaster = setupGameBroadcaster(
-          session.gameSim.gameData,
-          wsPool,
-        );
-        broadcaster = session.broadcaster;
-      } else {
-        // re-assign the broadcaster connections
-        session.connections[playerData.playerNumber - 1] = context.ws;
-        broadcaster.updateConnect(playerData.playerNumber, context.ws);
-      }
+      session.broadcaster.updateConnect(playerData.playerNumber, context.ws);
 
       session.gameStatus = (() => {
         if (session.gameSim.status === "RUNNING") {
@@ -151,7 +137,7 @@ export function handleEventsIncoming(
         }
         // if every connection ready...
         if (
-          session.connections.every(
+          session.broadcaster.connections.every(
             (c) => c?.readyState && c.readyState === c.OPEN,
           )
         ) {
@@ -173,8 +159,8 @@ export function handleEventsIncoming(
         },
       });
       // also, tell the players about game status
-      session.connections.forEach((ws) => {
-        if (!ws) return;
+      session.broadcaster.connections.forEach((ws) => {
+        if (!ws || ws.readyState !== WS.OPEN) return;
         wsSend(ws, {
           type: "GAME_STATUS_UPDATE",
           data: {
@@ -202,8 +188,8 @@ export function handleEventsIncoming(
         return;
       }
 
-      const [connection1, connection2] = session.connections;
-      if (!connection1) {
+      const [connection1, connection2] = session.broadcaster.connections;
+      if (!connection1 || connection1.readyState !== WS.OPEN) {
         wsSend(context.ws, {
           type: "START_SESSION_GAME_RESPONSE",
           data: {
@@ -212,7 +198,7 @@ export function handleEventsIncoming(
           },
         });
         throw new Error("Connection 1 missing; not starting game");
-      } else if (!connection2) {
+      } else if (!connection2 || connection2.readyState !== WS.OPEN) {
         wsSend(context.ws, {
           type: "START_SESSION_GAME_RESPONSE",
           data: {
@@ -221,15 +207,6 @@ export function handleEventsIncoming(
           },
         });
         throw new Error("Player 2 not yet connected; not starting game");
-      }
-
-      // We can be starting a new or existing/"paused" game...
-      if (!session.broadcaster) {
-        const broadcaster = setupGameBroadcaster(session.gameSim.gameData, [
-          connection1,
-          connection2,
-        ]);
-        session.broadcaster = broadcaster;
       }
 
       session.gameSim.start(session.broadcaster.sync);
@@ -263,7 +240,7 @@ export function handleEventsIncoming(
         // This can happen if a server restarts, which I guess is kinda legitimate
         throw new Error("Unexpected state: No broadcaster present.");
       }
-      const playerIdx = session.connections.indexOf(context.ws);
+      const playerIdx = session.broadcaster.connections.indexOf(context.ws);
       if (playerIdx < 0) {
         if (context.ws) {
           context.ws.close();
@@ -303,9 +280,8 @@ function createSession(
     id: uuid,
     gameSim,
     gameStatus: "PAUSED_AWAITING_PLAYERS",
-    connections: [ws, null],
     players: [null, null],
-    broadcaster: null,
+    broadcaster: createGameBroadcaster(gameSim.gameData, [ws, null]),
   };
   sessionsData.set(uuid, container);
   return container;

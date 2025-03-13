@@ -6,7 +6,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait.js";
 import { createWorld, World } from "koota";
-import { setupGameSimulation } from "./game-factory.js";
+import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 
 const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
 const createBakFileName = (date: Date) => `bak-${date.getTime()}.json`;
@@ -70,12 +70,12 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
         );
       }
     });
+    const gameSim = setupGameSimulation(id, world);
     map.set(id, {
       id,
-      broadcaster: null,
+      broadcaster: createGameBroadcaster(gameSim.gameData, [null, null]),
       gameStatus: "PAUSED_AWAITING_PLAYERS",
-      connections: [null, null],
-      gameSim: setupGameSimulation(id, world),
+      gameSim: gameSim,
       players: players,
     });
   });

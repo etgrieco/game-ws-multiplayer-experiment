@@ -36,9 +36,10 @@ export type GameSimulationBroadcaster = {
   gameData: GameData;
   sync: () => void;
   updateConnect(playerNumber: 1 | 2, ws: WS): void;
+  readonly connections: [WS | null, WS | null];
 };
 
-export function setupGameBroadcaster(
+export function createGameBroadcaster(
   gameData: GameData,
   wsConnections: [WS | null, WS | null],
 ): GameSimulationBroadcaster {
@@ -54,6 +55,7 @@ export function setupGameBroadcaster(
       const playerIdx = playerNumber - 1;
       privConnections[playerIdx] = ws;
     },
+    connections: privConnections,
     sync() {
       const playerPositionsQuery = gameData.world.query(Position2, OfPlayer);
       const entitiesOrdered = [
