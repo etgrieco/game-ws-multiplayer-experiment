@@ -5,6 +5,5 @@ export type MultiplayerGameContainer = {
   id: string;
   gameStatus: MultiplayerGameStatus;
   gameSim: GameSimulation;
-  players: [string | null, string | null];
   broadcaster: GameSimulationBroadcaster;
 };

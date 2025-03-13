@@ -16,14 +16,11 @@ export function handleEventsIncoming(
     case "CREATE_NEW_SESSION": {
       // by default, assume joiner is always player 1
       const playerNumber = 1;
-      const playerIdx = 0;
       const newPlayerId = crypto.randomUUID();
 
       const session = createSession(context.sessionsData, context.ws);
       // add to connection list
       session.broadcaster.updateConnect(playerNumber, context.ws);
-      // Easy reference for player IDs
-      session.players[playerIdx] = newPlayerId;
       // Add player to world
       session.gameSim.gameData.world.spawn(
         Position2(),
@@ -53,13 +50,10 @@ export function handleEventsIncoming(
       } else {
         // by default, assume joiner is always player 2
         const playerNumber = 2;
-        const playerIdx = 1;
         const newPlayerId = crypto.randomUUID();
 
         // add to connection list
         session.broadcaster.updateConnect(playerNumber, context.ws);
-        // Easy reference for player IDs
-        session.players[playerIdx] = newPlayerId;
         // Add player to world
         session.gameSim.gameData.world.spawn(
           Position2(),
@@ -130,7 +124,6 @@ export function handleEventsIncoming(
       const playerData = playerExists.get(OfPlayer)!;
 
       session.broadcaster.updateConnect(playerData.playerNumber, context.ws);
-
       session.gameStatus = (() => {
         if (session.gameSim.status === "RUNNING") {
           return "PLAYING";
@@ -280,7 +273,6 @@ function createSession(
     id: uuid,
     gameSim,
     gameStatus: "PAUSED_AWAITING_PLAYERS",
-    players: [null, null],
     broadcaster: createGameBroadcaster(gameSim.gameData, [ws, null]),
   };
   sessionsData.set(uuid, container);
