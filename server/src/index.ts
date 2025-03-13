@@ -9,7 +9,7 @@ import { createWorld, World } from "koota";
 import { setupGameSimulation } from "./game-factory.js";
 
 const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
-const BAK_FILENAME = "bak.json";
+const createBakFileName = (date: Date) => `bak-${date.getTime()}.json`;
 const BAK_FILE_ENC = "utf-8";
 
 console.log("Server started...");
@@ -21,9 +21,14 @@ type SessionMap = Map<string, MultiplayerGameContainer>;
 const sessionsData: SessionMap = new Map(
   (() => {
     try {
-      const backupFile = fs
-        .readFileSync(path.join(BAK_PATH, BAK_FILENAME))
-        .toString(BAK_FILE_ENC);
+      const dirFiles = fs.readdirSync(BAK_PATH).sort();
+      const mostRecentBakFilename = dirFiles[dirFiles.length - 1];
+      if (!mostRecentBakFilename) {
+        return;
+      }
+      const filePath = path.join(BAK_PATH, mostRecentBakFilename);
+      console.log("loading backup: ", filePath);
+      const backupFile = fs.readFileSync(filePath).toString(BAK_FILE_ENC);
       const backupData = JSON.parse(backupFile) as ReturnType<
         typeof toJSONBackup
       >[];
@@ -85,9 +90,13 @@ process.on("exit", () => {
     return toJSONBackup(id, sess);
   });
 
-  fs.writeFileSync(path.join(BAK_PATH, BAK_FILENAME), JSON.stringify(data), {
-    encoding: BAK_FILE_ENC,
-  });
+  fs.writeFileSync(
+    path.join(BAK_PATH, createBakFileName(new Date())),
+    JSON.stringify(data),
+    {
+      encoding: BAK_FILE_ENC,
+    },
+  );
 });
 
 console.log(Array.from(sessionsData.keys()).join("\n"));

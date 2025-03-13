@@ -83,10 +83,11 @@ export function setupWsCloseReconnectionHandler(
   wsStore: StoreApi<WsStore>,
   gameStoreProvider: () => GameStore,
 ) {
-  const reconnectionAttemptIds: number[] = [];
+  let lastReconnectionAttemptTimeoutId: number | undefined;
+
   function setupWsReconnection(ws: WebSocket) {
     const abortController = new AbortController();
-    reconnectionAttemptIds.forEach((id) => window.clearTimeout(id));
+    window.clearTimeout(lastReconnectionAttemptTimeoutId);
     ws.addEventListener(
       "close",
       () => {
@@ -100,22 +101,25 @@ export function setupWsCloseReconnectionHandler(
           id: window.crypto.randomUUID(),
           message: "Socket disconnection: Reconnecting...",
         });
-        const lastTimeoutId = window.setTimeout(function handleReconnect() {
-          wsStore.getState().initWs(function onSuccess() {
-            reconnectionAttemptIds.length = 0;
-            gameStoreProvider().sendGameMessage({
-              message: "Yay! Connected ✅",
-              id: window.crypto.randomUUID(),
+        lastReconnectionAttemptTimeoutId = window.setTimeout(
+          function handleReconnect() {
+            wsStore.getState().initWs(function onSuccess() {
+              lastReconnectionAttemptTimeoutId = undefined;
+              gameStoreProvider().sendGameMessage({
+                message: "Yay! Connected ✅",
+                id: window.crypto.randomUUID(),
+              });
             });
-          });
-          // enqueue a re-connect attempt
-        }, 3_000);
-        reconnectionAttemptIds.push(lastTimeoutId);
+            // enqueue a re-connect attempt
+          },
+          3_000,
+        );
         abortController.abort();
       },
       { signal: abortController.signal },
     );
   }
+
   return () => {
     // establish initial connection
     wsStore.getState().initWs(

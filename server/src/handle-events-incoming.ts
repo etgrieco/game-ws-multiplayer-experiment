@@ -78,6 +78,17 @@ export function handleEventsIncoming(
             },
           },
         });
+        // also, tell players about game status
+        session.connections.forEach((ws) => {
+          if (!ws || ws.readyState !== ws.OPEN) return;
+          wsSend(ws, {
+            type: "GAME_STATUS_UPDATE",
+            data: {
+              gameStatus: session.gameStatus,
+              sessionId: session.id,
+            },
+          });
+        });
       }
       break;
     }
