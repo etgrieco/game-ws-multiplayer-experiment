@@ -7,6 +7,7 @@ import * as path from "node:path";
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait.js";
 import { createWorld, World } from "koota";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
+import { wsSend } from "./wsSend.js";
 
 const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
 const createBakFileName = (date: Date) => `bak-${date.getTime()}.json`;
@@ -57,12 +58,10 @@ function toJSONBackup(id: string, sess: MultiplayerGameContainer) {
 function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
   const map: SessionMap = new Map();
 
-  const players: MultiplayerGameContainer["players"] = [null, null];
   b.forEach(([id, backupWorldEntities]) => {
     const world = createWorld();
     backupWorldEntities.forEach((e) => {
       if (e.player) {
-        players[e.player.playerNumber - 1] = e.player.playerId;
         world.spawn(Position2(e.pos), Velocity2(e.vel), OfPlayer(e.player));
       } else {
         console.warn(
@@ -76,7 +75,6 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
       broadcaster: createGameBroadcaster(gameSim.gameData, [null, null]),
       gameStatus: "PAUSED_AWAITING_PLAYERS",
       gameSim: gameSim,
-      players: players,
     });
   });
   return map;
@@ -120,6 +118,30 @@ wss.on("connection", function connection(ws) {
       });
     }),
   );
+
+  ws.on("close", function close(_code, _reason) {
+    for (const [sessionId, sessionData] of sessionsData.entries()) {
+      const foundWs = sessionData.broadcaster.connections.includes(ws);
+      if (!foundWs) {
+        continue;
+      } else {
+        // tell other users a disconnect has happened!
+        sessionData.broadcaster.connections.forEach((ws) => {
+          if (!ws) return;
+          wsSend(ws, {
+            type: "GAME_STATUS_UPDATE",
+            data: {
+              sessionId: sessionId,
+              gameStatus: "PAUSED_AWAITING_PLAYERS",
+            },
+          });
+        });
+        // then, pause the game
+        sessionData.gameSim.pause();
+        break;
+      }
+    }
+  });
 });
 
 function tryCatchLog<T extends (...args: any[]) => any>(

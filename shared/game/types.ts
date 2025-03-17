@@ -8,7 +8,8 @@ export type GameData = {
 export type GameSimulation = {
   gameData: GameData;
   status: "RUNNING" | "PAUSED";
-  start: (cb: () => void) => void;
+  start: (cb?: () => void) => void;
+  pause: () => void;
 };
 
 export type MultiplayerGameStatus =

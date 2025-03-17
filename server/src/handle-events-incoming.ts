@@ -72,9 +72,9 @@ export function handleEventsIncoming(
             },
           },
         });
-        // also, tell players about game status
+        // also, tell other players about game status
         session.broadcaster.connections.forEach((ws) => {
-          if (!ws || ws.readyState !== WS.OPEN) return;
+          if (!ws || ws === context.ws) return;
           wsSend(ws, {
             type: "GAME_STATUS_UPDATE",
             data: {
@@ -131,7 +131,7 @@ export function handleEventsIncoming(
         // if every connection ready...
         if (
           session.broadcaster.connections.every(
-            (c) => c?.readyState && c.readyState === c.OPEN,
+            (c) => c && c.readyState === c.OPEN,
           )
         ) {
           return "PAUSED_AWAITING_START";
@@ -151,9 +151,9 @@ export function handleEventsIncoming(
           },
         },
       });
-      // also, tell the players about game status
+      // also, tell the other players about game status
       session.broadcaster.connections.forEach((ws) => {
-        if (!ws || ws.readyState !== WS.OPEN) return;
+        if (!ws || ws === context.ws) return;
         wsSend(ws, {
           type: "GAME_STATUS_UPDATE",
           data: {
@@ -202,9 +202,7 @@ export function handleEventsIncoming(
         throw new Error("Player 2 not yet connected; not starting game");
       }
 
-      session.gameSim.start(session.broadcaster.sync);
-      console.log("start game loop!");
-
+      session.gameStatus = "PLAYING";
       // Send to all players!
       [connection1, connection2].forEach((ws) => {
         wsSend(ws, {
@@ -218,6 +216,7 @@ export function handleEventsIncoming(
           },
         });
       });
+      session.gameSim.start(session.broadcaster.sync);
       break;
     }
     case "PLAYER_UPDATE": {

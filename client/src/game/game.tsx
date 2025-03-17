@@ -89,53 +89,57 @@ export const gameStoreFactory = (mainWorld: World) => {
           "SESSION_CONNECTED_WITH_GAME_READY"
         ) {
           throw new Error(
-            `Cannot start game outside of game ready state. (${gameStore.gameMachineState.name})`,
+            `Cannot start game outside of SESSION_CONNECTED_WITH_GAME_READY state. (${gameStore.gameMachineState.name})`,
           );
         }
         if (sessionId !== game.sessionId) {
           throw new Error("Mismatched session IDs");
         }
-        setupGameControls({
-          handleMovePlayerLeft() {
-            game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
-              if (p.isMe) {
-                vel.x -= 1;
-                verifiedInits.sendNetEvent({
-                  type: "PLAYER_UPDATE",
-                  data: {
-                    id: game.sessionId,
-                    vel: {
-                      x: vel.x,
-                      y: vel.y,
+        setupGameControls(
+          {
+            handleMovePlayerLeft() {
+              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+                if (p.isMe) {
+                  vel.x -= 1;
+                  verifiedInits.sendNetEvent({
+                    type: "PLAYER_UPDATE",
+                    data: {
+                      id: game.sessionId,
+                      vel: {
+                        x: vel.x,
+                        y: vel.y,
+                      },
                     },
-                  },
-                });
-              }
-            });
-          },
-          handleMovePlayerRight() {
-            game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
-              if (p.isMe) {
-                vel.x += 1;
-                verifiedInits.sendNetEvent({
-                  type: "PLAYER_UPDATE",
-                  data: {
-                    id: game.sessionId,
-                    vel: {
-                      x: vel.x,
-                      y: vel.y,
+                  });
+                }
+              });
+            },
+            handleMovePlayerRight() {
+              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+                if (p.isMe) {
+                  vel.x += 1;
+                  verifiedInits.sendNetEvent({
+                    type: "PLAYER_UPDATE",
+                    data: {
+                      id: game.sessionId,
+                      vel: {
+                        x: vel.x,
+                        y: vel.y,
+                      },
                     },
-                  },
-                });
-              }
-            });
+                  });
+                }
+              });
+            },
           },
-        });
+          getStore,
+        );
         set({
           gameMachineState: {
             name: "SESSION_CONNECTED_WITH_GAME_PLAYING",
           },
         });
+        gameStore.game.start(); // start client-side game loop
       },
       updatePositions(playerPositions) {
         const game = getStore().game;
@@ -164,11 +168,21 @@ export const gameStoreFactory = (mainWorld: World) => {
   return store;
 };
 
-function setupGameControls(cbs: {
-  handleMovePlayerLeft(): void;
-  handleMovePlayerRight(): void;
-}) {
+function setupGameControls(
+  cbs: {
+    handleMovePlayerLeft(): void;
+    handleMovePlayerRight(): void;
+  },
+  gameProvider: () => GameStore,
+) {
   document.addEventListener("keydown", function (ev) {
+    const gameStore = gameProvider();
+    // ignore input on non-playing states
+    if (
+      gameStore.gameMachineState.name !== "SESSION_CONNECTED_WITH_GAME_PLAYING"
+    ) {
+      return;
+    }
     // TODO: Refactor this as an input queue processed by a client-side system
     switch (ev.code) {
       case "ArrowLeft": {
@@ -207,16 +221,23 @@ function createGameSimulationFactory(
     }),
   );
 
+  let status: GameSimulation["status"] = "PAUSED";
   return {
-    status: "PAUSED",
+    get status() {
+      return status;
+    },
+    pause() {
+      console.log("PAUSE CALLED");
+      status = "PAUSED";
+    },
     start(syncCb) {
-      this.status = "RUNNING";
+      status = "RUNNING";
       const loop = gameLoopFactory((_deltaTime) => {
-        // we currently rely solely on the server
-        // movePosition2ByVelocitySystem(world, deltaTime);
-        syncCb();
+        // we currently rely solely on the server to drive systems
+        // Here, we would do client-side logic
+        syncCb?.();
       });
-      loop();
+      loop(this);
     },
     gameData: {
       sessionId: id,
@@ -228,10 +249,12 @@ function createGameSimulationFactory(
 const TICK_RATE = 1000 / 60; // 60 updates per second (~16.67ms per frame)
 function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
   let frameDelta = 0;
-  return function initGameLoop() {
+  return function initGameLoop(gameSimSnapshot: Readonly<GameSimulation>) {
     const startTime = performance.now();
     // Update game state here (e.g., physics, player positions, ball movement)
-    mainMethod(frameDelta);
+    if (gameSimSnapshot.status === "RUNNING") {
+      mainMethod(frameDelta);
+    }
     const endTime = performance.now();
     const elapsed = endTime - startTime;
     const nextScheduledDelay = Math.max(0, TICK_RATE - elapsed);

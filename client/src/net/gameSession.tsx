@@ -247,21 +247,38 @@ function handleSessionServerEvents(
       if (data.sessionId !== gameStoreSnapshot.game?.gameData.sessionId) {
         throw new Error("received session update about another game; weird!");
       }
-      if (data.gameStatus === "PLAYING") {
-        if (
-          gameStoreSnapshot.gameMachineState.name !==
-          "SESSION_CONNECTED_WITH_GAME_PLAYING"
-        ) {
-          gameStoreSnapshot.startGame(data.sessionId);
+      // Handle each game status update...
+      switch (data.gameStatus) {
+        case "PLAYING": {
+          if (
+            gameStoreSnapshot.gameMachineState.name !==
+            "SESSION_CONNECTED_WITH_GAME_PLAYING"
+          ) {
+            gameStoreSnapshot.startGame(data.sessionId);
+          }
+          break;
         }
-      } else if (data.gameStatus === "PAUSED_AWAITING_PLAYERS") {
-        gameStoreSnapshot.setGameMachineState({
-          name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
-        });
-      } else if (data.gameStatus === "PAUSED_AWAITING_START") {
-        gameStoreSnapshot.setGameMachineState({
-          name: "SESSION_CONNECTED_WITH_GAME_READY",
-        });
+        case "PAUSED_AWAITING_PLAYERS": {
+          if (gameStoreSnapshot.game.status === "RUNNING") {
+            gameStoreSnapshot.sendGameMessage({
+              message: "Player disconnected, pausing game!",
+              id: jsonData.id,
+            });
+            gameStoreSnapshot.game.pause();
+          }
+          gameStoreSnapshot.setGameMachineState({
+            name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
+          });
+          break;
+        }
+        case "PAUSED_AWAITING_START": {
+          gameStoreSnapshot.setGameMachineState({
+            name: "SESSION_CONNECTED_WITH_GAME_READY",
+          });
+          break;
+        }
+        default:
+          throw new Error(`Unhandled game status update ${data.gameStatus}`);
       }
       break;
     }
@@ -333,8 +350,10 @@ function handleSessionServerEvents(
         });
         return;
       }
-      // trigger a start
-      gameStoreSnapshot.startGame(data.id);
+      if (data.gameStatus === "PLAYING") {
+        // trigger a start
+        gameStoreSnapshot.startGame(data.id);
+      }
       break;
     }
     case "POSITIONS_UPDATE": {

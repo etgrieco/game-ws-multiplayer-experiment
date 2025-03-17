@@ -3,6 +3,7 @@ import React, { useRef } from "react";
 import * as THREE from "three";
 import { useWorld } from "koota/react";
 import { OfPlayer, Position2 } from "@shared/ecs/trait";
+import { useGameStore } from "@/game/game";
 
 function GameUI() {
   return <div className="w-full max-w-[1024px] max-h-[768px] h-full"></div>;
@@ -37,13 +38,17 @@ function GameContents() {
   const meshRef = useRef<THREE.Mesh>(null!);
   const meshRefTwo = useRef<THREE.Mesh>(null!);
   const world = useWorld();
+  const gameStatus = useGameStore((s) => s.game?.status);
+
+  const memoizedQuery = React.useMemo(() => {
+    return world.query(Position2, OfPlayer);
+  }, [gameStatus]);
 
   useFrame((_s, _d) => {
-    const playerPosQuery = world.query(Position2, OfPlayer);
-    const playerOnePos = playerPosQuery
+    const playerOnePos = memoizedQuery
       .find((e) => e.get(OfPlayer)!.playerNumber === 1)!
       .get(Position2)!;
-    const playerTwoPos = playerPosQuery
+    const playerTwoPos = memoizedQuery
       .find((e) => e.get(OfPlayer)!.playerNumber === 2)!
       .get(Position2)!;
 

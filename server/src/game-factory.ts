@@ -20,11 +20,15 @@ export function setupGameSimulation(
   return {
     gameData: gameData,
     status: "PAUSED",
+    pause() {
+      this.status = "PAUSED";
+    },
     start(syncCb) {
       this.status = "RUNNING";
       const loop = gameLoopFactory((deltaTime) => {
+        if (this.status !== "RUNNING") return;
         gameLoop(gameData, deltaTime);
-        syncCb();
+        syncCb?.();
       });
       // and just kick it off
       loop();

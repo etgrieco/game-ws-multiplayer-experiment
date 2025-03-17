@@ -6,6 +6,9 @@ export function wsSend(
   ws: WebSocket,
   msg: Omit<GameSessionServerEvent, "id">,
 ): void {
+  if (ws.readyState !== WebSocket.OPEN) {
+    return;
+  }
   ws.send(
     JSON.stringify({
       id: randomUUID(),
