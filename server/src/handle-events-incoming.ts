@@ -1,9 +1,9 @@
-import { GameSessionClientEvent } from "@shared/net/messages.js";
-import { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
-import { wsSend } from "./wsSend.js";
-import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait.js";
+import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import { WebSocket as WS } from "ws";
+import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
+import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
+import { wsSend } from "./wsSend.js";
 
 export function handleEventsIncoming(
   eventData: GameSessionClientEvent,
@@ -191,7 +191,9 @@ export function handleEventsIncoming(
           },
         });
         throw new Error("Connection 1 missing; not starting game");
-      } else if (!connection2 || connection2.readyState !== WS.OPEN) {
+      }
+
+      if (!connection2 || connection2.readyState !== WS.OPEN) {
         wsSend(context.ws, {
           type: "START_SESSION_GAME_RESPONSE",
           data: {
@@ -251,6 +253,7 @@ export function handleEventsIncoming(
       break;
     }
     default: {
+      // biome-ignore lint/complexity/useLiteralKeys: Handling of unexpected never case requires non-literal key syntax
       const unexpectedType = eventData["type"] as string;
       console.log(`unhandled event ${unexpectedType}`);
       break;

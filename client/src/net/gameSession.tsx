@@ -1,12 +1,12 @@
-import React from "react";
-import {
+import type { GameStore } from "@/game/game";
+import { getStoredSessionData } from "@/ui/sessionStorageController";
+import type {
   GameSessionClientEvent,
   GameSessionServerEvent,
 } from "@shared/net/messages";
-import { createStore, StoreApi, useStore } from "zustand";
-import { GameStore } from "@/game/game";
+import React from "react";
 import { toast } from "sonner";
-import { getStoredSessionData } from "@/ui/sessionStorageController";
+import { type StoreApi, createStore, useStore } from "zustand";
 
 export type WsStore = {
   ws: WebSocket | null;
@@ -55,7 +55,7 @@ export const GameSessionContext = React.createContext<
   undefined | ReturnType<typeof gameSessionStoreFactory>
 >(undefined);
 
-export function useGameSessionStore<T extends any = WsStore>(
+export function useGameSessionStore<T = WsStore>(
   selector?: (s: WsStore) => T,
 ): T {
   const store = React.use(GameSessionContext);
@@ -182,7 +182,7 @@ function createWsConnection(
 
   ws.addEventListener(
     "open",
-    function () {
+    () => {
       didInitiallyConnect = true;
       console.debug("connected to the server");
       onOpen?.();
@@ -192,7 +192,7 @@ function createWsConnection(
 
   ws.addEventListener(
     "close",
-    function () {
+    () => {
       console.debug("server connection closed");
       // Cleans up all listeners for this WS instance, clearing it for GC
       wsAbortController.abort();
@@ -206,15 +206,15 @@ function createWsConnection(
 
   ws.addEventListener(
     "message",
-    function (e) {
-      console.debug(`Received message: `, e.data);
+    (e) => {
+      console.debug("Received message: ", e.data);
     },
     { signal: wsAbortController.signal },
   );
 
   ws.addEventListener(
     "message",
-    function (e) {
+    (e) => {
       if (typeof e.data === "string") {
         let jsonData: GameSessionServerEvent;
         try {

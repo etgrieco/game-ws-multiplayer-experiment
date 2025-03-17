@@ -1,10 +1,10 @@
-import React from "react";
-import { GameStart } from "./ui/GameStart";
-import { useQuery } from "koota/react";
+import { Toaster } from "@/components/ui/sonner";
 import { OfPlayer } from "@shared/ecs/trait";
+import { useQuery } from "koota/react";
+import React from "react";
 import { useGameStore } from "./game/game";
 import { GameComponentsProvider } from "./ui/GameComponets";
-import { Toaster } from "@/components/ui/sonner";
+import { GameStart } from "./ui/GameStart";
 import { prevSessionSubscriptionController } from "./ui/sessionStorageController";
 
 export function App() {

@@ -1,13 +1,13 @@
-import React, { PropsWithChildren } from "react";
-import { createWorld, universe } from "koota";
-import { WorldProvider } from "koota/react";
+import { GameContext } from "@/game/game";
+import { gameStoreFactory } from "@/game/game";
 import {
   GameSessionContext,
   gameSessionStoreFactory,
   setupWsCloseReconnectionHandler,
 } from "@/net/gameSession";
-import { GameContext } from "@/game/game";
-import { gameStoreFactory } from "@/game/game";
+import { createWorld, universe } from "koota";
+import { WorldProvider } from "koota/react";
+import React, { type PropsWithChildren } from "react";
 
 function createAppComponents() {
   universe.reset();
@@ -34,7 +34,7 @@ function createAppComponents() {
   };
 }
 
-export const GameComponentsProvider = (props: PropsWithChildren<{}>) => {
+export const GameComponentsProvider = (props: PropsWithChildren) => {
   const [{ world, sessionStore, gameStore, initializeSubscriptions }] =
     React.useState(createAppComponents);
 

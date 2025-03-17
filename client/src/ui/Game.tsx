@@ -1,12 +1,11 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import React, { useRef } from "react";
-import * as THREE from "three";
-import { useWorld } from "koota/react";
 import { OfPlayer, Position2 } from "@shared/ecs/trait";
-import { useGameStore } from "@/game/game";
+import { useWorld } from "koota/react";
+import React, { useRef } from "react";
+import type * as THREE from "three";
 
 function GameUI() {
-  return <div className="w-full max-w-[1024px] max-h-[768px] h-full"></div>;
+  return <div className="w-full max-w-[1024px] max-h-[768px] h-full" />;
 }
 
 export function Game() {
@@ -38,11 +37,10 @@ function GameContents() {
   const meshRef = useRef<THREE.Mesh>(null!);
   const meshRefTwo = useRef<THREE.Mesh>(null!);
   const world = useWorld();
-  const gameStatus = useGameStore((s) => s.game?.status);
 
   const memoizedQuery = React.useMemo(() => {
     return world.query(Position2, OfPlayer);
-  }, [gameStatus]);
+  }, [world.query]);
 
   useFrame((_s, _d) => {
     const playerOnePos = memoizedQuery
@@ -74,6 +72,10 @@ function GameContents() {
       playerTwoPos.y,
       lerpFactor,
     );
+
+    // let's just rotate, for fun!
+    meshRef.current.rotation.x += _d;
+    meshRefTwo.current.rotation.x += _d;
   });
 
   return (

@@ -1,9 +1,9 @@
 import { movePosition2ByVelocitySystem } from "@shared/ecs/system.js";
 import { OfPlayer, Position2 } from "@shared/ecs/trait.js";
-import { GameData, GameSimulation } from "@shared/game/types.js";
-import { wsSend } from "./wsSend.js";
-import { WebSocket as WS } from "ws";
+import type { GameData, GameSimulation } from "@shared/game/types.js";
 import { createWorld } from "koota";
+import type { WebSocket as WS } from "ws";
+import { wsSend } from "./wsSend.js";
 
 const TICK_RATE = 1000 / 10; // 60 updates per second (~16.67ms per frame)
 

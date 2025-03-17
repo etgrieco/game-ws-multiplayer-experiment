@@ -1,6 +1,6 @@
-import { MultiplayerGameStatus } from "@shared/game/types";
+import type { MultiplayerGameStatus } from "@shared/game/types";
 
-type SuccessOrFailure<T extends any> =
+type SuccessOrFailure<T> =
   | { data: T; isSuccess: true; failureMessage?: undefined }
   | { data?: undefined; failureMessage: string; isSuccess: false };
 

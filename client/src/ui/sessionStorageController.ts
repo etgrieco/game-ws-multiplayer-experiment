@@ -5,7 +5,10 @@ type SessionData = {
   players: 2; // Hard-code to 2 for now
 };
 
-const subscribeStorageFactory = <TSnapshot extends any = any>(
+const subscribeStorageFactory = <
+  // biome-ignore lint/suspicious/noExplicitAny: This is intended to be a lib-like function
+  TSnapshot extends Record<string, any> = Record<string, any>,
+>(
   storageKey: string,
   /** Depends upon a storage interface that emits the applicable 'storage' event on window(s) upon storage manipulation */
   targetStorage: Storage,
@@ -28,7 +31,7 @@ const subscribeStorageFactory = <TSnapshot extends any = any>(
       const abortController = new AbortController();
       window.addEventListener(
         "storage",
-        function (event) {
+        (event) => {
           const { key, oldValue, newValue, storageArea } = event;
           if (storageArea !== targetStorage) {
             return;

@@ -1,6 +1,6 @@
-import { GameSessionServerEvent } from "@shared/net/messages.js";
-import { WebSocket } from "ws";
 import { randomUUID } from "node:crypto";
+import type { GameSessionServerEvent } from "@shared/net/messages.js";
+import { WebSocket } from "ws";
 
 export function wsSend(
   ws: WebSocket,

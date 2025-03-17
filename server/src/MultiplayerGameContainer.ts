@@ -1,5 +1,8 @@
-import { GameSimulation, MultiplayerGameStatus } from "@shared/game/types.js";
-import { GameSimulationBroadcaster } from "./game-factory.js";
+import type {
+  GameSimulation,
+  MultiplayerGameStatus,
+} from "@shared/game/types.js";
+import type { GameSimulationBroadcaster } from "./game-factory.js";
 
 export type MultiplayerGameContainer = {
   id: string;

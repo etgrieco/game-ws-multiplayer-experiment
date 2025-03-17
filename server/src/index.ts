@@ -1,12 +1,12 @@
-import { WebSocketServer } from "ws";
-import { GameSessionClientEvent } from "@shared/net/messages.js";
-import { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
-import { handleEventsIncoming } from "./handle-events-incoming.js";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait.js";
-import { createWorld, World } from "koota";
+import type { GameSessionClientEvent } from "@shared/net/messages.js";
+import { type World, createWorld } from "koota";
+import { WebSocketServer } from "ws";
+import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
+import { handleEventsIncoming } from "./handle-events-incoming.js";
 import { wsSend } from "./wsSend.js";
 
 const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
@@ -124,26 +124,26 @@ wss.on("connection", function connection(ws) {
       const foundWs = sessionData.broadcaster.connections.includes(ws);
       if (!foundWs) {
         continue;
-      } else {
-        // tell other users a disconnect has happened!
-        sessionData.broadcaster.connections.forEach((ws) => {
-          if (!ws) return;
-          wsSend(ws, {
-            type: "GAME_STATUS_UPDATE",
-            data: {
-              sessionId: sessionId,
-              gameStatus: "PAUSED_AWAITING_PLAYERS",
-            },
-          });
-        });
-        // then, pause the game
-        sessionData.gameSim.pause();
-        break;
       }
+      // tell other users a disconnect has happened!
+      sessionData.broadcaster.connections.forEach((ws) => {
+        if (!ws) return;
+        wsSend(ws, {
+          type: "GAME_STATUS_UPDATE",
+          data: {
+            sessionId: sessionId,
+            gameStatus: "PAUSED_AWAITING_PLAYERS",
+          },
+        });
+      });
+      // then, pause the game
+      sessionData.gameSim.pause();
+      break;
     }
   });
 });
 
+// biome-ignore lint/suspicious/noExplicitAny: This would otherwise be a difficult thing to type
 function tryCatchLog<T extends (...args: any[]) => any>(
   fn: T,
 ): (...args: Parameters<T>) => ReturnType<T> | undefined {

@@ -1,15 +1,4 @@
-import React from "react";
-import { useGameSessionStore } from "@/net/gameSession";
-import { useGameStore, useVanillaGameStore } from "@/game/game";
-import { Game } from "./Game";
-import {
-  GamepadIcon as GamePlus,
-  Users,
-  History,
-  ArrowRight,
-  Copy,
-  ClipboardCheck,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,11 +7,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGameStore, useVanillaGameStore } from "@/game/game";
+import { useGameSessionStore } from "@/net/gameSession";
+import { Label } from "@radix-ui/react-label";
+import {
+  ArrowRight,
+  ClipboardCheck,
+  Copy,
+  GamepadIcon as GamePlus,
+  History,
+  Users,
+} from "lucide-react";
+import React from "react";
+import { toast } from "sonner";
+import { Game } from "./Game";
 import { prevSessionSubscriptionController } from "./sessionStorageController";
 
 function CreateOrJoinInterface(props: {
@@ -159,7 +159,6 @@ export function GameStart() {
   const game = useGameStore((s) => s.game);
   const gameMachineState = useGameStore((s) => s.gameMachineState);
   const sendEvent = useGameSessionStore((s) => s.sendEvent);
-  const gameSessionStore = useGameSessionStore();
   const sessionCode = useGameStore((s) => s.game?.gameData.sessionId);
 
   const gameStore = useVanillaGameStore();
@@ -300,11 +299,14 @@ const formatRelativeTime = (date: Date) => {
 
   if (diffDays > 0) {
     return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-  } else if (diffHours > 0) {
-    return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  } else if (diffMins > 0) {
-    return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
-  } else {
-    return "Just now";
   }
+
+  if (diffHours > 0) {
+    return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+  }
+
+  if (diffMins > 0) {
+    return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
+  }
+  return "Just now";
 };

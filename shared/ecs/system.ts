@@ -1,4 +1,4 @@
-import { World } from "koota";
+import type { World } from "koota";
 import { Position2, Velocity2 } from "./trait.js";
 
 export function movePosition2ByVelocitySystem(world: World, deltaTime: number) {

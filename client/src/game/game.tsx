@@ -1,7 +1,7 @@
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait";
-import { GameSimulation } from "@shared/game/types";
-import { GameSessionClientEvent } from "@shared/net/messages";
-import { World } from "koota";
+import type { GameSimulation } from "@shared/game/types";
+import type { GameSessionClientEvent } from "@shared/net/messages";
+import type { World } from "koota";
 import React from "react";
 import { createStore, useStore } from "zustand";
 
@@ -175,7 +175,7 @@ function setupGameControls(
   },
   gameProvider: () => GameStore,
 ) {
-  document.addEventListener("keydown", function (ev) {
+  document.addEventListener("keydown", (ev) => {
     const gameStore = gameProvider();
     // ignore input on non-playing states
     if (
@@ -266,9 +266,7 @@ export const GameContext = React.createContext<
   undefined | ReturnType<typeof gameStoreFactory>
 >(undefined);
 
-export function useGameStore<T extends any = GameStore>(
-  selector?: (s: GameStore) => T,
-): T {
+export function useGameStore<T = GameStore>(selector?: (s: GameStore) => T): T {
   return useStore(useVanillaGameStore(), selector!);
 }
 
