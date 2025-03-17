@@ -227,7 +227,6 @@ function createGameSimulationFactory(
       return status;
     },
     pause() {
-      console.log("PAUSE CALLED");
       status = "PAUSED";
     },
     start(syncCb) {

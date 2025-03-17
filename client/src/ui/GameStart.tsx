@@ -253,18 +253,6 @@ export function GameStart() {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="self-end">
-                  <Button
-                    onClick={() => {
-                      gameSessionStore.sendEvent({
-                        type: "START_SESSION_GAME",
-                        data: { id: game.gameData.sessionId },
-                      });
-                    }}
-                  >
-                    Start Game
-                  </Button>
-                </div>
               </div>
             </div>
           )}

@@ -261,7 +261,7 @@ function handleSessionServerEvents(
         case "PAUSED_AWAITING_PLAYERS": {
           if (gameStoreSnapshot.game.status === "RUNNING") {
             gameStoreSnapshot.sendGameMessage({
-              message: "Player disconnected, pausing game!",
+              message: "Player disconnected 💀, pausing game ⏸️",
               id: jsonData.id,
             });
             gameStoreSnapshot.game.pause();
@@ -272,6 +272,10 @@ function handleSessionServerEvents(
           break;
         }
         case "PAUSED_AWAITING_START": {
+          gameStoreSnapshot.sendGameMessage({
+            message: "Player re-connected 🔌",
+            id: jsonData.id,
+          });
           gameStoreSnapshot.setGameMachineState({
             name: "SESSION_CONNECTED_WITH_GAME_READY",
           });
