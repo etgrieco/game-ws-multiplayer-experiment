@@ -10,7 +10,7 @@ function GameUI() {
 
 export function Game() {
   return (
-    <div className="flex flex-col w-full max-w-[1024px]">
+    <div className="flex flex-col max-w-[1024px] max-h-[768px] min-h-[768px] w-full h-full">
       <Canvas>
         <ambientLight intensity={Math.PI / 2} />
         <spotLight
@@ -53,24 +53,24 @@ function GameContents() {
     meshRef.current.position.x = lerp(
       meshRef.current.position.x,
       playerOnePos.x,
-      lerpFactor,
+      lerpFactor
     );
 
     meshRef.current.position.y = lerp(
       meshRef.current.position.y,
       playerOnePos.y,
-      lerpFactor,
+      lerpFactor
     );
 
     meshRefTwo.current.position.x = lerp(
       meshRefTwo.current.position.x,
       playerTwoPos.x,
-      lerpFactor,
+      lerpFactor
     );
     meshRefTwo.current.position.y = lerp(
       meshRefTwo.current.position.y,
       playerTwoPos.y,
-      lerpFactor,
+      lerpFactor
     );
 
     // let's just rotate, for fun!
