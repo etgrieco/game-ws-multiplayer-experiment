@@ -8,7 +8,7 @@ import { OrbitControls } from "@react-three/drei";
 
 export function Game() {
   return (
-    <div className="w-[1024px] h-[768px]">
+    <div className="w-[1024px] h-[768px] border-2 border-solid rounded-sm">
       <Canvas>
         <GameContents />
       </Canvas>
