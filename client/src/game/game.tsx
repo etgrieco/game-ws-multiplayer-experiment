@@ -27,10 +27,20 @@ export type GameStore = Readonly<{
   lastGameMessage: { message: string; id: string } | null;
   sendGameError: (err: { message: string; id: string }) => void;
   sendGameMessage: (msg: { message: string; id: string }) => void;
-  setupGame: (id: string, myPlayerAssignment: 1 | 2, playerId: string) => void;
+  setupGame: (
+    id: string,
+    myPlayerId: string,
+    initialState: {
+      pos: { x: number; y: number };
+      playerId: string;
+      playerAssignment: 1 | 2;
+    }[]
+  ) => void;
   connectGameNet: (newSender: (ev: GameSessionClientEvent) => void) => void;
   startGame: (sessionId: string) => void;
-  updatePositions: (playerPositions: { x: number; y: number }[]) => void;
+  updatePositions: (
+    playerPositions: { x: number; y: number; playerId: string }[]
+  ) => void;
 }>;
 
 export const gameStoreFactory = (mainWorld: World) => {
@@ -68,13 +78,13 @@ export const gameStoreFactory = (mainWorld: World) => {
       sendGameError({ id, message }) {
         set({ lastGameError: { id, message } });
       },
-      setupGame(id, myPlayerAssignment, playerId) {
+      setupGame(id, myPlayerId, initialState) {
         set({
           game: createGameSimulationFactory(
             id,
-            myPlayerAssignment,
-            playerId,
-            mainWorld,
+            myPlayerId,
+            initialState,
+            mainWorld
           ),
         });
       },
@@ -89,7 +99,7 @@ export const gameStoreFactory = (mainWorld: World) => {
           "SESSION_CONNECTED_WITH_GAME_READY"
         ) {
           throw new Error(
-            `Cannot start game outside of SESSION_CONNECTED_WITH_GAME_READY state. (${gameStore.gameMachineState.name})`,
+            `Cannot start game outside of SESSION_CONNECTED_WITH_GAME_READY state. (${gameStore.gameMachineState.name})`
           );
         }
         if (sessionId !== game.sessionId) {
@@ -132,7 +142,7 @@ export const gameStoreFactory = (mainWorld: World) => {
               });
             },
           },
-          getStore,
+          getStore
         );
         set({
           gameMachineState: {
@@ -145,22 +155,49 @@ export const gameStoreFactory = (mainWorld: World) => {
         const game = getStore().game;
         if (!game) {
           throw new Error(
-            "Illegal state update; Updated positions on updated positions.",
+            "Illegal state update; Updated positions on updated positions."
           );
         }
-        const playerOnePos = playerPositions[0]!;
-        const playerTwoPos = playerPositions[1]!;
+        const clientPlayers = game.gameData.world
+          .query(Position2, OfPlayer)
+          .map((e) => {
+            return {
+              pos: e.get(Position2)!,
+              player: e.get(OfPlayer)!,
+            };
+          });
+        // Ensure all players exist!
+        playerPositions.forEach((p, idx) => {
+          const hasPlayer = clientPlayers.some(
+            (cp) => p.playerId === cp.player.playerId
+          );
+          if (!hasPlayer) {
+            game.gameData.world.spawn(
+              Position2(),
+              Velocity2,
+              OfPlayer({
+                // FIXME: get truth from server
+                playerNumber: idx + 1,
+                // Always someone else
+                isMe: false,
+                playerId: p.playerId,
+              })
+            );
+          }
+        });
+
+        // Now, update
         game.gameData.world
           .query(Position2, OfPlayer)
           .updateEach(([p, player]) => {
-            // re-sync my world from server!
-            if (player.playerNumber === 1) {
-              p.x = playerOnePos.x;
-              p.y = playerOnePos.y;
-            } else if (player.playerNumber === 2) {
-              p.x = playerTwoPos.x;
-              p.y = playerTwoPos.y;
+            const matchingPlayer = playerPositions.find(
+              (serverPlayer) => serverPlayer.playerId === player.playerId
+            );
+            if (!matchingPlayer) {
+              throw new Error("Player to update no longer exists!?");
             }
+            p.x = matchingPlayer.x;
+            p.y = matchingPlayer.y;
           });
       },
     };
@@ -173,7 +210,7 @@ function setupGameControls(
     handleMovePlayerLeft(): void;
     handleMovePlayerRight(): void;
   },
-  gameProvider: () => GameStore,
+  gameProvider: () => GameStore
 ) {
   document.addEventListener("keydown", (ev) => {
     const gameStore = gameProvider();
@@ -199,27 +236,26 @@ function setupGameControls(
 
 function createGameSimulationFactory(
   id: string,
-  myPlayerAssignment: 1 | 2,
-  playerId: string,
-  world: World,
+  myPlayerId: string,
+  initialState: {
+    pos: { x: number; y: number };
+    playerId: string;
+    playerAssignment: 1 | 2;
+  }[],
+  world: World
 ): GameSimulation {
-  // player 1 thing
-  world.spawn(
-    Position2(),
-    Velocity2(),
-    OfPlayer({ playerNumber: 1, isMe: myPlayerAssignment === 1, playerId }),
-  );
-
-  // player 2 thing
-  world.spawn(
-    Position2(),
-    Velocity2(),
-    OfPlayer({
-      playerNumber: 2,
-      isMe: myPlayerAssignment === 2,
-      playerId: playerId,
-    }),
-  );
+  // spawn players
+  initialState.forEach((p, idx) => {
+    world.spawn(
+      Position2(p.pos),
+      Velocity2(),
+      OfPlayer({
+        playerNumber: idx + 1,
+        isMe: myPlayerId === p.playerId,
+        playerId: p.playerId,
+      })
+    );
+  });
 
   let status: GameSimulation["status"] = "PAUSED";
   return {

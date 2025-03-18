@@ -10,7 +10,7 @@ const TICK_RATE = 1000 / 10; // 60 updates per second (~16.67ms per frame)
 /** First step to run to set up game logic + initial state */
 export function setupGameSimulation(
   id: string,
-  world = createWorld(),
+  world = createWorld()
 ): GameSimulation {
   const gameData: GameSimulation["gameData"] = {
     sessionId: id,
@@ -45,7 +45,7 @@ export type GameSimulationBroadcaster = {
 
 export function createGameBroadcaster(
   gameData: GameData,
-  wsConnections: [WS | null, WS | null],
+  wsConnections: [WS | null, WS | null]
 ): GameSimulationBroadcaster {
   const privConnections: typeof wsConnections = [
     wsConnections[0],
@@ -64,10 +64,10 @@ export function createGameBroadcaster(
       const playerPositionsQuery = gameData.world.query(Position2, OfPlayer);
       const entitiesOrdered = [
         playerPositionsQuery.filter(
-          (v) => v.get(OfPlayer)!.playerNumber === 1,
+          (v) => v.get(OfPlayer)!.playerNumber === 1
         )[0]!,
         playerPositionsQuery.filter(
-          (v) => v.get(OfPlayer)!.playerNumber === 2,
+          (v) => v.get(OfPlayer)!.playerNumber === 2
         )[0]!,
       ] as const;
 
@@ -81,11 +81,18 @@ export function createGameBroadcaster(
           break;
         }
         wsSend(ws, {
+          id: crypto.randomUUID(),
           type: "POSITIONS_UPDATE",
           data: {
             playerPositions: [
-              entitiesOrdered[0].get(Position2)!,
-              entitiesOrdered[1].get(Position2)!,
+              {
+                ...entitiesOrdered[0].get(Position2)!,
+                playerId: entitiesOrdered[0].get(OfPlayer)!.playerId,
+              },
+              {
+                ...entitiesOrdered[1].get(Position2)!,
+                playerId: entitiesOrdered[1].get(OfPlayer)!.playerId,
+              },
             ],
           },
         });

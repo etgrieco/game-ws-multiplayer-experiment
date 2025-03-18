@@ -31,13 +31,13 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) => {
         return set(function setupWs(state) {
           if (state.ws) {
             throw new Error(
-              "WS already set! make sure to get rid of it first...",
+              "WS already set! make sure to get rid of it first..."
             );
           }
           const { ws } = createWsConnection(
             gameStoreProvider,
             onOpen,
-            onFailure,
+            onFailure
           );
           return { ws };
         });
@@ -56,7 +56,7 @@ export const GameSessionContext = React.createContext<
 >(undefined);
 
 export function useGameSessionStore<T = WsStore>(
-  selector?: (s: WsStore) => T,
+  selector?: (s: WsStore) => T
 ): T {
   const store = React.use(GameSessionContext);
   if (!store) {
@@ -76,7 +76,7 @@ export function useVanillaGameStore() {
 /** Once the store is initialize, use this helper to subscribe to changes and deal with re-connection attempts */
 export function setupWsCloseReconnectionHandler(
   wsStore: StoreApi<WsStore>,
-  gameStoreProvider: () => GameStore,
+  gameStoreProvider: () => GameStore
 ) {
   function connectToGame(onConnect?: () => void, onFailure?: () => void) {
     return wsStore.getState().initWs(function onSuccess() {
@@ -87,7 +87,7 @@ export function setupWsCloseReconnectionHandler(
         const sessionData = getStoredSessionData();
         if (!sessionData) {
           throw new Error(
-            "I expect to have session data if a game is running!",
+            "I expect to have session data if a game is running!"
           );
         }
         wsStore.getState().sendEvent({
@@ -129,7 +129,7 @@ export function setupWsCloseReconnectionHandler(
         }, 3_000);
         abortController.abort();
       },
-      { signal: abortController.signal },
+      { signal: abortController.signal }
     );
   }
 
@@ -144,7 +144,7 @@ export function setupWsCloseReconnectionHandler(
         toast("Failed to initialize connection to game server ❌", {
           position: "top-right",
         });
-      },
+      }
     );
 
     // if previous succeeded, wire up a close handler!
@@ -174,7 +174,7 @@ function wsSend(ws: WebSocket, msg: GameSessionClientEvent): void {
 function createWsConnection(
   gameStoreProvider: () => GameStore,
   onOpen?: () => void,
-  onInitialConnectionFailure?: () => void,
+  onInitialConnectionFailure?: () => void
 ) {
   let didInitiallyConnect = false;
   const wsAbortController = new AbortController();
@@ -187,7 +187,7 @@ function createWsConnection(
       console.debug("connected to the server");
       onOpen?.();
     },
-    { signal: wsAbortController.signal },
+    { signal: wsAbortController.signal }
   );
 
   ws.addEventListener(
@@ -201,7 +201,7 @@ function createWsConnection(
         onInitialConnectionFailure?.();
       }
     },
-    { signal: wsAbortController.signal },
+    { signal: wsAbortController.signal }
   );
 
   ws.addEventListener(
@@ -209,7 +209,7 @@ function createWsConnection(
     (e) => {
       console.debug("Received message: ", e.data);
     },
-    { signal: wsAbortController.signal },
+    { signal: wsAbortController.signal }
   );
 
   ws.addEventListener(
@@ -231,7 +231,7 @@ function createWsConnection(
         }
       }
     },
-    { signal: wsAbortController.signal },
+    { signal: wsAbortController.signal }
   );
 
   return { ws, wsAbortController };
@@ -239,7 +239,7 @@ function createWsConnection(
 
 function handleSessionServerEvents(
   jsonData: GameSessionServerEvent,
-  gameStoreSnapshot: GameStore,
+  gameStoreSnapshot: GameStore
 ) {
   switch (jsonData.type) {
     case "GAME_STATUS_UPDATE": {
@@ -295,7 +295,7 @@ function handleSessionServerEvents(
         });
         return;
       }
-      gameStoreSnapshot.setupGame(data.id, 1, data.playerId);
+      gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
       gameStoreSnapshot.setGameMachineState({
         name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
       });
@@ -310,7 +310,7 @@ function handleSessionServerEvents(
         });
         return;
       }
-      gameStoreSnapshot.setupGame(data.id, 2, data.playerId);
+      gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
       gameStoreSnapshot.setGameMachineState({
         name: "SESSION_CONNECTED_WITH_GAME_READY",
       });
@@ -325,7 +325,7 @@ function handleSessionServerEvents(
         });
         return;
       }
-      gameStoreSnapshot.setupGame(data.id, data.playerNumber, data.playerId);
+      gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
       if (data.gameStatus === "PAUSED_AWAITING_PLAYERS") {
         gameStoreSnapshot.setGameMachineState({
           name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
@@ -374,7 +374,7 @@ function handleSessionServerEvents(
           ? jsonUnknown.type
           : undefined;
       console.warn(
-        `Unhandled server event${jsonUnknownType ? `, ${jsonUnknownType}` : ""}`,
+        `Unhandled server event${jsonUnknownType ? `, ${jsonUnknownType}` : ""}`
       );
     }
   }

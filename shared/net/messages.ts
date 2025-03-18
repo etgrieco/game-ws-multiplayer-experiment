@@ -9,25 +9,41 @@ export type GameSessionServerEvent =
   | {
       type: "CREATE_NEW_SESSION_RESPONSE";
       id: string;
-      data: SuccessOrFailure<{ id: string; playerId: string }>;
+      data: SuccessOrFailure<{
+        id: string;
+        myPlayerId: string;
+        initialState: {
+          pos: { x: number; y: number };
+          playerId: string;
+          playerAssignment: 1 | 2;
+        }[];
+      }>;
     }
   | {
       type: "JOIN_SESSION_RESPONSE";
       id: string;
       data: SuccessOrFailure<{
         id: string;
-        playerId: string;
-        gameStatus: MultiplayerGameStatus;
+        myPlayerId: string;
+        initialState: {
+          pos: { x: number; y: number };
+          playerId: string;
+          playerAssignment: 1 | 2;
+        }[];
       }>;
     }
   | {
       type: "REJOIN_EXISTING_SESSION_RESPONSE";
       id: string;
       data: SuccessOrFailure<{
-        id: string;
-        playerId: string;
-        playerNumber: 1 | 2;
         gameStatus: MultiplayerGameStatus;
+        id: string;
+        myPlayerId: string;
+        initialState: {
+          pos: { x: number; y: number };
+          playerId: string;
+          playerAssignment: 1 | 2;
+        }[];
       }>;
     }
   | {
@@ -39,7 +55,7 @@ export type GameSessionServerEvent =
       type: "POSITIONS_UPDATE";
       id: string;
       data: {
-        playerPositions: [{ x: number; y: number }, { x: number; y: number }];
+        playerPositions: { x: number; y: number; playerId: string }[];
       };
     }
   | {

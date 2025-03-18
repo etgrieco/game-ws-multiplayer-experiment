@@ -38,7 +38,7 @@ const sessionsData: SessionMap = new Map(
       console.error("Backup read failed, return empty");
       return [];
     }
-  })(),
+  })()
 );
 
 function toWorldJSONBackup(container: World) {
@@ -65,7 +65,7 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
         world.spawn(Position2(e.pos), Velocity2(e.vel), OfPlayer(e.player));
       } else {
         console.warn(
-          "I do not know how to spawn non-player entity... moving on",
+          "I do not know how to spawn non-player entity... moving on"
         );
       }
     });
@@ -93,7 +93,7 @@ process.on("exit", () => {
     JSON.stringify(data),
     {
       encoding: BAK_FILE_ENC,
-    },
+    }
   );
 });
 
@@ -116,7 +116,7 @@ wss.on("connection", function connection(ws) {
         sessionsData,
         ws,
       });
-    }),
+    })
   );
 
   ws.on("close", function close(_code, _reason) {
@@ -129,6 +129,7 @@ wss.on("connection", function connection(ws) {
       sessionData.broadcaster.connections.forEach((ws) => {
         if (!ws) return;
         wsSend(ws, {
+          id: crypto.randomUUID(),
           type: "GAME_STATUS_UPDATE",
           data: {
             sessionId: sessionId,
@@ -145,7 +146,7 @@ wss.on("connection", function connection(ws) {
 
 // biome-ignore lint/suspicious/noExplicitAny: This would otherwise be a difficult thing to type
 function tryCatchLog<T extends (...args: any[]) => any>(
-  fn: T,
+  fn: T
 ): (...args: Parameters<T>) => ReturnType<T> | undefined {
   return (...args: Parameters<T>): ReturnType<T> | undefined => {
     try {
