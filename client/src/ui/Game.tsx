@@ -4,11 +4,12 @@ import { useQuery, useWorld } from "koota/react";
 import React, { useRef } from "react";
 // biome-ignore lint/style/useImportType: Let this change over time...
 import * as THREE from "three";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Stats } from "@react-three/drei";
+import { useControls } from "leva";
 
 export function Game() {
   return (
-    <div className="w-[1024px] h-[768px] border-2 border-solid rounded-sm">
+    <div className="w-[640px] h-[480px] border-2 border-solid rounded-sm">
       <Canvas>
         <GameContents />
       </Canvas>
@@ -58,24 +59,42 @@ function GamePlayer(props: { playerId: string; color: number }) {
   );
 }
 
+function Terrain(props: { width: number; height: number }) {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]}>
+      <meshStandardMaterial color={0x50a000} />
+      <planeGeometry args={[props.width, props.height]} />
+    </mesh>
+  );
+}
+
 const playerColors = [0x00ff00, 0xff0000];
 
 function GameContents() {
   const players = useQuery(Position2, OfPlayer);
+  const { width: terrainWidth, height: terrainHeight } = useControls(
+    "Terrain",
+    { width: 10, height: 10 }
+  );
 
   return (
     <>
       <OrbitControls />
+      <Stats />
       <directionalLight position={[1, 1, 1]} />
-      {players.map((p, idx) => {
-        return (
-          <GamePlayer
-            key={p.get(OfPlayer)!.playerId}
-            color={playerColors[idx % playerColors.length]!}
-            playerId={p.get(OfPlayer)!.playerId}
-          />
-        );
-      })}
+      <ambientLight intensity={0.5} />
+      <scene>
+        {players.map((p, idx) => {
+          return (
+            <GamePlayer
+              key={p.get(OfPlayer)!.playerId}
+              color={playerColors[idx % playerColors.length]!}
+              playerId={p.get(OfPlayer)!.playerId}
+            />
+          );
+        })}
+        <Terrain width={terrainWidth} height={terrainHeight} />
+      </scene>
     </>
   );
 }
