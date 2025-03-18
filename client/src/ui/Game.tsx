@@ -1,6 +1,6 @@
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OfPlayer, Position2 } from "@shared/ecs/trait";
-import { useQuery } from "koota/react";
+import { useQuery, useWorld } from "koota/react";
 import React, { useRef } from "react";
 // biome-ignore lint/style/useImportType: Let this change over time...
 import * as THREE from "three";
@@ -21,19 +21,29 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
-function GamePlayer(props: { posX: number; posY: number; color: number }) {
+function GamePlayer(props: { playerId: string; color: number }) {
   const meshRef = useRef<THREE.Mesh>(null!);
+  const world = useWorld();
 
   useFrame((_s, d) => {
+    const myPlayer = world
+      .query(Position2, OfPlayer)
+      .find((p) => p.get(OfPlayer)!.playerId === props.playerId);
+    if (!myPlayer) {
+      console.error("Can't find player entity for component. huh?");
+      return;
+    }
+    const myPlayerPos = myPlayer.get(Position2)!;
+
     meshRef.current.position.x = lerp(
       meshRef.current.position.x,
-      props.posX,
+      myPlayerPos.x,
       lerpFactor
     );
 
     meshRef.current.position.y = lerp(
       meshRef.current.position.y,
-      props.posY,
+      myPlayerPos.y,
       lerpFactor
     );
 
@@ -48,35 +58,24 @@ function GamePlayer(props: { posX: number; posY: number; color: number }) {
   );
 }
 
+const playerColors = [0x00ff00, 0xff0000];
+
 function GameContents() {
-  const query = useQuery(Position2, OfPlayer);
-
-  const playerOnePos = query
-    .find((e) => e.get(OfPlayer)!.playerNumber === 1)
-    ?.get(Position2);
-
-  const playerTwoPos = query
-    .find((e) => e.get(OfPlayer)!.playerNumber === 2)
-    ?.get(Position2);
+  const players = useQuery(Position2, OfPlayer);
 
   return (
     <>
       <OrbitControls />
       <directionalLight position={[1, 1, 1]} />
-      {playerOnePos ? (
-        <GamePlayer
-          posX={playerOnePos.x}
-          posY={playerOnePos.y}
-          color={0xff0000}
-        />
-      ) : null}
-      {playerTwoPos ? (
-        <GamePlayer
-          posX={playerTwoPos.x}
-          posY={playerTwoPos.y}
-          color={0x00ff00}
-        />
-      ) : null}
+      {players.map((p, idx) => {
+        return (
+          <GamePlayer
+            key={p.get(OfPlayer)!.playerId}
+            color={playerColors[idx % playerColors.length]!}
+            playerId={p.get(OfPlayer)!.playerId}
+          />
+        );
+      })}
     </>
   );
 }
