@@ -133,7 +133,7 @@ wss.on("connection", function connection(ws) {
           type: "GAME_STATUS_UPDATE",
           data: {
             sessionId: sessionId,
-            gameStatus: "PAUSED_AWAITING_PLAYERS",
+            multiplayerSessionStatus: "PAUSED_AWAITING_PLAYERS",
           },
         });
       });

@@ -247,15 +247,13 @@ function handleSessionServerEvents(
       if (data.sessionId !== gameStoreSnapshot.game?.gameData.sessionId) {
         throw new Error("received session update about another game; weird!");
       }
+      gameStoreSnapshot.setMultiplayerSessionStatus(
+        data.multiplayerSessionStatus
+      );
       // Handle each game status update...
-      switch (data.gameStatus) {
+      switch (data.multiplayerSessionStatus) {
         case "PLAYING": {
-          if (
-            gameStoreSnapshot.gameMachineState.name !==
-            "SESSION_CONNECTED_WITH_GAME_PLAYING"
-          ) {
-            gameStoreSnapshot.startGame(data.sessionId);
-          }
+          gameStoreSnapshot.startGame(data.sessionId);
           break;
         }
         case "PAUSED_AWAITING_PLAYERS": {
@@ -266,9 +264,6 @@ function handleSessionServerEvents(
             });
             gameStoreSnapshot.game.pause();
           }
-          gameStoreSnapshot.setGameMachineState({
-            name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
-          });
           break;
         }
         case "PAUSED_AWAITING_START": {
@@ -276,13 +271,12 @@ function handleSessionServerEvents(
             message: "Player re-connected 🔌",
             id: jsonData.id,
           });
-          gameStoreSnapshot.setGameMachineState({
-            name: "SESSION_CONNECTED_WITH_GAME_READY",
-          });
           break;
         }
         default:
-          throw new Error(`Unhandled game status update ${data.gameStatus}`);
+          throw new Error(
+            `Unhandled game status update ${data.multiplayerSessionStatus}`
+          );
       }
       break;
     }
@@ -296,9 +290,9 @@ function handleSessionServerEvents(
         return;
       }
       gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
-      gameStoreSnapshot.setGameMachineState({
-        name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
-      });
+      gameStoreSnapshot.setMultiplayerSessionStatus(
+        data.multiplayerSessionStatus
+      );
       break;
     }
     case "JOIN_SESSION_RESPONSE": {
@@ -311,9 +305,9 @@ function handleSessionServerEvents(
         return;
       }
       gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
-      gameStoreSnapshot.setGameMachineState({
-        name: "SESSION_CONNECTED_WITH_GAME_READY",
-      });
+      gameStoreSnapshot.setMultiplayerSessionStatus(
+        data.multiplayerSessionStatus
+      );
       break;
     }
     case "REJOIN_EXISTING_SESSION_RESPONSE": {
@@ -325,23 +319,13 @@ function handleSessionServerEvents(
         });
         return;
       }
+      gameStoreSnapshot.setMultiplayerSessionStatus(
+        data.multiplayerSessionStatus
+      );
       gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
-      if (data.gameStatus === "PAUSED_AWAITING_PLAYERS") {
-        gameStoreSnapshot.setGameMachineState({
-          name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER",
-        });
-      } else if (data.gameStatus === "PAUSED_AWAITING_START") {
-        gameStoreSnapshot.setGameMachineState({
-          name: "SESSION_CONNECTED_WITH_GAME_READY",
-        });
-      } else if (data.gameStatus === "PLAYING") {
-        gameStoreSnapshot.setGameMachineState({
-          name: "SESSION_CONNECTED_WITH_GAME_READY",
-        });
+      if (data.multiplayerSessionStatus === "PLAYING") {
         // trigger a start
         gameStoreSnapshot.startGame(data.id);
-      } else {
-        throw new Error(`Unhandled gameStatus ${data.gameStatus}`);
       }
       break;
     }
@@ -354,8 +338,8 @@ function handleSessionServerEvents(
         });
         return;
       }
-      if (data.gameStatus === "PLAYING") {
-        // trigger a start
+      if (data.multiplayerSessionStatus === "PLAYING") {
+        // trigger a start if not currently already started
         gameStoreSnapshot.startGame(data.id);
       }
       break;

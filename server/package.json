@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "koota": "^0.2.2",
+    "koota": "catalog:",
     "ws": "^8.18.1"
   },
   "devDependencies": {

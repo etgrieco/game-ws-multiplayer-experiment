@@ -29,6 +29,7 @@ export function handleEventsIncoming(
         Velocity2(),
         OfPlayer({ playerNumber: playerNumber, playerId: newPlayerId })
       );
+      session.gameStatus = "PAUSED_AWAITING_PLAYERS";
 
       wsSend(context.ws, {
         id: crypto.randomUUID(),
@@ -37,6 +38,7 @@ export function handleEventsIncoming(
           isSuccess: true,
           data: {
             id: session.id,
+            multiplayerSessionStatus: session.gameStatus,
             initialState: getPlayersInitialState(
               session.gameSim.gameData.world
             ),
@@ -88,6 +90,7 @@ export function handleEventsIncoming(
             initialState: getPlayersInitialState(
               session.gameSim.gameData.world
             ),
+            multiplayerSessionStatus: session.gameStatus,
             myPlayerId: newPlayerId,
           },
         },
@@ -99,7 +102,7 @@ export function handleEventsIncoming(
           id: crypto.randomUUID(),
           type: "GAME_STATUS_UPDATE",
           data: {
-            gameStatus: session.gameStatus,
+            multiplayerSessionStatus: session.gameStatus,
             sessionId: session.id,
           },
         });
@@ -184,7 +187,7 @@ export function handleEventsIncoming(
           isSuccess: true,
           data: {
             id: session.id,
-            gameStatus: session.gameStatus,
+            multiplayerSessionStatus: session.gameStatus,
             initialState: getPlayersInitialState(
               session.gameSim.gameData.world
             ),
@@ -199,7 +202,7 @@ export function handleEventsIncoming(
           id: crypto.randomUUID(),
           type: "GAME_STATUS_UPDATE",
           data: {
-            gameStatus: session.gameStatus,
+            multiplayerSessionStatus: session.gameStatus,
             sessionId: session.id,
           },
         });
@@ -271,7 +274,7 @@ export function handleEventsIncoming(
             isSuccess: true,
             data: {
               id: session.gameSim.gameData.sessionId,
-              gameStatus: session.gameStatus,
+              multiplayerSessionStatus: session.gameStatus,
             },
           },
         });

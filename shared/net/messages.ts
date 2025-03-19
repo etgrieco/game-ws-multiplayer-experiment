@@ -1,4 +1,4 @@
-import type { MultiplayerGameStatus } from "@shared/game/types";
+import type { MultiplayerSessionStatus } from "@shared/game/types";
 
 type SuccessOrFailure<T> =
   | { data: T; isSuccess: true; failureMessage?: undefined }
@@ -12,6 +12,7 @@ export type GameSessionServerEvent =
       data: SuccessOrFailure<{
         id: string;
         myPlayerId: string;
+        multiplayerSessionStatus: MultiplayerSessionStatus;
         initialState: {
           pos: { x: number; y: number };
           playerId: string;
@@ -25,6 +26,7 @@ export type GameSessionServerEvent =
       data: SuccessOrFailure<{
         id: string;
         myPlayerId: string;
+        multiplayerSessionStatus: MultiplayerSessionStatus;
         initialState: {
           pos: { x: number; y: number };
           playerId: string;
@@ -36,7 +38,7 @@ export type GameSessionServerEvent =
       type: "REJOIN_EXISTING_SESSION_RESPONSE";
       id: string;
       data: SuccessOrFailure<{
-        gameStatus: MultiplayerGameStatus;
+        multiplayerSessionStatus: MultiplayerSessionStatus;
         id: string;
         myPlayerId: string;
         initialState: {
@@ -49,7 +51,10 @@ export type GameSessionServerEvent =
   | {
       type: "START_SESSION_GAME_RESPONSE";
       id: string;
-      data: SuccessOrFailure<{ id: string; gameStatus: MultiplayerGameStatus }>;
+      data: SuccessOrFailure<{
+        id: string;
+        multiplayerSessionStatus: MultiplayerSessionStatus;
+      }>;
     }
   | {
       type: "POSITIONS_UPDATE";
@@ -63,7 +68,7 @@ export type GameSessionServerEvent =
       id: string;
       data: {
         sessionId: string;
-        gameStatus: MultiplayerGameStatus;
+        multiplayerSessionStatus: MultiplayerSessionStatus;
       };
     };
 

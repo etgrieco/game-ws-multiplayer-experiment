@@ -1,28 +1,17 @@
 import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait";
-import type { GameSimulation } from "@shared/game/types";
+import type {
+  GameSimulation,
+  MultiplayerSessionStatus,
+} from "@shared/game/types";
 import type { GameSessionClientEvent } from "@shared/net/messages";
 import type { World } from "koota";
 import React from "react";
 import { createStore, useStore } from "zustand";
 
-type GameMachineState =
-  | {
-      name: "INIT";
-    }
-  | {
-      name: "SESSION_CONNECTED_WITH_GAME_PLAYING";
-    }
-  | {
-      name: "SESSION_CONNECTED_WITH_GAME_READY";
-    }
-  | {
-      name: "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER";
-    };
-
 export type GameStore = Readonly<{
   game: GameSimulation | null;
-  gameMachineState: GameMachineState;
-  setGameMachineState(newState: GameMachineState): void;
+  multiplayerSessionStatus: MultiplayerSessionStatus;
+  setMultiplayerSessionStatus: (status: MultiplayerSessionStatus) => void;
   lastGameError: { message: string; id: string } | null;
   lastGameMessage: { message: string; id: string } | null;
   sendGameError: (err: { message: string; id: string }) => void;
@@ -38,6 +27,7 @@ export type GameStore = Readonly<{
   ) => void;
   connectGameNet: (newSender: (ev: GameSessionClientEvent) => void) => void;
   startGame: (sessionId: string) => void;
+  pauseGame: () => void;
   updatePositions: (
     playerPositions: { x: number; y: number; playerId: string }[]
   ) => void;
@@ -56,14 +46,15 @@ export const gameStoreFactory = (mainWorld: World) => {
     };
     return {
       game: null,
+      multiplayerSessionStatus: "PAUSED_AWAITING_PLAYERS",
+      setMultiplayerSessionStatus(newStatus) {
+        set({ multiplayerSessionStatus: newStatus });
+      },
       gameMachineState: {
         name: "INIT",
       },
       connectGameNet(newSender) {
         sendNetEvent = newSender;
-      },
-      setGameMachineState(newState) {
-        set({ gameMachineState: newState });
       },
       lastGameError: null,
       lastGameMessage: null,
@@ -88,18 +79,23 @@ export const gameStoreFactory = (mainWorld: World) => {
           ),
         });
       },
+      pauseGame() {
+        const gameStore = getStore();
+        const game = gameStore.game;
+        if (!game) {
+          throw new Error("Cannot pause game before initialization");
+        }
+        game.pause();
+      },
       startGame(sessionId: string) {
         const gameStore = getStore();
         const game = gameStore.game?.gameData;
         if (!game) {
           throw new Error("Cannot start game before initialization");
         }
-        if (
-          gameStore.gameMachineState.name !==
-          "SESSION_CONNECTED_WITH_GAME_READY"
-        ) {
+        if (gameStore.multiplayerSessionStatus !== "PAUSED_AWAITING_START") {
           throw new Error(
-            `Cannot start game outside of SESSION_CONNECTED_WITH_GAME_READY state. (${gameStore.gameMachineState.name})`
+            `Cannot start game outside of PAUSED_AWAITING_START state. (current state: ${gameStore.multiplayerSessionStatus})`
           );
         }
         if (sessionId !== game.sessionId) {
@@ -145,9 +141,7 @@ export const gameStoreFactory = (mainWorld: World) => {
           getStore
         );
         set({
-          gameMachineState: {
-            name: "SESSION_CONNECTED_WITH_GAME_PLAYING",
-          },
+          multiplayerSessionStatus: "PLAYING",
         });
         gameStore.game.start(); // start client-side game loop
       },
@@ -215,9 +209,7 @@ function setupGameControls(
   document.addEventListener("keydown", (ev) => {
     const gameStore = gameProvider();
     // ignore input on non-playing states
-    if (
-      gameStore.gameMachineState.name !== "SESSION_CONNECTED_WITH_GAME_PLAYING"
-    ) {
+    if (gameStore.game?.status === "PAUSED") {
       return;
     }
     // TODO: Refactor this as an input queue processed by a client-side system
@@ -247,7 +239,8 @@ function createGameSimulationFactory(
   // spawn players
   initialState.forEach((p, idx) => {
     world.spawn(
-      Position2(p.pos),
+      // @ts-expect-error - not sure what's going wrong here, file a bug report
+      Position2({ x: p.pos.x, y: p.pos.y }),
       Velocity2(),
       OfPlayer({
         playerNumber: idx + 1,

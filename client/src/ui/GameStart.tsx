@@ -33,7 +33,7 @@ function CreateOrJoinInterface(props: {
   const [sessionCode, setSessionCode] = React.useState("");
   const storageSession = React.useSyncExternalStore(
     prevSessionSubscriptionController.subscribe,
-    prevSessionSubscriptionController.getSnapshot,
+    prevSessionSubscriptionController.getSnapshot
   );
   const [activeTab, setActiveTab] = React.useState<
     "create" | "join" | "restore"
@@ -157,7 +157,9 @@ function CreateOrJoinInterface(props: {
 
 export function GameStart() {
   const game = useGameStore((s) => s.game);
-  const gameMachineState = useGameStore((s) => s.gameMachineState);
+  const multiplayerSessionStatus = useGameStore(
+    (s) => s.multiplayerSessionStatus
+  );
   const sendEvent = useGameSessionStore((s) => s.sendEvent);
   const sessionCode = useGameStore((s) => s.game?.gameData.sessionId);
 
@@ -179,7 +181,7 @@ export function GameStart() {
         }
       });
     },
-    [gameStore],
+    [gameStore]
   );
 
   React.useEffect(
@@ -198,7 +200,7 @@ export function GameStart() {
         }
       });
     },
-    [gameStore],
+    [gameStore]
   );
 
   if (game) {
@@ -219,7 +221,7 @@ export function GameStart() {
 
     return (
       <div className="text-primary">
-        {gameMachineState.name === "SESSION_CONNECTED_WITH_GAME_READY" ? (
+        {multiplayerSessionStatus === "PAUSED_AWAITING_START" ? (
           <div>
             Ready to start?{" "}
             <Button
@@ -237,8 +239,7 @@ export function GameStart() {
           </div>
         ) : null}
         {sessionCode &&
-          gameMachineState.name ===
-            "SESSION_CONNECTED_WITH_GAME_WAITING_PLAYER" && (
+          multiplayerSessionStatus === "PAUSED_AWAITING_PLAYERS" && (
             <div className="p-4 bg-slate-700/50 rounded-md">
               <p className="text-sm text-secondary">
                 Share this code with friends:

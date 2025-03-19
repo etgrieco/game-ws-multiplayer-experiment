@@ -12,7 +12,7 @@ export type GameSimulation = {
   pause: () => void;
 };
 
-export type MultiplayerGameStatus =
+export type MultiplayerSessionStatus =
   | "PAUSED_AWAITING_START"
   | "PAUSED_AWAITING_PLAYERS"
   | "PLAYING";

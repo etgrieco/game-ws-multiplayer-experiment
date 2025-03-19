@@ -1,7 +1,8 @@
 {
   "name": "game-shared",
+  "version": "0.0.0",
   "peerDependencies": {
-    "koota": "0.2.x"
+    "koota": "catalog:"
   },
   "type": "module",
   "devDependencies": {
