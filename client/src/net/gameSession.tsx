@@ -262,7 +262,7 @@ function handleSessionServerEvents(
               message: "Player disconnected 💀, pausing game ⏸️",
               id: jsonData.id,
             });
-            gameStoreSnapshot.game.pause();
+            gameStoreSnapshot.pauseGame();
           }
           break;
         }

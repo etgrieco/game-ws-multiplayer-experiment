@@ -236,10 +236,11 @@ function createGameSimulationFactory(
   }[],
   world: World
 ): GameSimulation {
+  // the world should be clean of all entities when this is triggered
+  world.reset();
   // spawn players
   initialState.forEach((p, idx) => {
     world.spawn(
-      // @ts-expect-error - not sure what's going wrong here, file a bug report
       Position2({ x: p.pos.x, y: p.pos.y }),
       Velocity2(),
       OfPlayer({
