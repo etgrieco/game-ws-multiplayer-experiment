@@ -4,7 +4,7 @@ import { useQuery, useWorld } from "koota/react";
 import React, { useRef } from "react";
 // biome-ignore lint/style/useImportType: Let this change over time...
 import * as THREE from "three";
-import { OrbitControls, Stats } from "@react-three/drei";
+import { OrbitControls, OrthographicCamera, Stats } from "@react-three/drei";
 import { folder, useControls } from "leva";
 
 export function Game() {
@@ -26,7 +26,7 @@ function GamePlayer(props: { playerId: string; color: number }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const world = useWorld();
 
-  useFrame((_s, d) => {
+  useFrame((_s) => {
     const myPlayer = world
       .query(Position2, OfPlayer)
       .find((p) => p.get(OfPlayer)!.playerId === props.playerId);
@@ -42,44 +42,49 @@ function GamePlayer(props: { playerId: string; color: number }) {
       lerpFactor
     );
 
-    meshRef.current.position.y = lerp(
-      meshRef.current.position.y,
+    meshRef.current.position.z = lerp(
+      meshRef.current.position.z,
       myPlayerPos.y,
       lerpFactor
     );
-
-    meshRef.current.rotation.x += d;
   });
 
   return (
-    <mesh ref={meshRef}>
-      <boxGeometry args={[1, 1, 1]} />
+    <mesh ref={meshRef} position={[0, 0.25, 0]}>
+      <boxGeometry args={[0.5, 0.5, 0.5]} />
       <meshStandardMaterial color={props.color} />
     </mesh>
   );
 }
 
-function Terrain(props: { width: number; height: number }) {
+function Terrain() {
+  const {
+    width: terrainWidth,
+    height: terrainHeight,
+    color,
+    rotation,
+  } = useControls("Terrain", {
+    width: 10,
+    height: 10,
+    color: "#5ea01b",
+    rotation: [-Math.PI / 2, 0, 0],
+  });
+
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]}>
-      <meshStandardMaterial color={0x50a000} />
-      <planeGeometry args={[props.width, props.height]} />
+    <mesh rotation={rotation}>
+      <meshStandardMaterial color={color} />
+      <planeGeometry args={[terrainWidth, terrainHeight]} />
     </mesh>
   );
 }
 
-const trees: { id: string; posX: number; posZ: number }[] = [
-  {
+const trees: { id: string; posX: number; posZ: number }[] = Array(10)
+  .fill(null)
+  .map(() => ({
     id: window.crypto.randomUUID(),
-    posX: 0,
-    posZ: 0,
-  },
-  {
-    id: window.crypto.randomUUID(),
-    posX: 1,
-    posZ: 1,
-  },
-];
+    posX: Math.max(Math.random() * 9 + 1),
+    posZ: Math.max(Math.random() * 9 + 1),
+  }));
 
 function Tree(props: { posX: number; posZ: number }) {
   return (
@@ -90,21 +95,49 @@ function Tree(props: { posX: number; posZ: number }) {
   );
 }
 
+function DebugPoint(props: {
+  posX: number;
+  posZ: number;
+  color?: string | number;
+}) {
+  const { debugMode } = useControls({ debugMode: true });
+  if (!debugMode) {
+    return null;
+  }
+  return (
+    <mesh position={[props.posX, 0.5, props.posZ]}>
+      <cylinderGeometry args={[0.1, 0.1, 1]} />
+      <meshStandardMaterial color={props.color ?? 0xff0000} transparent />
+    </mesh>
+  );
+}
+
 const playerColors = [0x00ff00, 0xff0000];
 
 function GameContents() {
   const players = useQuery(Position2, OfPlayer);
-  const { width: terrainWidth, height: terrainHeight } = useControls(
-    "Terrain",
-    { width: 10, height: 10 }
-  );
+
+  const { zoom, position, near, far } = useControls("Camera", {
+    zoom: 40,
+    position: [20, 20, 20],
+    near: 0.1,
+    far: 1000,
+  });
 
   return (
     <>
-      <ControlledOrbitControl />
-      <Stats />
       <directionalLight position={[1, 1, 1]} />
       <ambientLight intensity={0.8} />
+      <ControlledOrbitControl />
+      <OrthographicCamera
+        makeDefault
+        zoom={zoom}
+        position={position}
+        near={near}
+        far={far}
+      />
+      <Stats />
+
       <scene>
         {players.map((p, idx) => {
           return (
@@ -115,10 +148,16 @@ function GameContents() {
             />
           );
         })}
-        <Terrain width={terrainWidth} height={terrainHeight} />
-        {trees.map((t) => {
-          return <Tree key={t.id} posX={t.posX} posZ={t.posZ} />;
-        })}
+        <DebugPoint posX={0} posZ={0} />
+        {/* Group for relative to corner */}
+        <group position={[-5, 0, -5]}>
+          <DebugPoint posX={0} posZ={0} color={"hotpink"} />
+          <DebugPoint posX={5} posZ={5} color={"hotpink"} />
+          {trees.map((t) => {
+            return <Tree key={t.id} posX={t.posX} posZ={t.posZ} />;
+          })}
+        </group>
+        <Terrain />
       </scene>
     </>
   );
@@ -127,14 +166,17 @@ function GameContents() {
 function ControlledOrbitControl() {
   const [_cameraVals, setCamera] = useControls(() => {
     return {
-      Camera: folder({
-        posX: 0,
-        posY: 0,
-        posZ: 0,
-        rotX: 0,
-        rotY: 0,
-        rotZ: 0,
-      }),
+      "Orbital Camera": folder(
+        {
+          posX: 0,
+          posY: 0,
+          posZ: 0,
+          rotX: 0,
+          rotY: 0,
+          rotZ: 0,
+        },
+        { collapsed: true }
+      ),
     };
   });
 

@@ -262,7 +262,7 @@ export function GameStart() {
   }
 
   return (
-    <div className="flex flex-col gap-4 max-w-[1024px] items-center w-full">
+    <div className="flex flex-col gap-4 items-center w-full">
       <CreateOrJoinInterface
         createSession={() => {
           sendEvent({
