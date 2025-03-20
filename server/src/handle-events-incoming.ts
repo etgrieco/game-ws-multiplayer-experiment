@@ -350,6 +350,7 @@ function createSession(
   const gameSim = setupGameSimulation(uuid);
   const container: MultiplayerGameContainer = {
     id: uuid,
+    lastUpdated: 0,
     gameSim,
     gameStatus: "PAUSED_AWAITING_PLAYERS",
     broadcaster: createGameBroadcaster(gameSim.gameData, [ws, null]),

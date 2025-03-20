@@ -110,9 +110,9 @@ export const gameStoreFactory = (mainWorld: World) => {
         if (sessionId !== game.sessionId) {
           throw new Error("Mismatched session IDs");
         }
-        setupGameControls(
+        const gameControlsCb = setupGameControls(
           {
-            handleMovePlayerLeft() {
+            handleAccPlayerLeft() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
                   vel.y = Math.min(
@@ -132,7 +132,7 @@ export const gameStoreFactory = (mainWorld: World) => {
                 }
               });
             },
-            handleMovePlayerUp() {
+            handleAccPlayerForward() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
                   vel.x = Math.max(
@@ -152,7 +152,7 @@ export const gameStoreFactory = (mainWorld: World) => {
                 }
               });
             },
-            handleMovePlayerRight() {
+            handleAccPlayerRight() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
                   vel.y = Math.max(
@@ -172,7 +172,7 @@ export const gameStoreFactory = (mainWorld: World) => {
                 }
               });
             },
-            handleMovePlayerDown() {
+            handleAccPlayerBackwards() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
                   vel.x = Math.min(
@@ -198,7 +198,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         set({
           multiplayerSessionStatus: "PLAYING",
         });
-        gameStore.game.start(); // start client-side game loop
+        gameStore.game.start(gameControlsCb); // start client-side game loop
       },
       updatePositions(playerPositions) {
         const game = getStore().game;
@@ -256,43 +256,97 @@ export const gameStoreFactory = (mainWorld: World) => {
 
 function setupGameControls(
   cbs: {
-    handleMovePlayerLeft(): void;
-    handleMovePlayerRight(): void;
-    handleMovePlayerUp(): void;
-    handleMovePlayerDown(): void;
+    handleAccPlayerLeft(): void;
+    handleAccPlayerRight(): void;
+    handleAccPlayerForward(): void;
+    handleAccPlayerBackwards(): void;
   },
   gameProvider: () => GameStore
-) {
+): () => void {
+  const keysState = {
+    FORWARD: false,
+    BACKWARD: false,
+    RIGHT: false,
+    LEFT: false,
+  };
+  function resetKeysState() {
+    keysState.BACKWARD = false;
+    keysState.LEFT = false;
+    keysState.RIGHT = false;
+    keysState.FORWARD = false;
+  }
+
   document.addEventListener("keydown", (ev) => {
+    switch (ev.code) {
+      case "KeyA":
+      case "ArrowLeft": {
+        keysState.LEFT = true;
+        break;
+      }
+      case "KeyW":
+      case "ArrowUp": {
+        keysState.FORWARD = true;
+        break;
+      }
+      case "KeyS":
+      case "ArrowDown": {
+        keysState.BACKWARD = true;
+        cbs.handleAccPlayerBackwards();
+        break;
+      }
+      case "KeyD":
+      case "ArrowRight": {
+        keysState.RIGHT = true;
+        cbs.handleAccPlayerRight();
+        break;
+      }
+    }
+  });
+  document.addEventListener("keyup", (ev) => {
+    switch (ev.code) {
+      case "KeyA":
+      case "ArrowLeft": {
+        keysState.LEFT = true;
+        break;
+      }
+      case "KeyW":
+      case "ArrowUp": {
+        keysState.FORWARD = true;
+        break;
+      }
+      case "KeyS":
+      case "ArrowDown": {
+        keysState.BACKWARD = true;
+        break;
+      }
+      case "KeyD":
+      case "ArrowRight": {
+        keysState.RIGHT = true;
+        break;
+      }
+    }
+  });
+
+  return () => {
     const gameStore = gameProvider();
     // ignore input on non-playing states
     if (gameStore.game?.status === "PAUSED") {
       return;
     }
-    // TODO: Refactor this as an input queue processed by a client-side system
-    switch (ev.code) {
-      case "KeyA":
-      case "ArrowLeft": {
-        cbs.handleMovePlayerLeft();
-        break;
-      }
-      case "KeyW":
-      case "ArrowUp": {
-        cbs.handleMovePlayerUp();
-        break;
-      }
-      case "KeyS":
-      case "ArrowDown": {
-        cbs.handleMovePlayerDown();
-        break;
-      }
-      case "KeyD":
-      case "ArrowRight": {
-        cbs.handleMovePlayerRight();
-        break;
-      }
+    if (keysState.FORWARD) {
+      cbs.handleAccPlayerForward();
     }
-  });
+    if (keysState.BACKWARD) {
+      cbs.handleAccPlayerBackwards();
+    }
+    if (keysState.LEFT) {
+      cbs.handleAccPlayerLeft();
+    }
+    if (keysState.RIGHT) {
+      cbs.handleAccPlayerRight();
+    }
+    resetKeysState();
+  };
 }
 
 function createGameSimulationFactory(
