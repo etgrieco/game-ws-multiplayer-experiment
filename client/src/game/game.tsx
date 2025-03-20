@@ -110,87 +110,25 @@ export const gameStoreFactory = (mainWorld: World) => {
         if (sessionId !== game.sessionId) {
           throw new Error("Mismatched session IDs");
         }
+
+        const perFrameMovementUpdates = {
+          dx: 0,
+          dy: 0,
+        };
         const gameControlsCb = setupGameControls(
           {
             handleAccPlayerLeft() {
-              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
-                if (p.isMe) {
-                  vel.y = Math.min(
-                    configs.playerSpeed.yMax,
-                    vel.y + configs.playerSpeed.yIncrement
-                  );
-                  verifiedInits.sendNetEvent({
-                    type: "PLAYER_UPDATE",
-                    data: {
-                      id: game.sessionId,
-                      vel: {
-                        x: vel.x,
-                        y: vel.y,
-                      },
-                    },
-                  });
-                }
-              });
-            },
-            handleAccPlayerForward() {
-              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
-                if (p.isMe) {
-                  vel.x = Math.max(
-                    -configs.playerSpeed.xMax,
-                    vel.x - configs.playerSpeed.xIncrement
-                  );
-                  verifiedInits.sendNetEvent({
-                    type: "PLAYER_UPDATE",
-                    data: {
-                      id: game.sessionId,
-                      vel: {
-                        x: vel.x,
-                        y: vel.y,
-                      },
-                    },
-                  });
-                }
-              });
+              console.log("left inc");
+              perFrameMovementUpdates.dy += 1;
             },
             handleAccPlayerRight() {
-              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
-                if (p.isMe) {
-                  vel.y = Math.max(
-                    -configs.playerSpeed.yMax,
-                    vel.y - configs.playerSpeed.yIncrement
-                  );
-                  verifiedInits.sendNetEvent({
-                    type: "PLAYER_UPDATE",
-                    data: {
-                      id: game.sessionId,
-                      vel: {
-                        x: vel.x,
-                        y: vel.y,
-                      },
-                    },
-                  });
-                }
-              });
+              perFrameMovementUpdates.dy -= 1;
+            },
+            handleAccPlayerForward() {
+              perFrameMovementUpdates.dx -= 1;
             },
             handleAccPlayerBackwards() {
-              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
-                if (p.isMe) {
-                  vel.x = Math.min(
-                    configs.playerSpeed.xMax,
-                    vel.x + configs.playerSpeed.xIncrement
-                  );
-                  verifiedInits.sendNetEvent({
-                    type: "PLAYER_UPDATE",
-                    data: {
-                      id: game.sessionId,
-                      vel: {
-                        x: vel.x,
-                        y: vel.y,
-                      },
-                    },
-                  });
-                }
-              });
+              perFrameMovementUpdates.dx += 1;
             },
           },
           getStore
@@ -198,7 +136,65 @@ export const gameStoreFactory = (mainWorld: World) => {
         set({
           multiplayerSessionStatus: "PLAYING",
         });
-        gameStore.game.start(gameControlsCb); // start client-side game loop
+        gameStore.game.start(() => {
+          gameControlsCb();
+          // then, handle game systems updates based upon state changes
+          game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+            if (p.isMe) {
+              // if nothing held, decelerate towards 0
+              if (perFrameMovementUpdates.dy === 0 && vel.y !== 0) {
+                // TODO: is there a better way to do this?
+                vel.y = Math.min(
+                  Math.abs(vel.y - configs.playerSpeed.yIncrement),
+                  Math.abs(vel.y + configs.playerSpeed.yIncrement)
+                );
+              } else {
+                vel.y = Math.max(
+                  Math.min(
+                    configs.playerSpeed.yMax,
+                    vel.y +
+                      configs.playerSpeed.yIncrement *
+                        perFrameMovementUpdates.dy
+                  ),
+                  -2
+                );
+              }
+
+              if (perFrameMovementUpdates.dx === 0 && vel.x !== 0) {
+                // TODO: is there a better way to do this?
+                vel.x = Math.min(
+                  Math.abs(vel.x - configs.playerSpeed.xIncrement),
+                  Math.abs(vel.x + configs.playerSpeed.xIncrement)
+                );
+              } else {
+                vel.x = Math.max(
+                  Math.min(
+                    configs.playerSpeed.xMax,
+                    vel.x +
+                      configs.playerSpeed.xIncrement *
+                        perFrameMovementUpdates.dx
+                  ),
+                  -2
+                );
+              }
+
+              verifiedInits.sendNetEvent({
+                type: "PLAYER_UPDATE",
+                data: {
+                  id: game.sessionId,
+                  vel: {
+                    x: vel.x,
+                    y: vel.y,
+                  },
+                },
+              });
+            }
+          });
+
+          // then, reset
+          perFrameMovementUpdates.dx = 0;
+          perFrameMovementUpdates.dy = 0;
+        }); // start client-side game loop
       },
       updatePositions(playerPositions) {
         const game = getStore().game;
@@ -269,12 +265,6 @@ function setupGameControls(
     RIGHT: false,
     LEFT: false,
   };
-  function resetKeysState() {
-    keysState.BACKWARD = false;
-    keysState.LEFT = false;
-    keysState.RIGHT = false;
-    keysState.FORWARD = false;
-  }
 
   document.addEventListener("keydown", (ev) => {
     switch (ev.code) {
@@ -306,22 +296,22 @@ function setupGameControls(
     switch (ev.code) {
       case "KeyA":
       case "ArrowLeft": {
-        keysState.LEFT = true;
+        keysState.LEFT = false;
         break;
       }
       case "KeyW":
       case "ArrowUp": {
-        keysState.FORWARD = true;
+        keysState.FORWARD = false;
         break;
       }
       case "KeyS":
       case "ArrowDown": {
-        keysState.BACKWARD = true;
+        keysState.BACKWARD = false;
         break;
       }
       case "KeyD":
       case "ArrowRight": {
-        keysState.RIGHT = true;
+        keysState.RIGHT = false;
         break;
       }
     }
@@ -345,7 +335,6 @@ function setupGameControls(
     if (keysState.RIGHT) {
       cbs.handleAccPlayerRight();
     }
-    resetKeysState();
   };
 }
 

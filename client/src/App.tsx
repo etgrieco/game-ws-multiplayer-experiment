@@ -5,7 +5,6 @@ import { useGameStore } from "./game/game";
 import { GameComponentsProvider } from "./ui/GameComponets";
 import { GameStart } from "./ui/GameStart";
 import { prevSessionSubscriptionController } from "./ui/sessionStorageController";
-import type { World } from "koota";
 import { useQuery } from "koota/react";
 
 export function App() {

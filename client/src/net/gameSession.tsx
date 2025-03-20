@@ -167,7 +167,7 @@ export function setupWsCloseReconnectionHandler(
 }
 
 function wsSend(ws: WebSocket, msg: GameSessionClientEvent): void {
-  console.log("SEND", msg);
+  console.debug("SEND", msg);
   ws.send(JSON.stringify(msg));
 }
 
