@@ -18,6 +18,7 @@ export function setupGameSimulation(
   };
 
   return {
+    lastUpdated: 0,
     gameData: gameData,
     status: "PAUSED",
     pause() {
@@ -29,6 +30,7 @@ export function setupGameSimulation(
         if (this.status !== "RUNNING") return;
         gameLoop(gameData, deltaTime);
         syncCb?.();
+        this.lastUpdated = new Date().getTime();
       });
       // and just kick it off
       loop();

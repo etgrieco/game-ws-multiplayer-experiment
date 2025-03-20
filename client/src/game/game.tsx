@@ -106,7 +106,7 @@ export const gameStoreFactory = (mainWorld: World) => {
             handleMovePlayerLeft() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
-                  vel.x -= 1;
+                  vel.x = Math.min(-2, vel.x - 1);
                   verifiedInits.sendNetEvent({
                     type: "PLAYER_UPDATE",
                     data: {
@@ -123,7 +123,41 @@ export const gameStoreFactory = (mainWorld: World) => {
             handleMovePlayerRight() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
-                  vel.x += 1;
+                  vel.x = Math.max(2, vel.x + 1);
+                  verifiedInits.sendNetEvent({
+                    type: "PLAYER_UPDATE",
+                    data: {
+                      id: game.sessionId,
+                      vel: {
+                        x: vel.x,
+                        y: vel.y,
+                      },
+                    },
+                  });
+                }
+              });
+            },
+            handleMovePlayerUp() {
+              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+                if (p.isMe) {
+                  vel.y = Math.max(2, vel.y + 1);
+                  verifiedInits.sendNetEvent({
+                    type: "PLAYER_UPDATE",
+                    data: {
+                      id: game.sessionId,
+                      vel: {
+                        x: vel.x,
+                        y: vel.y,
+                      },
+                    },
+                  });
+                }
+              });
+            },
+            handleMovePlayerDown() {
+              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+                if (p.isMe) {
+                  vel.y = Math.min(-2, vel.y - 1);
                   verifiedInits.sendNetEvent({
                     type: "PLAYER_UPDATE",
                     data: {
@@ -203,6 +237,8 @@ function setupGameControls(
   cbs: {
     handleMovePlayerLeft(): void;
     handleMovePlayerRight(): void;
+    handleMovePlayerUp(): void;
+    handleMovePlayerDown(): void;
   },
   gameProvider: () => GameStore
 ) {
@@ -214,10 +250,22 @@ function setupGameControls(
     }
     // TODO: Refactor this as an input queue processed by a client-side system
     switch (ev.code) {
+      case "KeyA":
       case "ArrowLeft": {
         cbs.handleMovePlayerLeft();
         break;
       }
+      case "KeyW":
+      case "ArrowUp": {
+        cbs.handleMovePlayerUp();
+        break;
+      }
+      case "KeyS":
+      case "ArrowDown": {
+        cbs.handleMovePlayerDown();
+        break;
+      }
+      case "KeyD":
       case "ArrowRight": {
         cbs.handleMovePlayerRight();
         break;

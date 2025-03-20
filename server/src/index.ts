@@ -33,7 +33,22 @@ const sessionsData: SessionMap = new Map(
       const backupData = JSON.parse(backupFile) as ReturnType<
         typeof toJSONBackup
       >[];
-      return fromJSONBackup(backupData);
+      let sessionsMap = fromJSONBackup(backupData);
+      sessionsMap = new Map(
+        Array.from(sessionsMap.entries())
+          .sort(([_ka, valueA], [_kb, valueB]) => {
+            return valueA.gameSim.lastUpdated - valueB.gameSim.lastUpdated;
+          })
+          // max latest 5
+          .slice(0, 5)
+          // max 24 hours ago
+          .filter(([_, value]) => {
+            return (
+              new Date().getTime() - value.lastUpdated < 24 * 60 * 60 * 1000
+            );
+          })
+      );
+      return sessionsMap;
     } catch (e) {
       console.error("Backup read failed, return empty");
       return [];
@@ -52,13 +67,19 @@ function toWorldJSONBackup(container: World) {
 }
 
 function toJSONBackup(id: string, sess: MultiplayerGameContainer) {
-  return [id, toWorldJSONBackup(sess.gameSim.gameData.world)] as const;
+  return [
+    id,
+    {
+      lastUpdated: sess.lastUpdated,
+      world: toWorldJSONBackup(sess.gameSim.gameData.world),
+    },
+  ] as const;
 }
 
 function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
   const map: SessionMap = new Map();
 
-  b.forEach(([id, backupWorldEntities]) => {
+  b.forEach(([id, { world: backupWorldEntities, lastUpdated }]) => {
     const world = createWorld();
     backupWorldEntities.forEach((e) => {
       if (e.player) {
@@ -72,6 +93,7 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
     const gameSim = setupGameSimulation(id, world);
     map.set(id, {
       id,
+      lastUpdated,
       broadcaster: createGameBroadcaster(gameSim.gameData, [null, null]),
       gameStatus: "PAUSED_AWAITING_PLAYERS",
       gameSim: gameSim,

@@ -6,6 +6,7 @@ export type GameData = {
 };
 
 export type GameSimulation = {
+  lastUpdated: number;
   gameData: GameData;
   status: "RUNNING" | "PAUSED";
   start: (cb?: () => void) => void;
