@@ -360,7 +360,7 @@ function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
     const endTime = performance.now();
     const elapsed = endTime - startTime;
     const nextScheduledDelay = Math.max(0, TICK_RATE - elapsed);
-    setTimeout(initGameLoop, nextScheduledDelay); // Schedule the next tick
+    setTimeout(() => initGameLoop(gameSimSnapshot), nextScheduledDelay); // Schedule the next tick
     frameDelta = nextScheduledDelay;
   };
 }
