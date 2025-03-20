@@ -11,7 +11,9 @@ import { createStore, useStore } from "zustand";
 const configs = {
   playerSpeed: {
     xIncrement: 0.25,
+    xDecelerate: 0.5,
     yIncrement: 0.25,
+    yDecelerate: 0.5,
     xMax: 2,
     yMax: 2,
   },
@@ -118,7 +120,6 @@ export const gameStoreFactory = (mainWorld: World) => {
         const gameControlsCb = setupGameControls(
           {
             handleAccPlayerLeft() {
-              console.log("left inc");
               perFrameMovementUpdates.dy += 1;
             },
             handleAccPlayerRight() {
@@ -142,12 +143,12 @@ export const gameStoreFactory = (mainWorld: World) => {
           game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
             if (p.isMe) {
               // if nothing held, decelerate towards 0
-              if (perFrameMovementUpdates.dy === 0 && vel.y !== 0) {
-                // TODO: is there a better way to do this?
-                vel.y = Math.min(
-                  Math.abs(vel.y - configs.playerSpeed.yIncrement),
-                  Math.abs(vel.y + configs.playerSpeed.yIncrement)
-                );
+              if (perFrameMovementUpdates.dy === 0) {
+                if (vel.y < 0) {
+                  vel.y = Math.min(vel.y + configs.playerSpeed.yDecelerate, 0);
+                } else if (vel.y > 0) {
+                  vel.y = Math.max(vel.y - configs.playerSpeed.yDecelerate, 0);
+                }
               } else {
                 vel.y = Math.max(
                   Math.min(
@@ -160,12 +161,12 @@ export const gameStoreFactory = (mainWorld: World) => {
                 );
               }
 
-              if (perFrameMovementUpdates.dx === 0 && vel.x !== 0) {
-                // TODO: is there a better way to do this?
-                vel.x = Math.min(
-                  Math.abs(vel.x - configs.playerSpeed.xIncrement),
-                  Math.abs(vel.x + configs.playerSpeed.xIncrement)
-                );
+              if (perFrameMovementUpdates.dx === 0) {
+                if (vel.x < 0) {
+                  vel.x = Math.min(vel.x + configs.playerSpeed.xDecelerate, 0);
+                } else if (vel.x > 0) {
+                  vel.x = Math.max(vel.x - configs.playerSpeed.xDecelerate, 0);
+                }
               } else {
                 vel.x = Math.max(
                   Math.min(
