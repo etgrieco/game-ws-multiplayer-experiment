@@ -8,6 +8,15 @@ import type { World } from "koota";
 import React from "react";
 import { createStore, useStore } from "zustand";
 
+const configs = {
+  playerSpeed: {
+    xIncrement: 0.25,
+    yIncrement: 0.25,
+    xMax: 2,
+    yMax: 2,
+  },
+};
+
 export type GameStore = Readonly<{
   game: GameSimulation | null;
   multiplayerSessionStatus: MultiplayerSessionStatus;
@@ -106,24 +115,10 @@ export const gameStoreFactory = (mainWorld: World) => {
             handleMovePlayerLeft() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
-                  vel.x = Math.min(-2, vel.x - 1);
-                  verifiedInits.sendNetEvent({
-                    type: "PLAYER_UPDATE",
-                    data: {
-                      id: game.sessionId,
-                      vel: {
-                        x: vel.x,
-                        y: vel.y,
-                      },
-                    },
-                  });
-                }
-              });
-            },
-            handleMovePlayerRight() {
-              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
-                if (p.isMe) {
-                  vel.x = Math.max(2, vel.x + 1);
+                  vel.y = Math.min(
+                    configs.playerSpeed.yMax,
+                    vel.y + configs.playerSpeed.yIncrement
+                  );
                   verifiedInits.sendNetEvent({
                     type: "PLAYER_UPDATE",
                     data: {
@@ -140,7 +135,30 @@ export const gameStoreFactory = (mainWorld: World) => {
             handleMovePlayerUp() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
-                  vel.y = Math.max(2, vel.y + 1);
+                  vel.x = Math.max(
+                    -configs.playerSpeed.xMax,
+                    vel.x - configs.playerSpeed.xIncrement
+                  );
+                  verifiedInits.sendNetEvent({
+                    type: "PLAYER_UPDATE",
+                    data: {
+                      id: game.sessionId,
+                      vel: {
+                        x: vel.x,
+                        y: vel.y,
+                      },
+                    },
+                  });
+                }
+              });
+            },
+            handleMovePlayerRight() {
+              game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+                if (p.isMe) {
+                  vel.y = Math.max(
+                    -configs.playerSpeed.yMax,
+                    vel.y - configs.playerSpeed.yIncrement
+                  );
                   verifiedInits.sendNetEvent({
                     type: "PLAYER_UPDATE",
                     data: {
@@ -157,7 +175,10 @@ export const gameStoreFactory = (mainWorld: World) => {
             handleMovePlayerDown() {
               game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
                 if (p.isMe) {
-                  vel.y = Math.min(-2, vel.y - 1);
+                  vel.x = Math.min(
+                    configs.playerSpeed.xMax,
+                    vel.x + configs.playerSpeed.xIncrement
+                  );
                   verifiedInits.sendNetEvent({
                     type: "PLAYER_UPDATE",
                     data: {
@@ -284,8 +305,10 @@ function createGameSimulationFactory(
   }[],
   world: World
 ): GameSimulation {
-  // the world should be clean of all entities when this is triggered
-  world.reset();
+  // the world should be clean of all player entities when this is triggered
+  world.query(OfPlayer).forEach((e) => {
+    e.destroy();
+  });
   // spawn players
   initialState.forEach((p, idx) => {
     world.spawn(
@@ -301,6 +324,7 @@ function createGameSimulationFactory(
 
   let status: GameSimulation["status"] = "PAUSED";
   return {
+    lastUpdated: 0,
     get status() {
       return status;
     },
@@ -313,6 +337,7 @@ function createGameSimulationFactory(
         // we currently rely solely on the server to drive systems
         // Here, we would do client-side logic
         syncCb?.();
+        this.lastUpdated = Date.now();
       });
       loop(this);
     },

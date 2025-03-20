@@ -30,7 +30,7 @@ export function setupGameSimulation(
         if (this.status !== "RUNNING") return;
         gameLoop(gameData, deltaTime);
         syncCb?.();
-        this.lastUpdated = new Date().getTime();
+        this.lastUpdated = Date.now();
       });
       // and just kick it off
       loop();

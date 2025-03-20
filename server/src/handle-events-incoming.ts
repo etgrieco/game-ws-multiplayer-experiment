@@ -249,6 +249,14 @@ export function handleEventsIncoming(
             failureMessage: "Connection 1 missing; not starting game",
           },
         });
+        wsSend(context.ws, {
+          id: crypto.randomUUID(),
+          type: "GAME_STATUS_UPDATE",
+          data: {
+            sessionId: session.id,
+            multiplayerSessionStatus: "PAUSED_AWAITING_PLAYERS",
+          },
+        });
         throw new Error("Connection 1 missing; not starting game");
       }
 
@@ -259,6 +267,14 @@ export function handleEventsIncoming(
           data: {
             isSuccess: false,
             failureMessage: "Player 2 not yet connected; not starting game",
+          },
+        });
+        wsSend(context.ws, {
+          id: crypto.randomUUID(),
+          type: "GAME_STATUS_UPDATE",
+          data: {
+            sessionId: session.id,
+            multiplayerSessionStatus: "PAUSED_AWAITING_PLAYERS",
           },
         });
         throw new Error("Player 2 not yet connected; not starting game");
