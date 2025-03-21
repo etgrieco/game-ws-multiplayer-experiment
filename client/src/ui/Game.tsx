@@ -2,7 +2,6 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { IsLandscape, OfPlayer, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
 import React, { useRef } from "react";
-// biome-ignore lint/style/useImportType: Let this change over time...
 import * as THREE from "three";
 import { OrthographicCamera, Stats } from "@react-three/drei";
 import { useControls } from "leva";
@@ -18,11 +17,7 @@ export function Game() {
   );
 }
 
-const lerpFactor = 0.1;
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-
+const LERP_FACTOR = 0.1;
 function GamePlayer(props: { playerId: string; color: number }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const world = useWorld();
@@ -36,17 +31,13 @@ function GamePlayer(props: { playerId: string; color: number }) {
       return;
     }
     const myPlayerPos = myPlayer.get(Position2)!;
-
-    meshRef.current.position.x = lerp(
-      meshRef.current.position.x,
-      myPlayerPos.x,
-      lerpFactor
-    );
-
-    meshRef.current.position.z = lerp(
-      meshRef.current.position.z,
-      myPlayerPos.z,
-      lerpFactor
+    meshRef.current.position.lerp(
+      new THREE.Vector3(
+        myPlayerPos.x,
+        meshRef.current.position.y,
+        myPlayerPos.z
+      ),
+      LERP_FACTOR
     );
   });
 
@@ -114,41 +105,62 @@ function GameContents() {
   const { zoom } = useControls("Camera", {
     zoom: 40,
   });
+  const cameraRef = React.useRef<THREE.OrthographicCamera>(null!);
+  const { offset: offsetVals } = useControls({
+    offset: [0, 0, 0],
+  });
+
+  useFrame(() => {
+    if (!cameraRef.current) return;
+
+    const playerPosData = players
+      .find((p) => p.get(OfPlayer)?.isMe)
+      ?.get(Position2);
+
+    if (!playerPosData) return;
+
+    const playerPos = new THREE.Vector3(playerPosData.x!, 0, playerPosData.z!);
+    const offset = new THREE.Vector3(...offsetVals);
+    const target = playerPos.add(offset);
+
+    cameraRef.current.position.lerp(
+      { x: target.x, y: target.y, z: target.z },
+      LERP_FACTOR
+    );
+  });
 
   return (
     <>
       <Stats />
+      <directionalLight position={[1, 1, 1]} />
+      <ambientLight intensity={0.8} />
       <OrthographicCamera
+        rotation={[-Math.atan(1 / Math.sqrt(2)), Math.PI / 4, 0, "YXZ"]}
+        ref={cameraRef}
         makeDefault
-        position={[50, 50, 50]}
         near={-20 * zoom}
         far={2000}
         zoom={zoom}
-      >
-        <directionalLight position={[1, 1, 1]} />
-        <ambientLight intensity={0.8} />
-        <scene rotation={[Math.atan(1 / Math.sqrt(2)), Math.PI / 4, 0]}>
-          {players.map((p, idx) => {
-            return (
-              <GamePlayer
-                key={p.get(OfPlayer)!.playerId}
-                color={playerColors[idx % playerColors.length]!}
-                playerId={p.get(OfPlayer)!.playerId}
-              />
-            );
-          })}
-          {/* Group for relative to corner */}
-          <group position={[-5, 0, -5]}>
-            <DebugPoint posX={0} posZ={0} color={"hotpink"} />
-            <DebugPoint posX={0} posZ={10} color={"hotpink"} />
-            <DebugPoint posX={10} posZ={0} color={"hotpink"} />
-            <DebugPoint posX={10} posZ={10} color={"hotpink"} />
-            <DebugPoint posX={5} posZ={5} color={"hotpink"} />
-            <TerrainTrees />
-          </group>
-          <Terrain />
-        </scene>
-      </OrthographicCamera>
+      />
+      {players.map((p, idx) => {
+        return (
+          <GamePlayer
+            key={p.get(OfPlayer)!.playerId}
+            color={playerColors[idx % playerColors.length]!}
+            playerId={p.get(OfPlayer)!.playerId}
+          />
+        );
+      })}
+      {/* Group for relative to corner */}
+      <group position={[-50, 0, -50]}>
+        <DebugPoint posX={0} posZ={0} color={"hotpink"} />
+        <DebugPoint posX={0} posZ={10} color={"hotpink"} />
+        <DebugPoint posX={10} posZ={0} color={"hotpink"} />
+        <DebugPoint posX={10} posZ={10} color={"hotpink"} />
+        <DebugPoint posX={5} posZ={5} color={"hotpink"} />
+        <TerrainTrees />
+      </group>
+      <Terrain />
     </>
   );
 }

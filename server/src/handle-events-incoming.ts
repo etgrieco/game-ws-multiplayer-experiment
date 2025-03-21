@@ -249,6 +249,18 @@ export function handleEventsIncoming(
           },
         },
       });
+      wsSend(context.ws, {
+        id: crypto.randomUUID(),
+        type: "LEVEL_UPDATE",
+        data: {
+          treePositions: getTreesState(session.gameSim.gameData.world).map(
+            (t) => ({
+              x: t.pos.x,
+              z: t.pos.z,
+            })
+          ),
+        },
+      });
       // also, tell the other players about game status
       session.broadcaster.connections.forEach((ws) => {
         if (!ws || ws === context.ws) return;
