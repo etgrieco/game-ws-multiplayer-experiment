@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@client/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,11 +6,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGameStore, useVanillaGameStore } from "@/game/game";
-import { useGameSessionStore } from "@/net/gameSession";
+} from "@client/components/ui/card";
+import { Input } from "@client/components/ui/input";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@client/components/ui/tabs";
+import { useGameStore, useVanillaGameStore } from "@client/game/game";
+import { useGameSessionStore } from "@client/net/gameSession";
 import { Label } from "@radix-ui/react-label";
 import {
   ArrowRight,

@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@client/components/ui/sonner";
 import { OfPlayer } from "@shared/ecs/trait";
 import React from "react";
 import { useGameStore } from "./game/game";

@@ -1,11 +1,12 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OfPlayer, Position2 } from "@shared/ecs/trait";
+import { IsLandscape, OfPlayer, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
 import React, { useRef } from "react";
 // biome-ignore lint/style/useImportType: Let this change over time...
 import * as THREE from "three";
 import { OrthographicCamera, Stats } from "@react-three/drei";
 import { useControls } from "leva";
+import { levelConfig } from "@config/levelConfig";
 
 export function Game() {
   return (
@@ -57,34 +58,27 @@ function GamePlayer(props: { playerId: string; color: number }) {
   );
 }
 
+const TERRAIN_ROTATION = [-Math.PI / 2, 0, 0] as const;
 function Terrain() {
-  const {
-    width: terrainWidth,
-    height: terrainHeight,
-    color,
-    rotation,
-  } = useControls("Terrain", {
-    width: 100,
-    height: 100,
-    color: "#5ea01b",
-    rotation: [-Math.PI / 2, 0, 0],
-  });
-
   return (
-    <mesh rotation={rotation}>
-      <meshStandardMaterial color={color} />
-      <planeGeometry args={[terrainWidth, terrainHeight]} />
+    <mesh rotation={TERRAIN_ROTATION}>
+      <meshStandardMaterial color={levelConfig.terrain.color} />
+      <planeGeometry
+        args={[levelConfig.terrain.maxX, levelConfig.terrain.maxZ]}
+      />
     </mesh>
   );
 }
 
-const trees: { id: string; posX: number; posZ: number }[] = Array(10)
-  .fill(null)
-  .map(() => ({
-    id: window.crypto.randomUUID(),
-    posX: Math.max(Math.random() * 9 + 1),
-    posZ: Math.max(Math.random() * 9 + 1),
-  }));
+function TerrainTrees() {
+  const landscape = useQuery(Position2, IsLandscape);
+  const trees = landscape.filter((l) => l.get(IsLandscape)!.type === "tree");
+
+  return trees.map((t) => {
+    const treePos = t.get(Position2)!;
+    return <Tree key={t.id()} posX={treePos.x} posZ={treePos.z} />;
+  });
+}
 
 function Tree(props: { posX: number; posZ: number }) {
   return (
@@ -150,9 +144,7 @@ function GameContents() {
             <DebugPoint posX={10} posZ={0} color={"hotpink"} />
             <DebugPoint posX={10} posZ={10} color={"hotpink"} />
             <DebugPoint posX={5} posZ={5} color={"hotpink"} />
-            {trees.map((t) => {
-              return <Tree key={t.id} posX={t.posX} posZ={t.posZ} />;
-            })}
+            <TerrainTrees />
           </group>
           <Terrain />
         </scene>

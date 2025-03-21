@@ -1,5 +1,5 @@
-import type { GameStore } from "@/game/game";
-import { getStoredSessionData } from "@/ui/sessionStorageController";
+import type { GameStore } from "@client/game/game";
+import { getStoredSessionData } from "@client/ui/sessionStorageController";
 import type {
   GameSessionClientEvent,
   GameSessionServerEvent,
@@ -346,6 +346,10 @@ function handleSessionServerEvents(
     }
     case "POSITIONS_UPDATE": {
       gameStoreSnapshot.updatePositions(jsonData.data.playerPositions);
+      break;
+    }
+    case "LEVEL_UPDATE": {
+      gameStoreSnapshot.setupLevelLandscape(jsonData.data.treePositions);
       break;
     }
     default: {

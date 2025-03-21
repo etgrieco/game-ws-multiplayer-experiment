@@ -1,10 +1,10 @@
-import { GameContext } from "@/game/game";
-import { gameStoreFactory } from "@/game/game";
+import { GameContext } from "@client/game/game";
+import { gameStoreFactory } from "@client/game/game";
 import {
   GameSessionContext,
   gameSessionStoreFactory,
   setupWsCloseReconnectionHandler,
-} from "@/net/gameSession";
+} from "@client/net/gameSession";
 import { createWorld, universe } from "koota";
 import { WorldProvider } from "koota/react";
 import React, { type PropsWithChildren } from "react";

@@ -1,10 +1,17 @@
-import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait.js";
+import {
+  IsLandscape,
+  OfPlayer,
+  Position2,
+  Velocity2,
+} from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import { WebSocket as WS } from "ws";
 import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { wsSend } from "./wsSend.js";
 import type { World } from "koota";
+import { addRandomGameLandscapeTreeObstacles } from "@shared/ecs/system.js";
+import { levelConfig } from "@config/levelConfig.js";
 
 export function handleEventsIncoming(
   eventData: GameSessionClientEvent,
@@ -29,6 +36,14 @@ export function handleEventsIncoming(
         Velocity2(),
         OfPlayer({ playerNumber: playerNumber, playerId: newPlayerId })
       );
+      // create landscapes and add to world
+      addRandomGameLandscapeTreeObstacles(
+        session.gameSim.gameData.world,
+        levelConfig.terrain.maxX,
+        levelConfig.terrain.maxZ,
+        10
+      );
+
       session.gameStatus = "PAUSED_AWAITING_PLAYERS";
 
       wsSend(context.ws, {
@@ -44,6 +59,18 @@ export function handleEventsIncoming(
             ),
             myPlayerId: newPlayerId,
           },
+        },
+      });
+      wsSend(context.ws, {
+        id: crypto.randomUUID(),
+        type: "LEVEL_UPDATE",
+        data: {
+          treePositions: getTreesState(session.gameSim.gameData.world).map(
+            (t) => ({
+              x: t.pos.x,
+              z: t.pos.z,
+            })
+          ),
         },
       });
       break;
@@ -95,6 +122,21 @@ export function handleEventsIncoming(
           },
         },
       });
+
+      // also, tell about level update meta
+      wsSend(context.ws, {
+        id: crypto.randomUUID(),
+        type: "LEVEL_UPDATE",
+        data: {
+          treePositions: getTreesState(session.gameSim.gameData.world).map(
+            (t) => ({
+              x: t.pos.x,
+              z: t.pos.z,
+            })
+          ),
+        },
+      });
+
       // also, tell other players about game status
       session.broadcaster.connections.forEach((ws) => {
         if (!ws || ws === context.ws) return;
@@ -116,6 +158,18 @@ export function handleEventsIncoming(
               ...p.pos,
               playerId: p.playerId,
             })),
+          },
+        });
+        wsSend(ws, {
+          id: crypto.randomUUID(),
+          type: "LEVEL_UPDATE",
+          data: {
+            treePositions: getTreesState(session.gameSim.gameData.world).map(
+              (t) => ({
+                x: t.pos.x,
+                z: t.pos.z,
+              })
+            ),
           },
         });
       });
@@ -216,6 +270,18 @@ export function handleEventsIncoming(
               ...p.pos,
               playerId: p.playerId,
             })),
+          },
+        });
+        wsSend(ws, {
+          id: crypto.randomUUID(),
+          type: "LEVEL_UPDATE",
+          data: {
+            treePositions: getTreesState(session.gameSim.gameData.world).map(
+              (t) => ({
+                x: t.pos.x,
+                z: t.pos.z,
+              })
+            ),
           },
         });
       });
@@ -376,4 +442,16 @@ function getPlayersInitialState(world: World): {
     .sort((a, b) => {
       return a.playerAssignment - b.playerAssignment;
     });
+}
+function getTreesState(world: World): {
+  pos: { x: number; z: number };
+}[] {
+  const treesEntities = world
+    .query(Position2, IsLandscape)
+    .filter((e) => e.get(IsLandscape)!.type === "tree");
+  return treesEntities.map((e) => {
+    return {
+      pos: e.get(Position2)!,
+    };
+  });
 }

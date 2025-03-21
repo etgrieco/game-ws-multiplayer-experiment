@@ -1,4 +1,12 @@
-import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait";
+import { levelConfig } from "@config/levelConfig";
+import { addRandomGameLandscapeTreeObstacles } from "@shared/ecs/system";
+import {
+  IsLandscape,
+  IsObstacle,
+  OfPlayer,
+  Position2,
+  Velocity2,
+} from "@shared/ecs/trait";
 import type {
   GameSimulation,
   MultiplayerSessionStatus,
@@ -44,6 +52,7 @@ export type GameStore = Readonly<{
   updatePositions: (
     playerPositions: { x: number; z: number; playerId: string }[]
   ) => void;
+  setupLevelLandscape: (treePositions: { x: number; z: number }[]) => void;
 }>;
 
 export const gameStoreFactory = (mainWorld: World) => {
@@ -88,13 +97,14 @@ export const gameStoreFactory = (mainWorld: World) => {
       setupGame(id, myPlayerId, initialState) {
         // call cleanup on any started games...
         getStore().destroyGameCleanup();
+        const gameSimulation = createGameSimulationFactory(
+          id,
+          myPlayerId,
+          initialState,
+          mainWorld
+        );
         set({
-          game: createGameSimulationFactory(
-            id,
-            myPlayerId,
-            initialState,
-            mainWorld
-          ),
+          game: gameSimulation,
         });
       },
       pauseGame() {
@@ -279,6 +289,26 @@ export const gameStoreFactory = (mainWorld: World) => {
             p.x = matchingPlayer.x;
             p.z = matchingPlayer.z;
           });
+      },
+      setupLevelLandscape(treePositions) {
+        // destroy existing terrain
+        const gameSimSnapshot = getStore().game?.gameData;
+        if (!gameSimSnapshot) {
+          throw new Error(
+            "Cannot setup level terrain before game world is constructed"
+          );
+        }
+        gameSimSnapshot.world.query(IsLandscape).forEach((l) => {
+          l.destroy();
+        });
+        // then, spawn
+        treePositions.forEach((pos) => {
+          gameSimSnapshot.world.spawn(
+            Position2({ x: pos.x, z: pos.z }),
+            IsLandscape({ type: "tree" }),
+            IsObstacle
+          );
+        });
       },
     };
   });

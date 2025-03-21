@@ -64,6 +64,13 @@ export type GameSessionServerEvent =
       };
     }
   | {
+      type: "LEVEL_UPDATE";
+      id: string;
+      data: {
+        treePositions: { x: number; z: number }[];
+      };
+    }
+  | {
       type: "GAME_STATUS_UPDATE";
       id: string;
       data: {

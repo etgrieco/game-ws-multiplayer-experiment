@@ -12,8 +12,9 @@
     "baseUrl": "./",
     "paths": {
       "@shared/*": ["../shared/*"],
-      "@/*": ["./src/*"]
+      "@client/*": ["./src/*"],
+      "@config/*": ["../config/*"]
     },
   },
-  "include": ["src", "../shared"]
+  "include": ["src", "../shared", "../config"]
 }
