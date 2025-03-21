@@ -150,20 +150,20 @@ export const gameStoreFactory = (mainWorld: World) => {
         } = setupGameControls(
           {
             handleAccPlayerLeft() {
+              perFrameMovementUpdates.dz += 1;
               perFrameMovementUpdates.dx -= 1;
-              perFrameMovementUpdates.dz -= 1;
             },
             handleAccPlayerRight() {
-              perFrameMovementUpdates.dx += 1;
-              perFrameMovementUpdates.dz += 1;
-            },
-            handleAccPlayerForward() {
               perFrameMovementUpdates.dz -= 1;
               perFrameMovementUpdates.dx += 1;
             },
-            handleAccPlayerBackwards() {
-              perFrameMovementUpdates.dz += 1;
+            handleAccPlayerForward() {
               perFrameMovementUpdates.dx -= 1;
+              perFrameMovementUpdates.dz -= 1;
+            },
+            handleAccPlayerBackwards() {
+              perFrameMovementUpdates.dx += 1;
+              perFrameMovementUpdates.dz += 1;
             },
           },
           getStore
