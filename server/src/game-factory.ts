@@ -26,14 +26,17 @@ export function setupGameSimulation(
     },
     start(syncCb) {
       this.status = "RUNNING";
-      const loop = gameLoopFactory((deltaTime) => {
-        if (this.status !== "RUNNING") return;
+      const { initGameLoop, destroy } = gameLoopFactory((deltaTime) => {
+        if (this.status !== "RUNNING") {
+          destroy();
+          return;
+        }
         gameLoop(gameData, deltaTime);
         syncCb?.();
         simulation.lastUpdated = Date.now();
       });
       // and just kick it off
-      loop();
+      initGameLoop();
     },
   };
   return simulation;
@@ -112,14 +115,24 @@ function gameLoop(initGameData: GameData, deltaTime: number) {
 
 function gameLoopFactory(mainMethod: (deltaTime: number) => void) {
   let frameDelta = 0;
-  return function initGameLoop() {
-    const startTime = performance.now();
-    // Update game state here (e.g., physics, player positions, ball movement)
-    mainMethod(frameDelta);
-    const endTime = performance.now();
-    const elapsed = endTime - startTime;
-    const nextScheduledDelay = Math.max(0, TICK_RATE - elapsed);
-    setTimeout(initGameLoop, nextScheduledDelay); // Schedule the next tick
-    frameDelta = nextScheduledDelay;
+  let timeout: NodeJS.Timeout;
+  let isDestroyed = false;
+  const gameLoop = {
+    initGameLoop() {
+      if (isDestroyed) return;
+      const startTime = performance.now();
+      // Update game state here (e.g., physics, player positions, ball movement)
+      mainMethod(frameDelta);
+      const endTime = performance.now();
+      const elapsed = endTime - startTime;
+      const nextScheduledDelay = Math.max(0, TICK_RATE - elapsed);
+      timeout = setTimeout(gameLoop.initGameLoop, nextScheduledDelay); // Schedule the next tick
+      frameDelta = nextScheduledDelay;
+    },
+    destroy() {
+      isDestroyed = true;
+      clearTimeout(timeout);
+    },
   };
+  return gameLoop;
 }
