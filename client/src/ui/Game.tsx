@@ -4,8 +4,8 @@ import { useQuery, useWorld } from "koota/react";
 import React, { useRef } from "react";
 // biome-ignore lint/style/useImportType: Let this change over time...
 import * as THREE from "three";
-import { OrbitControls, OrthographicCamera, Stats } from "@react-three/drei";
-import { folder, useControls } from "leva";
+import { OrthographicCamera, Stats } from "@react-three/drei";
+import { useControls } from "leva";
 
 export function Game() {
   return (
@@ -44,7 +44,7 @@ function GamePlayer(props: { playerId: string; color: number }) {
 
     meshRef.current.position.z = lerp(
       meshRef.current.position.z,
-      myPlayerPos.y,
+      myPlayerPos.z,
       lerpFactor
     );
   });
@@ -64,8 +64,8 @@ function Terrain() {
     color,
     rotation,
   } = useControls("Terrain", {
-    width: 10,
-    height: 10,
+    width: 100,
+    height: 100,
     color: "#5ea01b",
     rotation: [-Math.PI / 2, 0, 0],
   });
@@ -116,85 +116,58 @@ const playerColors = [0x00ff00, 0xff0000];
 
 function GameContents() {
   const players = useQuery(Position2, OfPlayer);
+  const mePlayer = players.find((p) => p.get(OfPlayer)?.isMe)?.get(Position2);
 
-  const { zoom, position, near, far } = useControls("Camera", {
+  const { zoom, position, far } = useControls("Camera", {
     zoom: 40,
     position: [20, 20, 20],
-    near: 0.1,
-    far: 1000,
+    far: 2000,
+  });
+  const lookAt = mePlayer ? [mePlayer.x, 0, mePlayer.z] : [0, 0, 0];
+
+  const { rotateSceneX, rotateSceneY, rotateSceneZ } = useControls({
+    rotateSceneX: Math.atan(1 / Math.sqrt(2)),
+    rotateSceneY: Math.PI / 4,
+    rotateSceneZ: 0,
   });
 
   return (
     <>
-      <directionalLight position={[1, 1, 1]} />
-      <ambientLight intensity={0.8} />
-      <ControlledOrbitControl />
+      <Stats />
       <OrthographicCamera
         makeDefault
-        zoom={zoom}
         position={position}
-        near={near}
+        lookAt={lookAt}
+        near={-20 * zoom}
         far={far}
-      />
-      <Stats />
-
-      <scene>
-        {players.map((p, idx) => {
-          return (
-            <GamePlayer
-              key={p.get(OfPlayer)!.playerId}
-              color={playerColors[idx % playerColors.length]!}
-              playerId={p.get(OfPlayer)!.playerId}
-            />
-          );
-        })}
-        <DebugPoint posX={0} posZ={0} />
-        {/* Group for relative to corner */}
-        <group position={[-5, 0, -5]}>
-          <DebugPoint posX={0} posZ={0} color={"hotpink"} />
-          <DebugPoint posX={5} posZ={5} color={"hotpink"} />
-          {trees.map((t) => {
-            return <Tree key={t.id} posX={t.posX} posZ={t.posZ} />;
+        zoom={zoom}
+      >
+        <directionalLight position={[1, 1, 1]} />
+        <ambientLight intensity={0.8} />
+        <scene
+          rotation={[rotateSceneX, rotateSceneY, (rotateSceneZ * Math.PI) / 12]}
+        >
+          {players.map((p, idx) => {
+            return (
+              <GamePlayer
+                key={p.get(OfPlayer)!.playerId}
+                color={playerColors[idx % playerColors.length]!}
+                playerId={p.get(OfPlayer)!.playerId}
+              />
+            );
           })}
-        </group>
-        <Terrain />
-      </scene>
+          <DebugPoint posX={0} posZ={0} />
+          {/* Group for relative to corner */}
+          <group position={[-5, 0, -5]}>
+            <DebugPoint posX={0} posZ={0} color={"hotpink"} />
+            <DebugPoint posX={5} posZ={5} color={"hotpink"} />
+            {trees.map((t) => {
+              return <Tree key={t.id} posX={t.posX} posZ={t.posZ} />;
+            })}
+          </group>
+          <Terrain />
+        </scene>
+      </OrthographicCamera>
     </>
-  );
-}
-
-function ControlledOrbitControl() {
-  const [_cameraVals, setCamera] = useControls(() => {
-    return {
-      "Orbital Camera": folder(
-        {
-          posX: 0,
-          posY: 0,
-          posZ: 0,
-          rotX: 0,
-          rotY: 0,
-          rotZ: 0,
-        },
-        { collapsed: true }
-      ),
-    };
-  });
-
-  return (
-    <OrbitControls
-      onChange={(self) => {
-        const pos = self?.target.object.position;
-        const rot = self?.target.object.rotation;
-        if (!pos || !rot) return;
-        setCamera({
-          posX: pos.x,
-          posY: pos.y,
-          posZ: pos.z,
-          rotX: rot.x,
-          rotY: rot.y,
-          rotZ: rot.z,
-        });
-      }}
-    />
   );
 }

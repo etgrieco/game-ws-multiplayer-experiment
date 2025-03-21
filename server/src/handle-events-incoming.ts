@@ -18,7 +18,7 @@ export function handleEventsIncoming(
       // by default, assume joiner is always player 1
       const playerNumber = 1;
       const newPlayerId = crypto.randomUUID();
-      const playerOneInitialPos = { x: -2, y: 0 } as const;
+      const playerOneInitialPos = { x: -2, z: 0 } as const;
 
       const session = createSession(context.sessionsData, context.ws);
       // add to connection list
@@ -68,7 +68,7 @@ export function handleEventsIncoming(
       // by default, assume joiner is always player 2
       const playerNumber = 2;
       const newPlayerId = crypto.randomUUID();
-      const playerTwoInitialPos = { x: 2, y: 0 } as const;
+      const playerTwoInitialPos = { x: 2, z: 0 } as const;
 
       // add to connection list
       session.broadcaster.updateConnect(playerNumber, context.ws);
@@ -324,7 +324,7 @@ export function handleEventsIncoming(
       game.world.query(Velocity2, OfPlayer).updateEach(([vel, player]) => {
         if (player.playerNumber === playerIdx + 1) {
           vel.x = eventData.data.vel.x;
-          vel.y = eventData.data.vel.y;
+          vel.z = eventData.data.vel.z;
         }
       });
       break;
@@ -360,7 +360,7 @@ function createSession(
 }
 
 function getPlayersInitialState(world: World): {
-  pos: { x: number; y: number };
+  pos: { x: number; z: number };
   playerId: string;
   playerAssignment: 1 | 2;
 }[] {
@@ -371,10 +371,6 @@ function getPlayersInitialState(world: World): {
         pos: e.get(Position2)!,
         playerAssignment: e.get(OfPlayer)!.playerNumber as 1 | 2,
         playerId: e.get(OfPlayer)!.playerId,
-      } satisfies {
-        pos: { x: number; y: number };
-        playerId: string;
-        playerAssignment: 1 | 2;
       };
     })
     .sort((a, b) => {

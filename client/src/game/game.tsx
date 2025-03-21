@@ -12,10 +12,10 @@ const configs = {
   playerSpeed: {
     xIncrement: 0.25,
     xDecelerate: 0.5,
-    yIncrement: 0.25,
-    yDecelerate: 0.5,
-    xMax: 0.5,
-    yMax: 0.5,
+    zIncrement: 0.25,
+    zDecelerate: 0.5,
+    xMax: 1.0,
+    zMax: 1.0,
   },
 };
 
@@ -31,7 +31,7 @@ export type GameStore = Readonly<{
     id: string,
     myPlayerId: string,
     initialState: {
-      pos: { x: number; y: number };
+      pos: { x: number; z: number };
       playerId: string;
       playerAssignment: 1 | 2;
     }[]
@@ -41,7 +41,7 @@ export type GameStore = Readonly<{
   startGame: (sessionId: string) => void;
   pauseGame: () => void;
   updatePositions: (
-    playerPositions: { x: number; y: number; playerId: string }[]
+    playerPositions: { x: number; z: number; playerId: string }[]
   ) => void;
 }>;
 
@@ -121,7 +121,7 @@ export const gameStoreFactory = (mainWorld: World) => {
 
         const perFrameMovementUpdates = {
           dx: 0,
-          dy: 0,
+          dz: 0,
         };
         const {
           loopCb: gameControlsCb,
@@ -129,16 +129,16 @@ export const gameStoreFactory = (mainWorld: World) => {
         } = setupGameControls(
           {
             handleAccPlayerLeft() {
-              perFrameMovementUpdates.dy += 1;
-            },
-            handleAccPlayerRight() {
-              perFrameMovementUpdates.dy -= 1;
-            },
-            handleAccPlayerForward() {
               perFrameMovementUpdates.dx -= 1;
             },
-            handleAccPlayerBackwards() {
+            handleAccPlayerRight() {
               perFrameMovementUpdates.dx += 1;
+            },
+            handleAccPlayerForward() {
+              perFrameMovementUpdates.dz -= 1;
+            },
+            handleAccPlayerBackwards() {
+              perFrameMovementUpdates.dz += 1;
             },
           },
           getStore
@@ -157,21 +157,21 @@ export const gameStoreFactory = (mainWorld: World) => {
           game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
             if (p.isMe) {
               // if nothing held, decelerate towards 0
-              if (perFrameMovementUpdates.dy === 0) {
-                if (vel.y < 0) {
-                  vel.y = Math.min(vel.y + configs.playerSpeed.yDecelerate, 0);
-                } else if (vel.y > 0) {
-                  vel.y = Math.max(vel.y - configs.playerSpeed.yDecelerate, 0);
+              if (perFrameMovementUpdates.dz === 0) {
+                if (vel.z < 0) {
+                  vel.z = Math.min(vel.z + configs.playerSpeed.zDecelerate, 0);
+                } else if (vel.z > 0) {
+                  vel.z = Math.max(vel.z - configs.playerSpeed.zDecelerate, 0);
                 }
               } else {
-                vel.y = Math.max(
+                vel.z = Math.max(
                   Math.min(
-                    configs.playerSpeed.yMax,
-                    vel.y +
-                      configs.playerSpeed.yIncrement *
-                        perFrameMovementUpdates.dy
+                    configs.playerSpeed.zMax,
+                    vel.z +
+                      configs.playerSpeed.zIncrement *
+                        perFrameMovementUpdates.dz
                   ),
-                  -configs.playerSpeed.yMax
+                  -configs.playerSpeed.zMax
                 );
               }
 
@@ -199,7 +199,7 @@ export const gameStoreFactory = (mainWorld: World) => {
                   id: game.sessionId,
                   vel: {
                     x: vel.x,
-                    y: vel.y,
+                    z: vel.z,
                   },
                 },
               });
@@ -208,7 +208,7 @@ export const gameStoreFactory = (mainWorld: World) => {
 
           // then, reset
           perFrameMovementUpdates.dx = 0;
-          perFrameMovementUpdates.dy = 0;
+          perFrameMovementUpdates.dz = 0;
         }); // start client-side game loop
       },
       updatePositions(playerPositions) {
@@ -257,7 +257,7 @@ export const gameStoreFactory = (mainWorld: World) => {
               throw new Error("Player to update no longer exists!?");
             }
             p.x = matchingPlayer.x;
-            p.y = matchingPlayer.y;
+            p.z = matchingPlayer.z;
           });
       },
     };
@@ -391,7 +391,7 @@ function createGameSimulationFactory(
   id: string,
   myPlayerId: string,
   initialState: {
-    pos: { x: number; y: number };
+    pos: { x: number; z: number };
     playerId: string;
     playerAssignment: 1 | 2;
   }[],
@@ -404,7 +404,7 @@ function createGameSimulationFactory(
   // spawn players
   initialState.forEach((p, idx) => {
     world.spawn(
-      Position2({ x: p.pos.x, y: p.pos.y }),
+      Position2({ x: p.pos.x, z: p.pos.z }),
       Velocity2(),
       OfPlayer({
         playerNumber: idx + 1,

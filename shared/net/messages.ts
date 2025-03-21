@@ -14,7 +14,7 @@ export type GameSessionServerEvent =
         myPlayerId: string;
         multiplayerSessionStatus: MultiplayerSessionStatus;
         initialState: {
-          pos: { x: number; y: number };
+          pos: { x: number; z: number };
           playerId: string;
           playerAssignment: 1 | 2;
         }[];
@@ -28,7 +28,7 @@ export type GameSessionServerEvent =
         myPlayerId: string;
         multiplayerSessionStatus: MultiplayerSessionStatus;
         initialState: {
-          pos: { x: number; y: number };
+          pos: { x: number; z: number };
           playerId: string;
           playerAssignment: 1 | 2;
         }[];
@@ -42,7 +42,7 @@ export type GameSessionServerEvent =
         id: string;
         myPlayerId: string;
         initialState: {
-          pos: { x: number; y: number };
+          pos: { x: number; z: number };
           playerId: string;
           playerAssignment: 1 | 2;
         }[];
@@ -60,7 +60,7 @@ export type GameSessionServerEvent =
       type: "POSITIONS_UPDATE";
       id: string;
       data: {
-        playerPositions: { x: number; y: number; playerId: string }[];
+        playerPositions: { x: number; z: number; playerId: string }[];
       };
     }
   | {
@@ -102,7 +102,7 @@ export type GameSessionClientEvent = { type: string } & (
         id: string;
         vel: {
           x: number;
-          y: number;
+          z: number;
         };
       };
     }
