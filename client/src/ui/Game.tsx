@@ -117,20 +117,8 @@ const playerColors = [0x00ff00, 0xff0000];
 function GameContents() {
   const players = useQuery(Position2, OfPlayer);
 
-  const { zoom, far } = useControls("Camera", {
+  const { zoom } = useControls("Camera", {
     zoom: 40,
-    far: 2000,
-  });
-
-  const lookAt = useRef([0, 0, 0] as [number, number, number]);
-  const position = useRef([0, 0, 0] as [number, number, number]);
-  const mePlayer = players.find((p) => p.get(OfPlayer)?.isMe);
-  useFrame(() => {
-    const playerPos = mePlayer?.get(Position2);
-    position.current = playerPos
-      ? [playerPos.x + 10, 10, playerPos.z + 10]
-      : [0, 0, 0];
-    lookAt.current = playerPos ? [playerPos.x, 0, playerPos.z] : [0, 0, 0];
   });
 
   return (
@@ -138,10 +126,9 @@ function GameContents() {
       <Stats />
       <OrthographicCamera
         makeDefault
-        position={position.current}
-        lookAt={lookAt.current}
+        position={[0, 0, 0]}
         near={-20 * zoom}
-        far={far}
+        far={2000}
         zoom={zoom}
       >
         <directionalLight position={[1, 1, 1]} />
