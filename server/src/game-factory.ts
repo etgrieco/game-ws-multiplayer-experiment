@@ -17,7 +17,7 @@ export function setupGameSimulation(
     world,
   };
 
-  return {
+  const simulation: GameSimulation = {
     lastUpdated: 0,
     gameData: gameData,
     status: "PAUSED",
@@ -30,12 +30,13 @@ export function setupGameSimulation(
         if (this.status !== "RUNNING") return;
         gameLoop(gameData, deltaTime);
         syncCb?.();
-        this.lastUpdated = Date.now();
+        simulation.lastUpdated = Date.now();
       });
       // and just kick it off
       loop();
     },
   };
+  return simulation;
 }
 
 export type GameSimulationBroadcaster = {

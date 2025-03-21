@@ -39,15 +39,16 @@ const sessionsData: SessionMap = new Map(
           .sort(([_ka, valueA], [_kb, valueB]) => {
             return valueA.gameSim.lastUpdated - valueB.gameSim.lastUpdated;
           })
+          // don't include games that never started
+          .filter(([_k, sim]) => sim.lastUpdated)
           // max latest 5
           .slice(0, 5)
           // max 24 hours ago
           .filter(([_, value]) => {
-            return (
-              new Date().getTime() - value.lastUpdated < 24 * 60 * 60 * 1000
-            );
+            return Date.now() - value.lastUpdated < 24 * 60 * 60 * 1000;
           })
       );
+      console.log(`loading ${sessionsMap.size} backups`);
       return sessionsMap;
     } catch (e) {
       console.error("Backup read failed, return empty");

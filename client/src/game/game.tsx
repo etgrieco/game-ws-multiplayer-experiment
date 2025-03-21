@@ -435,7 +435,7 @@ function createGameSimulationFactory(
   });
 
   let status: GameSimulation["status"] = "PAUSED";
-  return {
+  const simulation: GameSimulation = {
     lastUpdated: 0,
     get status() {
       return status;
@@ -449,7 +449,7 @@ function createGameSimulationFactory(
         // we currently rely solely on the server to drive systems
         // Here, we would do client-side logic
         syncCb?.();
-        this.lastUpdated = Date.now();
+        simulation.lastUpdated = Date.now();
       });
       loop(this);
     },
@@ -458,6 +458,7 @@ function createGameSimulationFactory(
       world: world,
     },
   };
+  return simulation;
 }
 
 const TICK_RATE = 1000 / 60; // 60 updates per second (~16.67ms per frame)
