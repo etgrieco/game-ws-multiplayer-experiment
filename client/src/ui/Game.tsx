@@ -116,19 +116,21 @@ const playerColors = [0x00ff00, 0xff0000];
 
 function GameContents() {
   const players = useQuery(Position2, OfPlayer);
-  const mePlayer = players.find((p) => p.get(OfPlayer)?.isMe)?.get(Position2);
 
-  const { zoom, position, far } = useControls("Camera", {
+  const { zoom, far } = useControls("Camera", {
     zoom: 40,
-    position: [20, 20, 20],
     far: 2000,
   });
-  const lookAt = mePlayer ? [mePlayer.x, 0, mePlayer.z] : [0, 0, 0];
 
-  const { rotateSceneX, rotateSceneY, rotateSceneZ } = useControls({
-    rotateSceneX: Math.atan(1 / Math.sqrt(2)),
-    rotateSceneY: Math.PI / 4,
-    rotateSceneZ: 0,
+  const lookAt = useRef([0, 0, 0] as [number, number, number]);
+  const position = useRef([0, 0, 0] as [number, number, number]);
+  const mePlayer = players.find((p) => p.get(OfPlayer)?.isMe);
+  useFrame(() => {
+    const playerPos = mePlayer?.get(Position2);
+    position.current = playerPos
+      ? [playerPos.x + 10, 10, playerPos.z + 10]
+      : [0, 0, 0];
+    lookAt.current = playerPos ? [playerPos.x, 0, playerPos.z] : [0, 0, 0];
   });
 
   return (
@@ -136,17 +138,15 @@ function GameContents() {
       <Stats />
       <OrthographicCamera
         makeDefault
-        position={position}
-        lookAt={lookAt}
+        position={position.current}
+        lookAt={lookAt.current}
         near={-20 * zoom}
         far={far}
         zoom={zoom}
       >
         <directionalLight position={[1, 1, 1]} />
         <ambientLight intensity={0.8} />
-        <scene
-          rotation={[rotateSceneX, rotateSceneY, (rotateSceneZ * Math.PI) / 12]}
-        >
+        <scene rotation={[Math.atan(1 / Math.sqrt(2)), Math.PI / 4, 0]}>
           {players.map((p, idx) => {
             return (
               <GamePlayer
@@ -156,10 +156,12 @@ function GameContents() {
               />
             );
           })}
-          <DebugPoint posX={0} posZ={0} />
           {/* Group for relative to corner */}
           <group position={[-5, 0, -5]}>
             <DebugPoint posX={0} posZ={0} color={"hotpink"} />
+            <DebugPoint posX={0} posZ={10} color={"hotpink"} />
+            <DebugPoint posX={10} posZ={0} color={"hotpink"} />
+            <DebugPoint posX={10} posZ={10} color={"hotpink"} />
             <DebugPoint posX={5} posZ={5} color={"hotpink"} />
             {trees.map((t) => {
               return <Tree key={t.id} posX={t.posX} posZ={t.posZ} />;

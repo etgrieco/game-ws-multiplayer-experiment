@@ -10,12 +10,13 @@ import { createStore, useStore } from "zustand";
 
 const configs = {
   playerSpeed: {
-    xIncrement: 0.25,
+    speed: 3,
+    xIncrement: 0.1,
     xDecelerate: 0.5,
-    zIncrement: 0.25,
+    zIncrement: 0.1,
     zDecelerate: 0.5,
-    xMax: 1.0,
-    zMax: 1.0,
+    xMax: (1 / Math.sqrt(2)) * 0.5,
+    zMax: (1 / Math.sqrt(2)) * 0.5,
   },
 };
 
@@ -123,6 +124,18 @@ export const gameStoreFactory = (mainWorld: World) => {
           dx: 0,
           dz: 0,
         };
+
+        function normalizeVectors(vec: { dx: number; dz: number }) {
+          let { dx, dz } = vec;
+          // Normalize movement
+          const magnitude = Math.sqrt(dx * dx + dz * dz);
+          if (magnitude > 0) {
+            dx = (dx / magnitude) * configs.playerSpeed.speed;
+            dz = (dz / magnitude) * configs.playerSpeed.speed;
+          }
+          vec.dx = dx;
+          vec.dz = dz;
+        }
         const {
           loopCb: gameControlsCb,
           onDestroy: destroyGameControlResources,
@@ -130,15 +143,19 @@ export const gameStoreFactory = (mainWorld: World) => {
           {
             handleAccPlayerLeft() {
               perFrameMovementUpdates.dx -= 1;
+              perFrameMovementUpdates.dz -= 1;
             },
             handleAccPlayerRight() {
               perFrameMovementUpdates.dx += 1;
+              perFrameMovementUpdates.dz += 1;
             },
             handleAccPlayerForward() {
               perFrameMovementUpdates.dz -= 1;
+              perFrameMovementUpdates.dx += 1;
             },
             handleAccPlayerBackwards() {
               perFrameMovementUpdates.dz += 1;
+              perFrameMovementUpdates.dx -= 1;
             },
           },
           getStore
@@ -167,9 +184,7 @@ export const gameStoreFactory = (mainWorld: World) => {
                 vel.z = Math.max(
                   Math.min(
                     configs.playerSpeed.zMax,
-                    vel.z +
-                      configs.playerSpeed.zIncrement *
-                        perFrameMovementUpdates.dz
+                    vel.z + perFrameMovementUpdates.dz
                   ),
                   -configs.playerSpeed.zMax
                 );
@@ -193,13 +208,18 @@ export const gameStoreFactory = (mainWorld: World) => {
                 );
               }
 
+              const vec = {
+                dx: vel.x,
+                dz: vel.z,
+              };
+              normalizeVectors(vec);
               verifiedInits.sendNetEvent({
                 type: "PLAYER_UPDATE",
                 data: {
                   id: game.sessionId,
                   vel: {
-                    x: vel.x,
-                    z: vel.z,
+                    x: vec.dx,
+                    z: vec.dz,
                   },
                 },
               });
