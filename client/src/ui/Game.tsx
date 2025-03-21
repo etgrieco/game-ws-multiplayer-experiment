@@ -17,7 +17,8 @@ export function Game() {
   );
 }
 
-const LERP_FACTOR = 0.1;
+const MOVEMENT_LERP_FACTOR = 0.08;
+const CAMERA_LERP_FACTOR = 0.01;
 function GamePlayer(props: { playerId: string; color: number }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const world = useWorld();
@@ -37,14 +38,14 @@ function GamePlayer(props: { playerId: string; color: number }) {
         meshRef.current.position.y,
         myPlayerPos.z
       ),
-      LERP_FACTOR
+      MOVEMENT_LERP_FACTOR
     );
   });
 
   return (
     <mesh ref={meshRef} position={[0, 0.25, 0]}>
       <boxGeometry args={[0.5, 0.5, 0.5]} />
-      <meshStandardMaterial color={props.color} />
+      <meshStandardMaterial flatShading color={props.color} />
     </mesh>
   );
 }
@@ -106,33 +107,34 @@ function GameContents() {
     zoom: 40,
   });
   const cameraRef = React.useRef<THREE.OrthographicCamera>(null!);
-  const { offset: offsetVals } = useControls({
-    offset: [0, 0, 0],
-  });
+  const isCameraMoving = React.useRef(false);
 
   useFrame(() => {
     if (!cameraRef.current) return;
-
     const playerPosData = players
       .find((p) => p.get(OfPlayer)?.isMe)
       ?.get(Position2);
-
     if (!playerPosData) return;
 
-    const playerPos = new THREE.Vector3(playerPosData.x!, 0, playerPosData.z!);
-    const offset = new THREE.Vector3(...offsetVals);
-    const target = playerPos.add(offset);
-
-    cameraRef.current.position.lerp(
-      { x: target.x, y: target.y, z: target.z },
-      LERP_FACTOR
-    );
+    const targetPos = new THREE.Vector3(playerPosData.x!, 0, playerPosData.z!);
+    if (!isCameraMoving.current) {
+      const distance = targetPos.distanceTo(cameraRef.current.position);
+      console.log(distance);
+      isCameraMoving.current = distance > (5 * 40) / zoom;
+    }
+    if (isCameraMoving.current) {
+      cameraRef.current.position.lerp(targetPos, CAMERA_LERP_FACTOR);
+      // re-evaluate whether we should stop moving
+      if (targetPos.distanceTo(cameraRef.current.position) < 0.5) {
+        isCameraMoving.current = false;
+      }
+    }
   });
 
   return (
     <>
       <Stats />
-      <directionalLight position={[1, 1, 1]} />
+      <directionalLight position={[1, 3, 1]} />
       <ambientLight intensity={0.8} />
       <OrthographicCamera
         rotation={[-Math.atan(1 / Math.sqrt(2)), Math.PI / 4, 0, "YXZ"]}
