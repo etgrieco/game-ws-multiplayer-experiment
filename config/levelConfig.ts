@@ -1,7 +1,7 @@
 export const levelConfig = {
   terrain: {
-    maxX: 10,
-    maxZ: 10,
+    maxX: 100,
+    maxZ: 100,
     color: "#5ea01b",
   },
 };

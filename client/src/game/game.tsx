@@ -1,5 +1,3 @@
-import { levelConfig } from "@config/levelConfig";
-import { addRandomGameLandscapeTreeObstacles } from "@shared/ecs/system";
 import {
   IsLandscape,
   IsObstacle,

@@ -41,7 +41,7 @@ export function handleEventsIncoming(
         session.gameSim.gameData.world,
         levelConfig.terrain.maxX,
         levelConfig.terrain.maxZ,
-        10
+        1000
       );
 
       session.gameStatus = "PAUSED_AWAITING_PLAYERS";

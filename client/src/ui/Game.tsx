@@ -120,7 +120,7 @@ function GameContents() {
       <Stats />
       <OrthographicCamera
         makeDefault
-        position={[0, 0, 0]}
+        position={[50, 50, 50]}
         near={-20 * zoom}
         far={2000}
         zoom={zoom}
