@@ -14,8 +14,8 @@ const configs = {
     xDecelerate: 0.5,
     yIncrement: 0.25,
     yDecelerate: 0.5,
-    xMax: 2,
-    yMax: 2,
+    xMax: 0.5,
+    yMax: 0.5,
   },
 };
 
@@ -36,6 +36,7 @@ export type GameStore = Readonly<{
       playerAssignment: 1 | 2;
     }[]
   ) => void;
+  destroyGameCleanup: () => void;
   connectGameNet: (newSender: (ev: GameSessionClientEvent) => void) => void;
   startGame: (sessionId: string) => void;
   pauseGame: () => void;
@@ -57,6 +58,9 @@ export const gameStoreFactory = (mainWorld: World) => {
     };
     return {
       game: null,
+      destroyGameCleanup: () => {
+        // no-op, until set during startGame!
+      },
       multiplayerSessionStatus: "PAUSED_AWAITING_PLAYERS",
       setMultiplayerSessionStatus(newStatus) {
         set({ multiplayerSessionStatus: newStatus });
@@ -81,6 +85,8 @@ export const gameStoreFactory = (mainWorld: World) => {
         set({ lastGameError: { id, message } });
       },
       setupGame(id, myPlayerId, initialState) {
+        // call cleanup on any started games...
+        getStore().destroyGameCleanup();
         set({
           game: createGameSimulationFactory(
             id,
@@ -117,7 +123,10 @@ export const gameStoreFactory = (mainWorld: World) => {
           dx: 0,
           dy: 0,
         };
-        const gameControlsCb = setupGameControls(
+        const {
+          loopCb: gameControlsCb,
+          onDestroy: destroyGameControlResources,
+        } = setupGameControls(
           {
             handleAccPlayerLeft() {
               perFrameMovementUpdates.dy += 1;
@@ -136,6 +145,11 @@ export const gameStoreFactory = (mainWorld: World) => {
         );
         set({
           multiplayerSessionStatus: "PLAYING",
+        });
+        set({
+          destroyGameCleanup() {
+            destroyGameControlResources();
+          },
         });
         gameStore.game.start(() => {
           gameControlsCb();
@@ -157,7 +171,7 @@ export const gameStoreFactory = (mainWorld: World) => {
                       configs.playerSpeed.yIncrement *
                         perFrameMovementUpdates.dy
                   ),
-                  -2
+                  -configs.playerSpeed.yMax
                 );
               }
 
@@ -175,7 +189,7 @@ export const gameStoreFactory = (mainWorld: World) => {
                       configs.playerSpeed.xIncrement *
                         perFrameMovementUpdates.dx
                   ),
-                  -2
+                  -configs.playerSpeed.xMax
                 );
               }
 
@@ -259,83 +273,117 @@ function setupGameControls(
     handleAccPlayerBackwards(): void;
   },
   gameProvider: () => GameStore
-): () => void {
+): {
+  loopCb: () => void;
+  onDestroy: () => void;
+} {
   const keysState = {
     FORWARD: false,
     BACKWARD: false,
     RIGHT: false,
     LEFT: false,
   };
+  function resetKeys() {
+    for (const k in keysState) {
+      const key = k as keyof typeof keysState;
+      keysState[key] = false;
+    }
+  }
 
-  document.addEventListener("keydown", (ev) => {
-    switch (ev.code) {
-      case "KeyA":
-      case "ArrowLeft": {
-        keysState.LEFT = true;
-        break;
+  function setupListeners(abortController: AbortController) {
+    document.addEventListener(
+      "keydown",
+      (ev) => {
+        switch (ev.code) {
+          case "KeyA":
+          case "ArrowLeft": {
+            keysState.LEFT = true;
+            break;
+          }
+          case "KeyW":
+          case "ArrowUp": {
+            keysState.FORWARD = true;
+            break;
+          }
+          case "KeyS":
+          case "ArrowDown": {
+            keysState.BACKWARD = true;
+            cbs.handleAccPlayerBackwards();
+            break;
+          }
+          case "KeyD":
+          case "ArrowRight": {
+            keysState.RIGHT = true;
+            cbs.handleAccPlayerRight();
+            break;
+          }
+        }
+      },
+      { signal: abortController.signal }
+    );
+    document.addEventListener(
+      "keyup",
+      (ev) => {
+        switch (ev.code) {
+          case "KeyA":
+          case "ArrowLeft": {
+            keysState.LEFT = false;
+            break;
+          }
+          case "KeyW":
+          case "ArrowUp": {
+            keysState.FORWARD = false;
+            break;
+          }
+          case "KeyS":
+          case "ArrowDown": {
+            keysState.BACKWARD = false;
+            break;
+          }
+          case "KeyD":
+          case "ArrowRight": {
+            keysState.RIGHT = false;
+            break;
+          }
+        }
+      },
+      { signal: abortController.signal }
+    );
+    window.addEventListener(
+      "blur",
+      () => {
+        resetKeys();
+      },
+      { signal: abortController.signal }
+    );
+  }
+
+  const abortController = new AbortController();
+  setupListeners(abortController);
+
+  return {
+    loopCb: () => {
+      const gameStore = gameProvider();
+      // ignore input on non-playing states
+      if (gameStore.game?.status === "PAUSED") {
+        return;
       }
-      case "KeyW":
-      case "ArrowUp": {
-        keysState.FORWARD = true;
-        break;
+      if (keysState.FORWARD) {
+        cbs.handleAccPlayerForward();
       }
-      case "KeyS":
-      case "ArrowDown": {
-        keysState.BACKWARD = true;
+      if (keysState.BACKWARD) {
         cbs.handleAccPlayerBackwards();
-        break;
       }
-      case "KeyD":
-      case "ArrowRight": {
-        keysState.RIGHT = true;
+      if (keysState.LEFT) {
+        cbs.handleAccPlayerLeft();
+      }
+      if (keysState.RIGHT) {
         cbs.handleAccPlayerRight();
-        break;
       }
-    }
-  });
-  document.addEventListener("keyup", (ev) => {
-    switch (ev.code) {
-      case "KeyA":
-      case "ArrowLeft": {
-        keysState.LEFT = false;
-        break;
-      }
-      case "KeyW":
-      case "ArrowUp": {
-        keysState.FORWARD = false;
-        break;
-      }
-      case "KeyS":
-      case "ArrowDown": {
-        keysState.BACKWARD = false;
-        break;
-      }
-      case "KeyD":
-      case "ArrowRight": {
-        keysState.RIGHT = false;
-        break;
-      }
-    }
-  });
-
-  return () => {
-    const gameStore = gameProvider();
-    // ignore input on non-playing states
-    if (gameStore.game?.status === "PAUSED") {
-      return;
-    }
-    if (keysState.FORWARD) {
-      cbs.handleAccPlayerForward();
-    }
-    if (keysState.BACKWARD) {
-      cbs.handleAccPlayerBackwards();
-    }
-    if (keysState.LEFT) {
-      cbs.handleAccPlayerLeft();
-    }
-    if (keysState.RIGHT) {
-      cbs.handleAccPlayerRight();
-    }
+    },
+    onDestroy() {
+      abortController.abort();
+    },
   };
 }
 
