@@ -10,8 +10,11 @@ import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { wsSend } from "./wsSend.js";
 import type { World } from "koota";
-import { addRandomGameLandscapeTreeObstacles } from "@shared/ecs/system.js";
 import { levelConfig } from "@config/levelConfig.js";
+import {
+  spawnPlayer,
+  spawnRandomGameLandscapeTreeObstacles,
+} from "@shared/ecs/spawn.js";
 
 export function handleEventsIncoming(
   eventData: GameSessionClientEvent,
@@ -31,13 +34,12 @@ export function handleEventsIncoming(
       // add to connection list
       session.broadcaster.updateConnect(playerNumber, context.ws);
       // Add player to world
-      session.gameSim.gameData.world.spawn(
-        Position2(playerOneInitialPos),
-        Velocity2(),
-        OfPlayer({ playerNumber: playerNumber, playerId: newPlayerId })
-      );
+      spawnPlayer(session.gameSim.gameData.world, {
+        pos: playerOneInitialPos,
+        player: { playerNumber, playerId: newPlayerId },
+      });
       // create landscapes and add to world
-      addRandomGameLandscapeTreeObstacles(
+      spawnRandomGameLandscapeTreeObstacles(
         session.gameSim.gameData.world,
         levelConfig.terrain.maxX,
         levelConfig.terrain.maxZ,
@@ -101,11 +103,10 @@ export function handleEventsIncoming(
       session.broadcaster.updateConnect(playerNumber, context.ws);
 
       // Add player to world
-      session.gameSim.gameData.world.spawn(
-        Position2(playerTwoInitialPos),
-        Velocity2(),
-        OfPlayer({ playerNumber: playerNumber, playerId: newPlayerId })
-      );
+      spawnPlayer(session.gameSim.gameData.world, {
+        player: { playerNumber: playerNumber, playerId: newPlayerId },
+        pos: playerTwoInitialPos,
+      });
       session.gameStatus = "PAUSED_AWAITING_START";
       wsSend(context.ws, {
         id: crypto.randomUUID(),

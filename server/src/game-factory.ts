@@ -10,7 +10,8 @@ const TICK_RATE = 1000 / 10; // 60 updates per second (~16.67ms per frame)
 /** First step to run to set up game logic + initial state */
 export function setupGameSimulation(
   id: string,
-  world = createWorld()
+  world = createWorld(),
+  lastUpdated?: number
 ): GameSimulation {
   const gameData: GameSimulation["gameData"] = {
     sessionId: id,
@@ -18,7 +19,7 @@ export function setupGameSimulation(
   };
 
   const simulation: GameSimulation = {
-    lastUpdated: 0,
+    lastUpdated: lastUpdated ?? 0,
     gameData: gameData,
     status: "PAUSED",
     pause() {

@@ -6,12 +6,11 @@ type SessionData = {
 };
 
 const subscribeStorageFactory = <
-  // biome-ignore lint/suspicious/noExplicitAny: This is intended to be a lib-like function
-  TSnapshot extends Record<string, any> = Record<string, any>,
+  TSnapshot extends Record<string, unknown> = Record<string, unknown>
 >(
   storageKey: string,
   /** Depends upon a storage interface that emits the applicable 'storage' event on window(s) upon storage manipulation */
-  targetStorage: Storage,
+  targetStorage: Storage
 ): {
   subscribe: (cb: () => void) => () => void;
   getSnapshot: () => TSnapshot | null;
@@ -48,7 +47,7 @@ const subscribeStorageFactory = <
         },
         {
           signal: abortController.signal,
-        },
+        }
       );
       return () => {
         abortController.abort();

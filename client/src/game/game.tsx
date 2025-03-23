@@ -1,3 +1,4 @@
+import { spawnPlayer, spawnTree } from "@shared/ecs/spawn";
 import {
   IsLandscape,
   IsObstacle,
@@ -260,17 +261,14 @@ export const gameStoreFactory = (mainWorld: World) => {
             (cp) => p.playerId === cp.player.playerId
           );
           if (!hasPlayer) {
-            game.gameData.world.spawn(
-              Position2(),
-              Velocity2,
-              OfPlayer({
-                // FIXME: get truth from server
+            spawnPlayer(game.gameData.world, {
+              pos: { x: 0, z: 0 },
+              player: {
                 playerNumber: idx + 1,
-                // Always someone else
-                isMe: false,
                 playerId: p.playerId,
-              })
-            );
+                isMe: false,
+              },
+            });
           }
         });
 
@@ -301,11 +299,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         });
         // then, spawn
         treePositions.forEach((pos) => {
-          gameSimSnapshot.world.spawn(
-            Position2({ x: pos.x, z: pos.z }),
-            IsLandscape({ type: "tree" }),
-            IsObstacle
-          );
+          spawnTree(gameSimSnapshot.world, pos);
         });
       },
     };
@@ -451,15 +445,14 @@ function createGameSimulationFactory(
   });
   // spawn players
   initialState.forEach((p, idx) => {
-    world.spawn(
-      Position2({ x: p.pos.x, z: p.pos.z }),
-      Velocity2(),
-      OfPlayer({
+    spawnPlayer(world, {
+      pos: p.pos,
+      player: {
         playerNumber: idx + 1,
         isMe: myPlayerId === p.playerId,
         playerId: p.playerId,
-      })
-    );
+      },
+    });
   });
 
   let status: GameSimulation["status"] = "PAUSED";

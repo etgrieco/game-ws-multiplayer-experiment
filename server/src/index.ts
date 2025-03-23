@@ -1,6 +1,11 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait.js";
+import {
+  IsLandscape,
+  OfPlayer,
+  Position2,
+  Velocity2,
+} from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import { type World, createWorld } from "koota";
 import { WebSocketServer } from "ws";
@@ -8,6 +13,7 @@ import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { handleEventsIncoming } from "./handle-events-incoming.js";
 import { wsSend } from "./wsSend.js";
+import { spawnPlayer, spawnTree } from "@shared/ecs/spawn.js";
 
 const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
 const createBakFileName = (date: Date) => `bak-${date.getTime()}.json`;
@@ -58,13 +64,24 @@ const sessionsData: SessionMap = new Map(
 );
 
 function toWorldJSONBackup(container: World) {
-  return container.query(Position2, Velocity2, OfPlayer).map((e) => {
+  const players = container.query(Position2, Velocity2, OfPlayer).map((e) => {
     return {
-      player: e.get(OfPlayer),
-      pos: e.get(Position2),
-      vel: e.get(Velocity2),
+      player: e.get(OfPlayer)!,
+      pos: e.get(Position2)!,
+      vel: e.get(Velocity2)!,
     };
   });
+  const terrain = container.query(Position2, IsLandscape).map((e) => {
+    return {
+      pos: e.get(Position2),
+      landscape: e.get(IsLandscape),
+    };
+  });
+
+  return {
+    players,
+    terrain,
+  };
 }
 
 function toJSONBackup(
@@ -84,18 +101,30 @@ function toJSONBackup(
 function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
   const map: SessionMap = new Map();
 
-  b.forEach(([id, { world: backupWorldEntities }]) => {
+  b.forEach(([id, { world: backupWorldEntities, lastUpdated }]) => {
     const world = createWorld();
-    backupWorldEntities.forEach((e) => {
+    // handle spawning players
+    backupWorldEntities.players.forEach((e) => {
       if (e.player) {
-        world.spawn(Position2(e.pos), Velocity2(e.vel), OfPlayer(e.player));
+        spawnPlayer(world, {
+          pos: e.pos,
+          player: e.player,
+        });
       } else {
         console.warn(
           "I do not know how to spawn non-player entity... moving on"
         );
       }
     });
-    const gameSim = setupGameSimulation(id, world);
+    // handle spawning terrain
+    backupWorldEntities.terrain.forEach((e) => {
+      if (e.landscape?.type === "tree") {
+        spawnTree(world, e.pos!);
+      } else {
+        console.warn("I do not know how to spawn non-tree entity... moving on");
+      }
+    });
+    const gameSim = setupGameSimulation(id, world, lastUpdated);
     map.set(id, {
       id,
       broadcaster: createGameBroadcaster(gameSim.gameData, [null, null]),
