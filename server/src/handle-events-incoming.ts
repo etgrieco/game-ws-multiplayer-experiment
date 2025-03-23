@@ -92,15 +92,21 @@ export function handleEventsIncoming(
         return;
       }
 
-      // FIXME: race condition -- there can be an existing player 2! if so, return error?
+      const existingPlayers =
+        session.gameSim.gameData.world.query(OfPlayer).length;
+      if (existingPlayers > 1) {
+        console.error(
+          `JOIN_SESSION - Failed to join existing session with ${existingPlayers} players`
+        );
+      }
 
       // by default, assume joiner is always player 2
-      const playerNumber = 2;
+      const playerNumber = existingPlayers + 1;
       const newPlayerId = crypto.randomUUID();
       const playerTwoInitialPos = { x: 2, z: 0 } as const;
 
       // add to connection list
-      session.broadcaster.updateConnect(playerNumber, context.ws);
+      session.broadcaster.updateConnect(playerNumber as 1 | 2, context.ws);
 
       // Add player to world
       spawnPlayer(session.gameSim.gameData.world, {
@@ -209,7 +215,7 @@ export function handleEventsIncoming(
           },
         });
         console.error(
-          `REJOIN_EXISTING_SESSION - Session ${eventData.data.id} not found`
+          `REJOIN_EXISTING_SESSION - Cannot find player with matching ID ${eventData.data.playerId} (session: ${eventData.data.id})`
         );
         return;
       }

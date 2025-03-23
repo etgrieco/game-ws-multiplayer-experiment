@@ -119,7 +119,6 @@ function GameContents() {
     const targetPos = new THREE.Vector3(playerPosData.x!, 0, playerPosData.z!);
     if (!isCameraMoving.current) {
       const distance = targetPos.distanceTo(cameraRef.current.position);
-      console.log(distance);
       isCameraMoving.current = distance > (5 * 40) / zoom;
     }
     if (isCameraMoving.current) {

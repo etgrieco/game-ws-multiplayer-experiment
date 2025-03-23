@@ -45,8 +45,6 @@ const sessionsData: SessionMap = new Map(
           .sort(([_ka, valueA], [_kb, valueB]) => {
             return valueA.gameSim.lastUpdated - valueB.gameSim.lastUpdated;
           })
-          // don't include games that never started
-          .filter(([_k, sess]) => sess.gameSim.lastUpdated)
           // max latest 5
           .slice(0, 5)
           // max 24 hours ago

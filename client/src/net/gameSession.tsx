@@ -84,16 +84,17 @@ export function setupWsCloseReconnectionHandler(
       // If we have a session in-memory, reconnect to that!
       const existingGameData = gameStoreProvider().game?.gameData;
       if (existingGameData) {
-        const sessionData = getStoredSessionData();
+        const sessionData = getStoredSessionData(); // This is a quick shortcut to getting the relevant re-connection data
         if (!sessionData) {
           throw new Error(
             "I expect to have session data if a game is running!"
           );
         }
+        debugger;
         wsStore.getState().sendEvent({
           type: "REJOIN_EXISTING_SESSION",
           data: {
-            id: existingGameData.sessionId,
+            id: sessionData.gameId,
             playerId: sessionData.playerId,
           },
         });
