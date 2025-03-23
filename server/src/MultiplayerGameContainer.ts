@@ -6,8 +6,6 @@ import type { GameSimulationBroadcaster } from "./game-factory.js";
 
 export type MultiplayerGameContainer = {
   id: string;
-  /* Epoch timestamp */
-  lastUpdated: number;
   gameStatus: MultiplayerSessionStatus;
   gameSim: GameSimulation;
   broadcaster: GameSimulationBroadcaster;

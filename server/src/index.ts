@@ -40,12 +40,12 @@ const sessionsData: SessionMap = new Map(
             return valueA.gameSim.lastUpdated - valueB.gameSim.lastUpdated;
           })
           // don't include games that never started
-          .filter(([_k, sim]) => sim.lastUpdated)
+          .filter(([_k, sess]) => sess.gameSim.lastUpdated)
           // max latest 5
           .slice(0, 5)
           // max 24 hours ago
           .filter(([_, value]) => {
-            return Date.now() - value.lastUpdated < 24 * 60 * 60 * 1000;
+            return Date.now() - value.gameSim.lastUpdated < 24 * 60 * 60 * 1000;
           })
       );
       console.log(`loading ${sessionsMap.size} backups`);
@@ -67,11 +67,15 @@ function toWorldJSONBackup(container: World) {
   });
 }
 
-function toJSONBackup(id: string, sess: MultiplayerGameContainer) {
+function toJSONBackup(
+  id: string,
+  sess: MultiplayerGameContainer,
+  lastUpdated: number
+) {
   return [
     id,
     {
-      lastUpdated: sess.lastUpdated,
+      lastUpdated: lastUpdated,
       world: toWorldJSONBackup(sess.gameSim.gameData.world),
     },
   ] as const;
@@ -80,7 +84,7 @@ function toJSONBackup(id: string, sess: MultiplayerGameContainer) {
 function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
   const map: SessionMap = new Map();
 
-  b.forEach(([id, { world: backupWorldEntities, lastUpdated }]) => {
+  b.forEach(([id, { world: backupWorldEntities }]) => {
     const world = createWorld();
     backupWorldEntities.forEach((e) => {
       if (e.player) {
@@ -94,7 +98,6 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
     const gameSim = setupGameSimulation(id, world);
     map.set(id, {
       id,
-      lastUpdated,
       broadcaster: createGameBroadcaster(gameSim.gameData, [null, null]),
       gameStatus: "PAUSED_AWAITING_PLAYERS",
       gameSim: gameSim,
@@ -108,7 +111,7 @@ process.on("exit", () => {
   fs.mkdirSync(BAK_PATH, { recursive: true });
 
   const data = Array.from(sessionsData.entries()).map(([id, sess]) => {
-    return toJSONBackup(id, sess);
+    return toJSONBackup(id, sess, sess.gameSim.lastUpdated);
   });
 
   fs.writeFileSync(
