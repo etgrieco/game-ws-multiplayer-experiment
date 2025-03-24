@@ -2,7 +2,7 @@ import { Toaster } from "@client/components/ui/sonner";
 import { OfPlayer } from "@shared/ecs/trait";
 import React from "react";
 import { useGameStore } from "./game/game";
-import { GameComponentsProvider } from "./ui/GameComponets";
+import { GameComponentsProvider } from "./ui/GameComponents";
 import { GameStart } from "./ui/GameStart";
 import { prevSessionSubscriptionController } from "./ui/sessionStorageController";
 import { useQuery } from "koota/react";
@@ -31,7 +31,6 @@ function SyncSaveSession() {
       return;
     }
     if (meData) {
-      console.log("save me data", meData, "gameid", gameId);
       prevSessionSubscriptionController.setValue({
         gameId: gameId,
         lastUpdated: Date.now(),

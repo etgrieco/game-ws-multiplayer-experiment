@@ -134,6 +134,13 @@ export function setupWsCloseReconnectionHandler(
   }
 
   return () => {
+    const unsubscribe = wsStore.subscribe((state, prevState) => {
+      // handle subscribing to any new created connections
+      if (state.ws && state.ws !== prevState.ws) {
+        setupWsReconnection(state.ws);
+      }
+    });
+
     connectToGame(
       function toastOnSuccess() {
         toast("Connected to game server 🔌", {
@@ -147,17 +154,6 @@ export function setupWsCloseReconnectionHandler(
       }
     );
 
-    // if previous succeeded, wire up a close handler!
-    const firstWs = wsStore.getState().ws;
-    if (firstWs) {
-      setupWsReconnection(firstWs);
-    }
-    const unsubscribe = wsStore.subscribe((state, prevState) => {
-      // handle subscribing to any new created connections
-      if (state.ws && state.ws !== prevState.ws) {
-        setupWsReconnection(state.ws);
-      }
-    });
     return () => {
       // cleanup procedure should both cleanup WS state, as well as unsubscribe from store changes
       wsStore.getState().disconnectWs();

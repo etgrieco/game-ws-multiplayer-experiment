@@ -29,17 +29,17 @@ function createAppComponents() {
     world,
     gameStore,
     sessionStore: wsStore,
-    initializeSubscriptions: subscribe,
+    initializeWsConnections: subscribe,
   };
 }
 
 export const GameComponentsProvider = (props: PropsWithChildren) => {
-  const [{ world, sessionStore, gameStore, initializeSubscriptions }] =
+  const [{ world, sessionStore, gameStore, initializeWsConnections }] =
     React.useState(createAppComponents);
 
   React.useEffect(() => {
-    return initializeSubscriptions();
-  }, [initializeSubscriptions]);
+    return initializeWsConnections();
+  }, [initializeWsConnections]);
 
   return (
     <WorldProvider world={world}>
