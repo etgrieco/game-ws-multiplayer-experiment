@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Landscape, OfPlayer, Position2 } from "@shared/ecs/trait";
+import { Collision2, Landscape, OfPlayer, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
 import React from "react";
 import * as THREE from "three";
@@ -22,6 +22,8 @@ const CAMERA_LERP_FACTOR = 0.01;
 function GamePlayer(props: { playerId: string; color: number }) {
   const meshRef = React.useRef<THREE.Mesh>(null!);
   const world = useWorld();
+
+  // naive client-side check for collisions with any collidable object
 
   useFrame((_s) => {
     const myPlayer = world
@@ -79,6 +81,69 @@ function TerrainTrees() {
   return <TreeInstances treeDefs={treeDefs} />;
 }
 
+/** Adds a visible bounding box helper around all collidables */
+function HandleCollission2Debug() {
+  const { collisionDebug } = useControls({ collisionDebug: false });
+  const collidables = useQuery(Position2, Collision2);
+  // {width}-{depth} -> box
+  const reusableBoxesMap = new Map<`${number}-${number}`, THREE.Box3>();
+
+  if (!collisionDebug) return false;
+
+  return collidables.map((e) => {
+    const collision = e.get(Collision2)!;
+    const position = e.get(Position2)!;
+
+    let baseBox: THREE.Box3;
+    const boxKey = `${collision.width}-${collision.depth}` as const;
+    const reusable = reusableBoxesMap.get(boxKey);
+    if (reusable) {
+      baseBox = reusable;
+    } else {
+      baseBox = new THREE.Box3().setFromObject(
+        // compute from box-geometry ... perhaps just manually better?
+        new THREE.Mesh(
+          new THREE.BoxGeometry(collision.width, 1, collision.depth, 1, 1, 1)
+        )
+      );
+      reusableBoxesMap.set(boxKey, baseBox);
+    }
+
+    return (
+      <box3Helper
+        key={e.id()}
+        args={[
+          new THREE.Box3()
+            .copy(baseBox)
+            .applyMatrix4(
+              new THREE.Matrix4().setPosition(position.x, 0, position.z)
+            ),
+          0xff0000,
+        ]}
+      />
+    );
+  });
+}
+
+// {(function HandleTreeDebug() {
+//   if (!treeInstanceDebug) {
+//     return;
+//   }
+//   if (!instancedMeshRef.current) {
+//     return;
+//   }
+//   const baseBox = new THREE.Box3().setFromObject(
+//     new THREE.Mesh(treeGeometry)
+//   );
+//   const tempMatrix = new THREE.Matrix4();
+//   return treeDefs.map((t, idx) => {
+//     const tempBox = new THREE.Box3();
+//     instancedMeshRef.current.getMatrixAt(idx, tempMatrix);
+//     tempBox.copy(baseBox).applyMatrix4(tempMatrix);
+//     return <box3Helper key={t.id} args={[tempBox, 0xff0000]} />;
+//   });
+// })()}
+
 const treeGeometry = new THREE.ConeGeometry(0.2, 1, 8);
 const treeMaterial = new THREE.MeshStandardMaterial({
   color: 0x305010,
@@ -92,9 +157,6 @@ function TreeInstances({
   treeDefs: TreeDefs;
   temp?: THREE.Object3D;
 }) {
-  const { treeInstanceDebug } = useControls({
-    treeInstanceDebug: false,
-  });
   const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null!);
 
   React.useEffect(() => {
@@ -109,24 +171,6 @@ function TreeInstances({
 
   return (
     <>
-      {(function HandleTreeDebug() {
-        if (!treeInstanceDebug) {
-          return;
-        }
-        if (!instancedMeshRef.current) {
-          return;
-        }
-        const baseBox = new THREE.Box3().setFromObject(
-          new THREE.Mesh(treeGeometry)
-        );
-        const tempMatrix = new THREE.Matrix4();
-        return treeDefs.map((t, idx) => {
-          const tempBox = new THREE.Box3();
-          instancedMeshRef.current.getMatrixAt(idx, tempMatrix);
-          tempBox.copy(baseBox).applyMatrix4(tempMatrix);
-          return <box3Helper key={t.id} args={[tempBox, 0xff0000]} />;
-        });
-      })()}
       <instancedMesh
         ref={instancedMeshRef}
         args={[treeGeometry, treeMaterial, treeDefs.length]}
@@ -198,6 +242,7 @@ function GameContents() {
       </group>
       {/* Group for relative to corner */}
       <group position={[-50, 0.5, -50]}>
+        <HandleCollission2Debug />
         <TerrainTrees />
       </group>
       <Terrain />
