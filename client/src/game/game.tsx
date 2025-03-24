@@ -331,24 +331,20 @@ function setupGameControls(
       "keydown",
       (ev) => {
         switch (ev.code) {
-          case "KeyA":
-          case "ArrowLeft": {
+          case "KeyA": {
             keysState.LEFT = true;
             break;
           }
-          case "KeyW":
-          case "ArrowUp": {
+          case "KeyW": {
             keysState.FORWARD = true;
             break;
           }
-          case "KeyS":
-          case "ArrowDown": {
+          case "KeyS": {
             keysState.BACKWARD = true;
             cbs.handleAccPlayerBackwards();
             break;
           }
-          case "KeyD":
-          case "ArrowRight": {
+          case "KeyD": {
             keysState.RIGHT = true;
             cbs.handleAccPlayerRight();
             break;
@@ -361,23 +357,19 @@ function setupGameControls(
       "keyup",
       (ev) => {
         switch (ev.code) {
-          case "KeyA":
-          case "ArrowLeft": {
+          case "KeyA": {
             keysState.LEFT = false;
             break;
           }
-          case "KeyW":
-          case "ArrowUp": {
+          case "KeyW": {
             keysState.FORWARD = false;
             break;
           }
-          case "KeyS":
-          case "ArrowDown": {
+          case "KeyS": {
             keysState.BACKWARD = false;
             break;
           }
-          case "KeyD":
-          case "ArrowRight": {
+          case "KeyD": {
             keysState.RIGHT = false;
             break;
           }
