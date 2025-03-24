@@ -6,6 +6,7 @@ import { TerrainTrees } from "./TerrainTrees";
 import { GamePlayers } from "./GamePlayers";
 import { GameCamera } from "./GameCamera";
 import { CollisionDebug } from "./CollisionDebug";
+import { Landscape, Player } from "@shared/ecs/trait";
 
 export function Game() {
   return (
@@ -23,15 +24,16 @@ function GameContents() {
       <Stats />
       <directionalLight position={[1, 3, 1]} />
       <ambientLight intensity={0.8} />
-      <GameCamera />
-      {/* Offset y height by size */}
-      <group position={[0, 0.25, 0]}>
-        <GamePlayers />
-      </group>
       {/* Group for relative to corner */}
       <group position={[-50, 0.5, -50]}>
-        <CollisionDebug />
+        <GameCamera />
+        <CollisionDebug traitFilters={[Landscape]} />
         <TerrainTrees />
+        {/* Offset y height by size */}
+        <group position={[0, -0.25, 0]}>
+          <CollisionDebug traitFilters={[Player]} trackMovement />
+          <GamePlayers />
+        </group>
       </group>
       <Terrain />
     </>

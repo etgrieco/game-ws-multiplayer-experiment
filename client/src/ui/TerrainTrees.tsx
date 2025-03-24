@@ -28,6 +28,7 @@ const treeMaterial = new THREE.MeshStandardMaterial({
 type TreeDefs = { id: string | number; x: number; z: number }[];
 function TreeInstances({ treeDefs }: { treeDefs: TreeDefs }) {
   const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null!);
+
   React.useEffect(() => {
     const tempMatrix = new THREE.Matrix4();
     for (let i = 0; i < treeDefs.length; i++) {

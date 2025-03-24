@@ -1,8 +1,10 @@
 import React from "react";
 import * as THREE from "three";
 import { Collision2, Position2 } from "@shared/ecs/trait";
-import { useQuery } from "koota/react";
+import { useQuery, useWorld } from "koota/react";
 import { useControls } from "leva";
+import type { Trait } from "koota";
+import { useFrame } from "@react-three/fiber";
 
 const boxHelperMaterial = new THREE.MeshStandardMaterial({
   color: 0xff0000,
@@ -11,15 +13,42 @@ const boxHelperMaterial = new THREE.MeshStandardMaterial({
 });
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1); // a 'unit' box (all 1 dimensions)
 /** Adds a visible bounding box helper around all collidables */
-export function CollisionDebug() {
-  const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null!);
+export function CollisionDebug(props: {
+  traitFilters?: Trait[];
+  trackMovement?: boolean;
+}) {
+  const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null);
 
   const { collisionDebug } = useControls({ collisionDebug: false });
-  const collidables = useQuery(Position2, Collision2);
+  const collidables = useQuery(
+    Position2,
+    Collision2,
+    ...(props.traitFilters ?? [])
+  );
+  const world = useWorld();
+
+  useFrame(() => {
+    if (!instancedMeshRef.current || !props.trackMovement) return;
+    // move to new positions without lerping ... maybe add a prop/trait to opt-in?
+    const collidables = world.query(
+      Position2,
+      Collision2,
+      ...(props.traitFilters ?? [])
+    );
+
+    const tempMatrix = new THREE.Matrix4();
+    for (const [i, e] of collidables.entries()) {
+      instancedMeshRef.current.getMatrixAt(i, tempMatrix);
+      const pos = e.get(Position2)!;
+      tempMatrix.setPosition(pos.x, 0, pos.z);
+      instancedMeshRef.current.setMatrixAt(i, tempMatrix);
+    }
+    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+  });
 
   React.useEffect(() => {
     // existence of the instancedRef implicitly depends upon whether collisionDebug is enabled
-    if (!collisionDebug) return;
+    if (!collisionDebug || !instancedMeshRef.current) return;
 
     const tempMatrix = new THREE.Matrix4();
     for (let i = 0; i < collidables.length; i++) {

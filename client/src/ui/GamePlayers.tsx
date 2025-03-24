@@ -2,7 +2,7 @@ import React from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useQuery, useWorld } from "koota/react";
-import { OfPlayer, Position2 } from "@shared/ecs/trait";
+import { Player, Position2 } from "@shared/ecs/trait";
 
 const MOVEMENT_LERP_FACTOR = 0.08;
 export function GamePlayer(props: { playerId: string; color: number }) {
@@ -11,8 +11,8 @@ export function GamePlayer(props: { playerId: string; color: number }) {
 
   useFrame((_s) => {
     const myPlayer = world
-      .query(Position2, OfPlayer)
-      .find((p) => p.get(OfPlayer)!.playerId === props.playerId);
+      .query(Position2, Player)
+      .find((p) => p.get(Player)!.playerId === props.playerId);
     if (!myPlayer) {
       console.error("Can't find player entity for component. huh?");
       return;
@@ -38,13 +38,13 @@ export function GamePlayer(props: { playerId: string; color: number }) {
 
 const PLAYER_COLORS = [0x00ff00, 0xff0000];
 export function GamePlayers() {
-  const players = useQuery(Position2, OfPlayer);
+  const players = useQuery(Position2, Player);
   return players.map((p, idx) => {
     return (
       <GamePlayer
-        key={p.get(OfPlayer)!.playerId}
+        key={p.get(Player)!.playerId}
         color={PLAYER_COLORS[idx % PLAYER_COLORS.length]!}
-        playerId={p.get(OfPlayer)!.playerId}
+        playerId={p.get(Player)!.playerId}
       />
     );
   });

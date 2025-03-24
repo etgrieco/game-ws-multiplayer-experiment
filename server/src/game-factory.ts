@@ -1,5 +1,5 @@
 import { movePosition2ByVelocitySystem } from "@shared/ecs/system.js";
-import { OfPlayer, Position2 } from "@shared/ecs/trait.js";
+import { Player, Position2 } from "@shared/ecs/trait.js";
 import type { GameData, GameSimulation } from "@shared/game/types.js";
 import { createWorld } from "koota";
 import type { WebSocket as WS } from "ws";
@@ -68,13 +68,13 @@ export function createGameBroadcaster(
     },
     connections: privConnections,
     sync() {
-      const playerPositionsQuery = gameData.world.query(Position2, OfPlayer);
+      const playerPositionsQuery = gameData.world.query(Position2, Player);
       const entitiesOrdered = [
         playerPositionsQuery.filter(
-          (v) => v.get(OfPlayer)!.playerNumber === 1
+          (v) => v.get(Player)!.playerNumber === 1
         )[0]!,
         playerPositionsQuery.filter(
-          (v) => v.get(OfPlayer)!.playerNumber === 2
+          (v) => v.get(Player)!.playerNumber === 2
         )[0]!,
       ] as const;
 
@@ -94,11 +94,11 @@ export function createGameBroadcaster(
             playerPositions: [
               {
                 ...entitiesOrdered[0].get(Position2)!,
-                playerId: entitiesOrdered[0].get(OfPlayer)!.playerId,
+                playerId: entitiesOrdered[0].get(Player)!.playerId,
               },
               {
                 ...entitiesOrdered[1].get(Position2)!,
-                playerId: entitiesOrdered[1].get(OfPlayer)!.playerId,
+                playerId: entitiesOrdered[1].get(Player)!.playerId,
               },
             ],
           },

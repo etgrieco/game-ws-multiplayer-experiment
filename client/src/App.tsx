@@ -1,5 +1,5 @@
 import { Toaster } from "@client/components/ui/sonner";
-import { OfPlayer } from "@shared/ecs/trait";
+import { Player } from "@shared/ecs/trait";
 import React from "react";
 import { useGameStore } from "./game/game";
 import { GameComponentsProvider } from "./ui/GameComponents";
@@ -19,14 +19,14 @@ export function App() {
 
 function SyncSaveSession() {
   const gameId = useGameStore((s) => s.game?.gameData.sessionId);
-  const players = useQuery(OfPlayer);
-  const me = players.find((p) => p.get(OfPlayer)!.isMe);
+  const players = useQuery(Player);
+  const me = players.find((p) => p.get(Player)!.isMe);
 
   React.useEffect(() => {
     if (!gameId) {
       return;
     }
-    const meData = me?.get(OfPlayer);
+    const meData = me?.get(Player);
     if (!meData) {
       return;
     }

@@ -1,11 +1,17 @@
 import { spawnPlayer, spawnTree } from "@shared/ecs/spawn";
-import { Landscape, OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait";
+import {
+  Collision2,
+  Landscape,
+  Player,
+  Position2,
+  Velocity2,
+} from "@shared/ecs/trait";
 import type {
   GameSimulation,
   MultiplayerSessionStatus,
 } from "@shared/game/types";
 import type { GameSessionClientEvent } from "@shared/net/messages";
-import type { World } from "koota";
+import { Not, type Entity, type World } from "koota";
 import React from "react";
 import { createStore, useStore } from "zustand";
 
@@ -174,7 +180,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         gameStore.game.start(() => {
           gameControlsCb();
           // then, handle game systems updates based upon state changes
-          game.world.query(OfPlayer, Velocity2).updateEach(([p, vel]) => {
+          game.world.query(Player, Velocity2).updateEach(([p, vel]) => {
             if (p.isMe) {
               // if nothing held, decelerate towards 0
               if (perFrameMovementUpdates.dz === 0) {
@@ -242,11 +248,11 @@ export const gameStoreFactory = (mainWorld: World) => {
           );
         }
         const clientPlayers = game.gameData.world
-          .query(Position2, OfPlayer)
+          .query(Position2, Player)
           .map((e) => {
             return {
               pos: e.get(Position2)!,
-              player: e.get(OfPlayer)!,
+              player: e.get(Player)!,
             };
           });
         // Ensure all players exist!
@@ -268,7 +274,7 @@ export const gameStoreFactory = (mainWorld: World) => {
 
         // Now, update
         game.gameData.world
-          .query(Position2, OfPlayer)
+          .query(Position2, Player)
           .updateEach(([p, player]) => {
             const matchingPlayer = playerPositions.find(
               (serverPlayer) => serverPlayer.playerId === player.playerId
@@ -426,7 +432,7 @@ function createGameSimulationFactory(
   world: World
 ): GameSimulation {
   // the world should be clean of all player entities when this is triggered
-  world.query(OfPlayer).forEach((e) => {
+  world.query(Player).forEach((e) => {
     e.destroy();
   });
   // spawn players

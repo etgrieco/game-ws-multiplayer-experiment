@@ -1,9 +1,4 @@
-import {
-  Landscape,
-  OfPlayer,
-  Position2,
-  Velocity2,
-} from "@shared/ecs/trait.js";
+import { Landscape, Player, Position2, Velocity2 } from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import { WebSocket as WS } from "ws";
 import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
@@ -28,7 +23,7 @@ export function handleEventsIncoming(
       // by default, assume joiner is always player 1
       const playerNumber = 1;
       const newPlayerId = crypto.randomUUID();
-      const playerOneInitialPos = { x: -2, z: 0 } as const;
+      const playerOneInitialPos = { x: 50, z: 50 } as const;
 
       const session = createSession(context.sessionsData, context.ws);
       // add to connection list
@@ -93,7 +88,7 @@ export function handleEventsIncoming(
       }
 
       const existingPlayers =
-        session.gameSim.gameData.world.query(OfPlayer).length;
+        session.gameSim.gameData.world.query(Player).length;
       if (existingPlayers > 1) {
         console.error(
           `JOIN_SESSION - Failed to join existing session with ${existingPlayers} players`
@@ -103,7 +98,7 @@ export function handleEventsIncoming(
       // by default, assume joiner is always player 2
       const playerNumber = existingPlayers + 1;
       const newPlayerId = crypto.randomUUID();
-      const playerTwoInitialPos = { x: 2, z: 0 } as const;
+      const playerTwoInitialPos = { x: 52, z: 50 } as const;
 
       // add to connection list
       session.broadcaster.updateConnect(playerNumber as 1 | 2, context.ws);
@@ -203,8 +198,8 @@ export function handleEventsIncoming(
 
       // find my player
       const playerExists = session.gameSim.gameData.world
-        .query(OfPlayer)
-        .find((e) => e.get(OfPlayer)!.playerId === eventData.data.playerId);
+        .query(Player)
+        .find((e) => e.get(Player)!.playerId === eventData.data.playerId);
       if (!playerExists) {
         wsSend(context.ws, {
           id: crypto.randomUUID(),
@@ -220,7 +215,7 @@ export function handleEventsIncoming(
         return;
       }
 
-      const playerData = playerExists.get(OfPlayer)!;
+      const playerData = playerExists.get(Player)!;
 
       session.broadcaster.updateConnect(
         playerData.playerNumber as 1 | 2,
@@ -406,7 +401,7 @@ export function handleEventsIncoming(
         );
       }
       const game = session.gameSim.gameData;
-      game.world.query(Velocity2, OfPlayer).updateEach(([vel, player]) => {
+      game.world.query(Velocity2, Player).updateEach(([vel, player]) => {
         if (player.playerNumber === playerIdx + 1) {
           vel.x = eventData.data.vel.x;
           vel.z = eventData.data.vel.z;
@@ -448,13 +443,13 @@ function getPlayersInitialState(world: World): {
   playerId: string;
   playerAssignment: 1 | 2;
 }[] {
-  const playerPositionsQuery = world.query(Position2, OfPlayer);
+  const playerPositionsQuery = world.query(Position2, Player);
   return playerPositionsQuery
     .map((e) => {
       return {
         pos: e.get(Position2)!,
-        playerAssignment: e.get(OfPlayer)!.playerNumber as 1 | 2,
-        playerId: e.get(OfPlayer)!.playerId,
+        playerAssignment: e.get(Player)!.playerNumber as 1 | 2,
+        playerId: e.get(Player)!.playerId,
       };
     })
     .sort((a, b) => {

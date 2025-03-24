@@ -1,11 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import {
-  Landscape,
-  OfPlayer,
-  Position2,
-  Velocity2,
-} from "@shared/ecs/trait.js";
+import { Landscape, Player, Position2, Velocity2 } from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import { type World, createWorld } from "koota";
 import { WebSocketServer } from "ws";
@@ -43,7 +38,7 @@ const sessionsData: SessionMap = new Map(
       sessionsMap = new Map(
         Array.from(sessionsMap.entries())
           .sort(([_ka, valueA], [_kb, valueB]) => {
-            return valueA.gameSim.lastUpdated - valueB.gameSim.lastUpdated;
+            return valueB.gameSim.lastUpdated - valueA.gameSim.lastUpdated;
           })
           // max latest 5
           .slice(0, 5)
@@ -62,10 +57,10 @@ const sessionsData: SessionMap = new Map(
 );
 
 function toWorldJSONBackup(container: World) {
-  const playersQuery = container.query(Position2, Velocity2, OfPlayer);
+  const playersQuery = container.query(Position2, Velocity2, Player);
   const players = playersQuery.map((e) => {
     return {
-      player: e.get(OfPlayer)!,
+      player: e.get(Player)!,
       pos: e.get(Position2)!,
       vel: e.get(Velocity2)!,
     };

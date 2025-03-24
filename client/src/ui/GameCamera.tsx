@@ -1,6 +1,6 @@
 import { OrbitControls, OrthographicCamera } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { OfPlayer, Position2 } from "@shared/ecs/trait";
+import { Player, Position2 } from "@shared/ecs/trait";
 import { useQuery } from "koota/react";
 import { useControls } from "leva";
 import React from "react";
@@ -8,7 +8,7 @@ import * as THREE from "three";
 
 const CAMERA_LERP_FACTOR = 0.01;
 export function GameCamera() {
-  const players = useQuery(Position2, OfPlayer);
+  const players = useQuery(Position2, Player);
 
   const { zoom, orbitControls } = useControls("Camera", {
     zoom: 40,
@@ -20,7 +20,7 @@ export function GameCamera() {
   useFrame(() => {
     if (!cameraRef.current) return;
     const playerPosData = players
-      .find((p) => p.get(OfPlayer)?.isMe)
+      .find((p) => p.get(Player)?.isMe)
       ?.get(Position2);
     if (!playerPosData) return;
 
