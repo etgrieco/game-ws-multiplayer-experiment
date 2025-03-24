@@ -1,7 +1,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Landscape, OfPlayer, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
-import React, { Ref, RefObject, useRef } from "react";
+import React from "react";
 import * as THREE from "three";
 import { OrbitControls, OrthographicCamera, Stats } from "@react-three/drei";
 import { useControls } from "leva";
@@ -20,8 +20,7 @@ export function Game() {
 const MOVEMENT_LERP_FACTOR = 0.08;
 const CAMERA_LERP_FACTOR = 0.01;
 function GamePlayer(props: { playerId: string; color: number }) {
-  const meshRef = useRef<THREE.Mesh>(null!);
-  useAlignedBoxY(meshRef);
+  const meshRef = React.useRef<THREE.Mesh>(null!);
   const world = useWorld();
 
   useFrame((_s) => {
@@ -65,36 +64,51 @@ function Terrain() {
 
 function TerrainTrees() {
   const landscape = useQuery(Position2, Landscape);
-  const trees = landscape.filter((l) => l.get(Landscape)!.type === "tree");
+  const treeDefs = React.useMemo(() => {
+    const trees = landscape.filter((l) => l.get(Landscape)!.type === "tree");
+    return trees.map((t) => {
+      const pos = t.get(Position2)!;
+      return {
+        id: t.id(),
+        x: pos.x,
+        z: pos.z,
+      };
+    }) satisfies TreeDefs;
+  }, [landscape]);
 
-  return trees.map((t) => {
-    const treePos = t.get(Position2)!;
-    return (
-      <Tree
-        treePosX={treePos.x}
-        treePosZ={treePos.z}
-        radius={0.2}
-        height={1}
-        key={t.id()}
-      />
-    );
-  });
+  return <TreeInstances treeDefs={treeDefs} />;
 }
 
-function Tree(props: {
-  treePosX: number;
-  treePosZ: number;
-  radius: number;
-  height: number;
+const treeGeometry = new THREE.ConeGeometry(0.2, 1, 8);
+const treeMaterial = new THREE.MeshStandardMaterial({
+  color: 0x305010,
+  flatShading: true,
+});
+type TreeDefs = { x: number; z: number }[];
+function TreeInstances({
+  treeDefs,
+  temp = new THREE.Object3D(),
+}: {
+  treeDefs: TreeDefs;
+  temp?: THREE.Object3D;
 }) {
-  const ref = useRef<THREE.Mesh>(null!);
-  useAlignedBoxY(ref);
+  const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null!);
+
+  React.useEffect(() => {
+    // Set positions
+    for (let i = 0; i < treeDefs.length; i++) {
+      temp.position.set(treeDefs[i]!.x, 0, treeDefs[i]!.z);
+      temp.updateMatrix();
+      instancedMeshRef.current.setMatrixAt(i, temp.matrix);
+    }
+    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+  }, [treeDefs, temp]);
 
   return (
-    <mesh ref={ref} position={[props.treePosX, 0, props.treePosZ]}>
-      <coneGeometry args={[props.radius, props.height, 8]} />
-      <meshStandardMaterial color={0x305010} flatShading />
-    </mesh>
+    <instancedMesh
+      ref={instancedMeshRef}
+      args={[treeGeometry, treeMaterial, treeDefs.length]}
+    />
   );
 }
 
@@ -147,34 +161,23 @@ function GameContents() {
           zoom={zoom}
         />
       )}
-      {players.map((p, idx) => {
-        return (
-          <GamePlayer
-            key={p.get(OfPlayer)!.playerId}
-            color={playerColors[idx % playerColors.length]!}
-            playerId={p.get(OfPlayer)!.playerId}
-          />
-        );
-      })}
+      {/* Offset y height by size */}
+      <group position={[0, 0.25, 0]}>
+        {players.map((p, idx) => {
+          return (
+            <GamePlayer
+              key={p.get(OfPlayer)!.playerId}
+              color={playerColors[idx % playerColors.length]!}
+              playerId={p.get(OfPlayer)!.playerId}
+            />
+          );
+        })}
+      </group>
       {/* Group for relative to corner */}
-      <group position={[-50, 0, -50]}>
+      <group position={[-50, 0.5, -50]}>
         <TerrainTrees />
       </group>
       <Terrain />
     </>
   );
 }
-
-const useAlignedBoxY = (
-  ref: RefObject<THREE.Mesh>,
-  computeDeps: unknown[] = []
-) => {
-  // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to compute once upon mount; if the bounding-box changes dynamically, we have to update the computedDeps
-  React.useEffect(() => {
-    if (ref.current) {
-      ref.current.geometry.computeBoundingBox();
-      const { min } = ref.current.geometry.boundingBox!;
-      ref.current.position.y -= min.y; // Move the object so its base is at y = 0
-    }
-  }, computeDeps);
-};
