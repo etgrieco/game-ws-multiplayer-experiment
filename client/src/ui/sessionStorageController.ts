@@ -5,7 +5,10 @@ type SessionData = {
   players: 2; // Hard-code to 2 for now
 };
 
-const tryJsonParseOrNull = (str: string) => {
+const tryJsonParseOrNull = (str: string | null) => {
+  if (!str) {
+    return null;
+  }
   try {
     return JSON.parse(str);
   } catch (_e) {
@@ -26,8 +29,9 @@ const subscribeStorageFactory = <
 } => {
   const registeredCallbacks = new Set<() => void>();
 
-  let currSnapshot: TSnapshot | null;
-
+  let currSnapshot: TSnapshot | null = tryJsonParseOrNull(
+    sessionStorage.getItem(sessionKey)
+  ) as TSnapshot;
   return {
     subscribe(cb) {
       const abortController = new AbortController();
