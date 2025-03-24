@@ -90,7 +90,6 @@ export function setupWsCloseReconnectionHandler(
             "I expect to have session data if a game is running!"
           );
         }
-        debugger;
         wsStore.getState().sendEvent({
           type: "REJOIN_EXISTING_SESSION",
           data: {

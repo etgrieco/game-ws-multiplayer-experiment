@@ -31,7 +31,7 @@ function SyncSaveSession() {
       return;
     }
     if (meData) {
-      console.log("save me data", meData);
+      console.log("save me data", meData, "gameid", gameId);
       prevSessionSubscriptionController.setValue({
         gameId: gameId,
         lastUpdated: Date.now(),

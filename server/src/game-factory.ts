@@ -19,7 +19,7 @@ export function setupGameSimulation(
   };
 
   const simulation: GameSimulation = {
-    lastUpdated: lastUpdated ?? 0,
+    lastUpdated: lastUpdated ?? Date.now(),
     gameData: gameData,
     status: "PAUSED",
     pause() {

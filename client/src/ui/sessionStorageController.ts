@@ -5,6 +5,14 @@ type SessionData = {
   players: 2; // Hard-code to 2 for now
 };
 
+const tryJsonParseOrNull = (str: string) => {
+  try {
+    return JSON.parse(str);
+  } catch (_e) {
+    return null;
+  }
+};
+
 const subscribeStorageFactory = <
   TSnapshot extends Record<string, unknown> = Record<string, unknown>
 >(
@@ -19,15 +27,11 @@ const subscribeStorageFactory = <
   const registeredCallbacks = new Set<() => void>();
 
   let currSnapshot: TSnapshot | null;
-  const sessionStr = sessionStorage.getItem(storageKey);
-  if (sessionStr) {
-    currSnapshot = JSON.parse(sessionStr) as TSnapshot;
-  } else {
-    currSnapshot = null;
-  }
+
   return {
     subscribe(cb) {
       const abortController = new AbortController();
+      registeredCallbacks.add(cb);
       window.addEventListener(
         "storage",
         (event) => {
@@ -38,7 +42,7 @@ const subscribeStorageFactory = <
           if (key !== storageKey) return;
           if (!Object.is(oldValue, newValue)) {
             if (newValue) {
-              currSnapshot = JSON.parse(newValue) as TSnapshot;
+              currSnapshot = tryJsonParseOrNull(newValue) as TSnapshot;
             } else {
               currSnapshot = null;
             }
@@ -59,6 +63,14 @@ const subscribeStorageFactory = <
     },
     setValue(newValue) {
       sessionStorage.setItem(sessionKey, JSON.stringify(newValue));
+      // side-effect: update local snapshot
+      const sessionStr = sessionStorage.getItem(storageKey);
+      if (sessionStr) {
+        currSnapshot = tryJsonParseOrNull(sessionStr) as TSnapshot;
+      } else {
+        currSnapshot = null;
+      }
+      // side-effect: trigger all registrations that an update has occurred
       registeredCallbacks.forEach((cb) => {
         cb();
       });

@@ -62,7 +62,8 @@ const sessionsData: SessionMap = new Map(
 );
 
 function toWorldJSONBackup(container: World) {
-  const players = container.query(Position2, Velocity2, OfPlayer).map((e) => {
+  const playersQuery = container.query(Position2, Velocity2, OfPlayer);
+  const players = playersQuery.map((e) => {
     return {
       player: e.get(OfPlayer)!,
       pos: e.get(Position2)!,
@@ -102,7 +103,9 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
   b.forEach(([id, { world: backupWorldEntities, lastUpdated }]) => {
     const world = createWorld();
     // handle spawning players
-    backupWorldEntities.players.forEach((e) => {
+    const players = backupWorldEntities.players;
+    console.log(`spawning ${players.length} players`);
+    players.forEach((e) => {
       if (e.player) {
         spawnPlayer(world, {
           pos: e.pos,
