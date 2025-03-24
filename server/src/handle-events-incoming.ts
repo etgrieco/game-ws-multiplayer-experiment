@@ -1,5 +1,5 @@
 import {
-  IsLandscape,
+  Landscape,
   OfPlayer,
   Position2,
   Velocity2,
@@ -465,8 +465,8 @@ function getTreesState(world: World): {
   pos: { x: number; z: number };
 }[] {
   const treesEntities = world
-    .query(Position2, IsLandscape)
-    .filter((e) => e.get(IsLandscape)!.type === "tree");
+    .query(Position2, Landscape)
+    .filter((e) => e.get(Landscape)!.type === "tree");
   return treesEntities.map((e) => {
     return {
       pos: e.get(Position2)!,

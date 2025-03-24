@@ -1,11 +1,5 @@
 import { spawnPlayer, spawnTree } from "@shared/ecs/spawn";
-import {
-  IsLandscape,
-  IsObstacle,
-  OfPlayer,
-  Position2,
-  Velocity2,
-} from "@shared/ecs/trait";
+import { Landscape, OfPlayer, Position2, Velocity2 } from "@shared/ecs/trait";
 import type {
   GameSimulation,
   MultiplayerSessionStatus,
@@ -294,7 +288,7 @@ export const gameStoreFactory = (mainWorld: World) => {
             "Cannot setup level terrain before game world is constructed"
           );
         }
-        gameSimSnapshot.world.query(IsLandscape).forEach((l) => {
+        gameSimSnapshot.world.query(Landscape).forEach((l) => {
           l.destroy();
         });
         // then, spawn

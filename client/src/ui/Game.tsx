@@ -1,9 +1,9 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { IsLandscape, OfPlayer, Position2 } from "@shared/ecs/trait";
+import { Landscape, OfPlayer, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
 import React, { useRef } from "react";
 import * as THREE from "three";
-import { OrthographicCamera, Stats } from "@react-three/drei";
+import { OrbitControls, OrthographicCamera, Stats } from "@react-three/drei";
 import { useControls } from "leva";
 import { levelConfig } from "@config/levelConfig";
 
@@ -43,7 +43,7 @@ function GamePlayer(props: { playerId: string; color: number }) {
   });
 
   return (
-    <mesh ref={meshRef} position={[0, 0.25, 0]}>
+    <mesh ref={meshRef}>
       <boxGeometry args={[0.5, 0.5, 0.5]} />
       <meshStandardMaterial flatShading color={props.color} />
     </mesh>
@@ -63,22 +63,18 @@ function Terrain() {
 }
 
 function TerrainTrees() {
-  const landscape = useQuery(Position2, IsLandscape);
-  const trees = landscape.filter((l) => l.get(IsLandscape)!.type === "tree");
+  const landscape = useQuery(Position2, Landscape);
+  const trees = landscape.filter((l) => l.get(Landscape)!.type === "tree");
 
   return trees.map((t) => {
     const treePos = t.get(Position2)!;
-    return <Tree key={t.id()} posX={treePos.x} posZ={treePos.z} />;
+    return (
+      <mesh position={[treePos.x, 0, treePos.z]} key={t.id()}>
+        <coneGeometry args={[0.2, 1, 8]} />
+        <meshStandardMaterial color={0x305010} flatShading />
+      </mesh>
+    );
   });
-}
-
-function Tree(props: { posX: number; posZ: number }) {
-  return (
-    <mesh position={[props.posX, 0.5, props.posZ]}>
-      <coneGeometry args={[0.2, 1, 8]} />
-      <meshStandardMaterial color={0x305010} flatShading />
-    </mesh>
-  );
 }
 
 function DebugPoint(props: {
@@ -103,8 +99,9 @@ const playerColors = [0x00ff00, 0xff0000];
 function GameContents() {
   const players = useQuery(Position2, OfPlayer);
 
-  const { zoom } = useControls("Camera", {
+  const { zoom, orbitControls } = useControls("Camera", {
     zoom: 40,
+    orbitControls: false,
   });
   const cameraRef = React.useRef<THREE.OrthographicCamera>(null!);
   const isCameraMoving = React.useRef(false);
@@ -135,31 +132,37 @@ function GameContents() {
       <Stats />
       <directionalLight position={[1, 3, 1]} />
       <ambientLight intensity={0.8} />
-      <OrthographicCamera
-        rotation={[-Math.atan(1 / Math.sqrt(2)), Math.PI / 4, 0, "YXZ"]}
-        ref={cameraRef}
-        makeDefault
-        near={-20 * zoom}
-        far={2000}
-        zoom={zoom}
-      />
-      {players.map((p, idx) => {
-        return (
-          <GamePlayer
-            key={p.get(OfPlayer)!.playerId}
-            color={playerColors[idx % playerColors.length]!}
-            playerId={p.get(OfPlayer)!.playerId}
-          />
-        );
-      })}
-      {/* Group for relative to corner */}
-      <group position={[-50, 0, -50]}>
-        <DebugPoint posX={0} posZ={0} color={"hotpink"} />
-        <DebugPoint posX={0} posZ={10} color={"hotpink"} />
-        <DebugPoint posX={10} posZ={0} color={"hotpink"} />
-        <DebugPoint posX={10} posZ={10} color={"hotpink"} />
-        <DebugPoint posX={5} posZ={5} color={"hotpink"} />
-        <TerrainTrees />
+      {orbitControls && <OrbitControls makeDefault />}
+      {!orbitControls && (
+        <OrthographicCamera
+          rotation={[-Math.atan(1 / Math.sqrt(2)), Math.PI / 4, 0, "YXZ"]}
+          ref={cameraRef}
+          makeDefault={!orbitControls}
+          near={-20 * zoom}
+          far={2000}
+          zoom={zoom}
+        />
+      )}
+      {/* Game objects on the proper y-axis */}
+      <group position={[0, 0.25, 0]}>
+        {players.map((p, idx) => {
+          return (
+            <GamePlayer
+              key={p.get(OfPlayer)!.playerId}
+              color={playerColors[idx % playerColors.length]!}
+              playerId={p.get(OfPlayer)!.playerId}
+            />
+          );
+        })}
+        {/* Group for relative to corner */}
+        <group position={[-50, 0, -50]}>
+          <DebugPoint posX={0} posZ={0} color={"hotpink"} />
+          <DebugPoint posX={0} posZ={10} color={"hotpink"} />
+          <DebugPoint posX={10} posZ={0} color={"hotpink"} />
+          <DebugPoint posX={10} posZ={10} color={"hotpink"} />
+          <DebugPoint posX={5} posZ={5} color={"hotpink"} />
+          <TerrainTrees />
+        </group>
       </group>
       <Terrain />
     </>

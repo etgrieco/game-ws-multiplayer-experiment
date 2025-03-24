@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
-  IsLandscape,
+  Landscape,
   OfPlayer,
   Position2,
   Velocity2,
@@ -70,10 +70,10 @@ function toWorldJSONBackup(container: World) {
       vel: e.get(Velocity2)!,
     };
   });
-  const terrain = container.query(Position2, IsLandscape).map((e) => {
+  const terrain = container.query(Position2, Landscape).map((e) => {
     return {
       pos: e.get(Position2),
-      landscape: e.get(IsLandscape),
+      landscape: e.get(Landscape),
     };
   });
 

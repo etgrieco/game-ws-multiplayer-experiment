@@ -1,11 +1,5 @@
 import type { World } from "koota";
-import {
-  IsLandscape,
-  IsObstacle,
-  OfPlayer,
-  Position2,
-  Velocity2,
-} from "./trait";
+import { Landscape, OfPlayer, Position2, Velocity2, Collision2 } from "./trait";
 
 export const spawnPlayer = (
   world: World,
@@ -20,8 +14,8 @@ export const spawnPlayer = (
 export function spawnTree(world: World, props: { x: number; z: number }) {
   world.spawn(
     Position2({ x: props.x, z: props.z }),
-    IsObstacle(),
-    IsLandscape({ type: "tree" })
+    Landscape({ type: "tree" }),
+    Collision2({})
   );
 }
 

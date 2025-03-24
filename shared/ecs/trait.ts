@@ -7,5 +7,5 @@ export const OfPlayer = trait({
   isMe: false,
   playerId: "",
 });
-export const IsObstacle = trait();
-export const IsLandscape = trait({ type: "unknown" as "tree" | "unknown" });
+export const Landscape = trait({ type: "unknown" as "tree" | "unknown" });
+export const Collision2 = trait({ width: 0, depth: 0 });
