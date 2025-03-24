@@ -84,7 +84,7 @@ const treeMaterial = new THREE.MeshStandardMaterial({
   color: 0x305010,
   flatShading: true,
 });
-type TreeDefs = { x: number; z: number }[];
+type TreeDefs = { id: string | number; x: number; z: number }[];
 function TreeInstances({
   treeDefs,
   temp = new THREE.Object3D(),
@@ -92,6 +92,9 @@ function TreeInstances({
   treeDefs: TreeDefs;
   temp?: THREE.Object3D;
 }) {
+  const { treeInstanceDebug } = useControls({
+    treeInstanceDebug: false,
+  });
   const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null!);
 
   React.useEffect(() => {
@@ -105,10 +108,30 @@ function TreeInstances({
   }, [treeDefs, temp]);
 
   return (
-    <instancedMesh
-      ref={instancedMeshRef}
-      args={[treeGeometry, treeMaterial, treeDefs.length]}
-    />
+    <>
+      {(function HandleTreeDebug() {
+        if (!treeInstanceDebug) {
+          return;
+        }
+        if (!instancedMeshRef.current) {
+          return;
+        }
+        const baseBox = new THREE.Box3().setFromObject(
+          new THREE.Mesh(treeGeometry)
+        );
+        const tempMatrix = new THREE.Matrix4();
+        return treeDefs.map((t, idx) => {
+          const tempBox = new THREE.Box3();
+          instancedMeshRef.current.getMatrixAt(idx, tempMatrix);
+          tempBox.copy(baseBox).applyMatrix4(tempMatrix);
+          return <box3Helper key={t.id} args={[tempBox, 0xff0000]} />;
+        });
+      })()}
+      <instancedMesh
+        ref={instancedMeshRef}
+        args={[treeGeometry, treeMaterial, treeDefs.length]}
+      />
+    </>
   );
 }
 

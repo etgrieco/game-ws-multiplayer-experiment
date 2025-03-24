@@ -15,7 +15,8 @@ export function spawnTree(world: World, props: { x: number; z: number }) {
   world.spawn(
     Position2({ x: props.x, z: props.z }),
     Landscape({ type: "tree" }),
-    Collision2({})
+    // hard-coded width/depth for all trees
+    Collision2({ width: 0.4, depth: 0.4 })
   );
 }
 
