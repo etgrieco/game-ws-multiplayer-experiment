@@ -68,6 +68,7 @@ export type GameSessionServerEvent =
       id: string;
       data: {
         treePositions: { x: number; z: number }[];
+        badGuyPositions: { x: number; z: number }[];
       };
     }
   | {

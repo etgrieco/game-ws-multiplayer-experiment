@@ -346,6 +346,7 @@ function handleSessionServerEvents(
     }
     case "LEVEL_UPDATE": {
       gameStoreSnapshot.setupLevelLandscape(jsonData.data.treePositions);
+      gameStoreSnapshot.setupBadGuys(jsonData.data.badGuyPositions);
       break;
     }
     default: {

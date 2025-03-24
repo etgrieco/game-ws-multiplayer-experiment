@@ -6,7 +6,8 @@ import { TerrainTrees } from "./TerrainTrees";
 import { GamePlayers } from "./GamePlayers";
 import { GameCamera } from "./GameCamera";
 import { CollisionDebug } from "./CollisionDebug";
-import { Landscape, Player } from "@shared/ecs/trait";
+import { IsEnemy, Landscape, Player } from "@shared/ecs/trait";
+import { BadGuys } from "./BadGuys";
 
 export function Game() {
   return (
@@ -29,6 +30,8 @@ function GameContents() {
         <GameCamera />
         <CollisionDebug traitFilters={[Landscape]} />
         <TerrainTrees />
+        <BadGuys />
+        <CollisionDebug traitFilters={[IsEnemy]} trackMovement />
         {/* Offset y height by size */}
         <group position={[0, -0.25, 0]}>
           <CollisionDebug traitFilters={[Player]} trackMovement />

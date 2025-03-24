@@ -9,3 +9,4 @@ export const Player = trait({
 });
 export const Landscape = trait({ type: "unknown" as "tree" | "unknown" });
 export const Collision2 = trait({ width: 0, depth: 0 });
+export const IsEnemy = trait();

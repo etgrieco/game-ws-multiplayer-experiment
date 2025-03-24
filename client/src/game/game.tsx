@@ -1,6 +1,7 @@
-import { spawnPlayer, spawnTree } from "@shared/ecs/spawn";
+import { spawnBadGuy, spawnPlayer, spawnTree } from "@shared/ecs/spawn";
 import {
   Collision2,
+  IsEnemy,
   Landscape,
   Player,
   Position2,
@@ -52,6 +53,7 @@ export type GameStore = Readonly<{
     playerPositions: { x: number; z: number; playerId: string }[]
   ) => void;
   setupLevelLandscape: (treePositions: { x: number; z: number }[]) => void;
+  setupBadGuys: (badGuys: { x: number; z: number }[]) => void;
 }>;
 
 export const gameStoreFactory = (mainWorld: World) => {
@@ -300,6 +302,22 @@ export const gameStoreFactory = (mainWorld: World) => {
         // then, spawn
         treePositions.forEach((pos) => {
           spawnTree(gameSimSnapshot.world, pos);
+        });
+      },
+      setupBadGuys(badGuys) {
+        // destroy existing terrain
+        const gameSimSnapshot = getStore().game?.gameData;
+        if (!gameSimSnapshot) {
+          throw new Error(
+            "Cannot setup enemies before game world is constructed"
+          );
+        }
+        gameSimSnapshot.world.query(IsEnemy).forEach((l) => {
+          l.destroy();
+        });
+        // then, spawn
+        badGuys.forEach((pos) => {
+          spawnBadGuy(gameSimSnapshot.world, pos);
         });
       },
     };

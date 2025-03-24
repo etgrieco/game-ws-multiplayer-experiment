@@ -1,4 +1,10 @@
-import { Landscape, Player, Position2, Velocity2 } from "@shared/ecs/trait.js";
+import {
+  IsEnemy,
+  Landscape,
+  Player,
+  Position2,
+  Velocity2,
+} from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import { WebSocket as WS } from "ws";
 import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
@@ -7,6 +13,7 @@ import { wsSend } from "./wsSend.js";
 import type { World } from "koota";
 import { levelConfig } from "@config/levelConfig.js";
 import {
+  spawnBadGuys,
   spawnPlayer,
   spawnRandomGameLandscapeTreeObstacles,
 } from "@shared/ecs/spawn.js";
@@ -36,10 +43,13 @@ export function handleEventsIncoming(
       // create landscapes and add to world
       spawnRandomGameLandscapeTreeObstacles(
         session.gameSim.gameData.world,
+        0,
+        0,
         levelConfig.terrain.maxX,
         levelConfig.terrain.maxZ,
         1000
       );
+      spawnBadGuys(session.gameSim.gameData.world, 45, 45, 55, 55, 10);
 
       session.gameStatus = "PAUSED_AWAITING_PLAYERS";
 
@@ -63,6 +73,12 @@ export function handleEventsIncoming(
         type: "LEVEL_UPDATE",
         data: {
           treePositions: getTreesState(session.gameSim.gameData.world).map(
+            (t) => ({
+              x: t.pos.x,
+              z: t.pos.z,
+            })
+          ),
+          badGuyPositions: getBadGuysState(session.gameSim.gameData.world).map(
             (t) => ({
               x: t.pos.x,
               z: t.pos.z,
@@ -136,6 +152,12 @@ export function handleEventsIncoming(
               z: t.pos.z,
             })
           ),
+          badGuyPositions: getBadGuysState(session.gameSim.gameData.world).map(
+            (t) => ({
+              x: t.pos.x,
+              z: t.pos.z,
+            })
+          ),
         },
       });
 
@@ -172,6 +194,12 @@ export function handleEventsIncoming(
                 z: t.pos.z,
               })
             ),
+            badGuyPositions: getBadGuysState(
+              session.gameSim.gameData.world
+            ).map((t) => ({
+              x: t.pos.x,
+              z: t.pos.z,
+            })),
           },
         });
       });
@@ -261,6 +289,12 @@ export function handleEventsIncoming(
               z: t.pos.z,
             })
           ),
+          badGuyPositions: getBadGuysState(session.gameSim.gameData.world).map(
+            (t) => ({
+              x: t.pos.x,
+              z: t.pos.z,
+            })
+          ),
         },
       });
       // also, tell the other players about game status
@@ -296,6 +330,12 @@ export function handleEventsIncoming(
                 z: t.pos.z,
               })
             ),
+            badGuyPositions: getBadGuysState(
+              session.gameSim.gameData.world
+            ).map((t) => ({
+              x: t.pos.x,
+              z: t.pos.z,
+            })),
           },
         });
       });
@@ -456,6 +496,7 @@ function getPlayersInitialState(world: World): {
       return a.playerAssignment - b.playerAssignment;
     });
 }
+
 function getTreesState(world: World): {
   pos: { x: number; z: number };
 }[] {
@@ -463,6 +504,17 @@ function getTreesState(world: World): {
     .query(Position2, Landscape)
     .filter((e) => e.get(Landscape)!.type === "tree");
   return treesEntities.map((e) => {
+    return {
+      pos: e.get(Position2)!,
+    };
+  });
+}
+
+function getBadGuysState(world: World): {
+  pos: { x: number; z: number };
+}[] {
+  const badGuysEntities = world.query(Position2, IsEnemy);
+  return badGuysEntities.map((e) => {
     return {
       pos: e.get(Position2)!,
     };
