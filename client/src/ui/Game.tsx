@@ -81,8 +81,13 @@ function TerrainTrees() {
   return <TreeInstances treeDefs={treeDefs} />;
 }
 
-const boxHelperMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+const boxHelperMaterial = new THREE.MeshStandardMaterial({
+  color: 0xff0000,
+  transparent: true,
+  opacity: 0.5,
+});
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1); // a 'unit' box (all 1 dimensions)
+
 /** Adds a visible bounding box helper around all collidables */
 function HandleCollission2DebugInstancedStrategy() {
   const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null!);
