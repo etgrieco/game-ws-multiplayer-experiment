@@ -85,28 +85,32 @@ function TerrainTrees() {
 function HandleCollission2Debug() {
   const { collisionDebug } = useControls({ collisionDebug: false });
   const collidables = useQuery(Position2, Collision2);
-  // {width}-{depth} -> box
-  const reusableBoxesMap = new Map<`${number}-${number}`, THREE.Box3>();
 
   if (!collisionDebug) return false;
+
+  // {width}-{depth} -> box
+  const [computedBoxesCache] = React.useState(
+    () => new Map<`${number}-${number}`, THREE.Box3>()
+  );
 
   return collidables.map((e) => {
     const collision = e.get(Collision2)!;
     const position = e.get(Position2)!;
 
-    let baseBox: THREE.Box3;
     const boxKey = `${collision.width}-${collision.depth}` as const;
-    const reusable = reusableBoxesMap.get(boxKey);
-    if (reusable) {
-      baseBox = reusable;
-    } else {
-      baseBox = new THREE.Box3().setFromObject(
-        // compute from box-geometry ... perhaps just manually better?
-        new THREE.Mesh(
-          new THREE.BoxGeometry(collision.width, 1, collision.depth, 1, 1, 1)
-        )
+    let baseBox = computedBoxesCache.get(boxKey);
+    if (!baseBox) {
+      const tempBox = new THREE.BoxGeometry(
+        collision.width,
+        1,
+        collision.depth,
+        1,
+        1,
+        1
       );
-      reusableBoxesMap.set(boxKey, baseBox);
+      tempBox.computeBoundingBox();
+      baseBox = tempBox.boundingBox!;
+      computedBoxesCache.set(boxKey, baseBox);
     }
 
     return (
