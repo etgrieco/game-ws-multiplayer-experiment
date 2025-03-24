@@ -81,72 +81,45 @@ function TerrainTrees() {
   return <TreeInstances treeDefs={treeDefs} />;
 }
 
+const boxHelperMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+const boxGeometry = new THREE.BoxGeometry(1, 1, 1); // a 'unit' box (all 1 dimensions)
 /** Adds a visible bounding box helper around all collidables */
-function HandleCollission2Debug() {
+function HandleCollission2DebugInstancedStrategy() {
+  const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null!);
+
   const { collisionDebug } = useControls({ collisionDebug: false });
   const collidables = useQuery(Position2, Collision2);
 
-  if (!collisionDebug) return false;
+  React.useEffect(() => {
+    // existence of the instancedRef implicitly depends upon whether collisionDebug is enabled
+    if (!collisionDebug) return;
 
-  // {width}-{depth} -> box
-  const [computedBoxesCache] = React.useState(
-    () => new Map<`${number}-${number}`, THREE.Box3>()
-  );
-
-  return collidables.map((e) => {
-    const collision = e.get(Collision2)!;
-    const position = e.get(Position2)!;
-
-    const boxKey = `${collision.width}-${collision.depth}` as const;
-    let baseBox = computedBoxesCache.get(boxKey);
-    if (!baseBox) {
-      const tempBox = new THREE.BoxGeometry(
-        collision.width,
-        1,
-        collision.depth,
-        1,
-        1,
-        1
+    const tempMatrix = new THREE.Matrix4();
+    for (let i = 0; i < collidables.length; i++) {
+      const e = collidables[i]!;
+      const collision = e.get(Collision2)!;
+      const position = e.get(Position2)!;
+      tempMatrix.identity();
+      tempMatrix.compose(
+        new THREE.Vector3(position.x, 0, position.z),
+        new THREE.Quaternion(),
+        new THREE.Vector3(collision.width, 1, collision.depth)
       );
-      tempBox.computeBoundingBox();
-      baseBox = tempBox.boundingBox!;
-      computedBoxesCache.set(boxKey, baseBox);
+      instancedMeshRef.current.setMatrixAt(i, tempMatrix);
     }
 
-    return (
-      <box3Helper
-        key={e.id()}
-        args={[
-          new THREE.Box3()
-            .copy(baseBox)
-            .applyMatrix4(
-              new THREE.Matrix4().setPosition(position.x, 0, position.z)
-            ),
-          0xff0000,
-        ]}
-      />
-    );
-  });
-}
+    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+  }, [collidables, collisionDebug]);
 
-// {(function HandleTreeDebug() {
-//   if (!treeInstanceDebug) {
-//     return;
-//   }
-//   if (!instancedMeshRef.current) {
-//     return;
-//   }
-//   const baseBox = new THREE.Box3().setFromObject(
-//     new THREE.Mesh(treeGeometry)
-//   );
-//   const tempMatrix = new THREE.Matrix4();
-//   return treeDefs.map((t, idx) => {
-//     const tempBox = new THREE.Box3();
-//     instancedMeshRef.current.getMatrixAt(idx, tempMatrix);
-//     tempBox.copy(baseBox).applyMatrix4(tempMatrix);
-//     return <box3Helper key={t.id} args={[tempBox, 0xff0000]} />;
-//   });
-// })()}
+  if (!collisionDebug) return null;
+
+  return (
+    <instancedMesh
+      ref={instancedMeshRef}
+      args={[boxGeometry, boxHelperMaterial, collidables.length]}
+    />
+  );
+}
 
 const treeGeometry = new THREE.ConeGeometry(0.2, 1, 8);
 const treeMaterial = new THREE.MeshStandardMaterial({
@@ -154,32 +127,26 @@ const treeMaterial = new THREE.MeshStandardMaterial({
   flatShading: true,
 });
 type TreeDefs = { id: string | number; x: number; z: number }[];
-function TreeInstances({
-  treeDefs,
-  temp = new THREE.Object3D(),
-}: {
-  treeDefs: TreeDefs;
-  temp?: THREE.Object3D;
-}) {
+function TreeInstances({ treeDefs }: { treeDefs: TreeDefs }) {
   const instancedMeshRef = React.useRef<THREE.InstancedMesh>(null!);
-
   React.useEffect(() => {
-    // Set positions
+    const tempMatrix = new THREE.Matrix4();
     for (let i = 0; i < treeDefs.length; i++) {
-      temp.position.set(treeDefs[i]!.x, 0, treeDefs[i]!.z);
-      temp.updateMatrix();
-      instancedMeshRef.current.setMatrixAt(i, temp.matrix);
+      tempMatrix.compose(
+        new THREE.Vector3(treeDefs[i]!.x, 0, treeDefs[i]!.z),
+        new THREE.Quaternion(),
+        new THREE.Vector3(1, 1, 1)
+      );
+      instancedMeshRef.current.setMatrixAt(i, tempMatrix);
     }
     instancedMeshRef.current.instanceMatrix.needsUpdate = true;
-  }, [treeDefs, temp]);
+  }, [treeDefs]);
 
   return (
-    <>
-      <instancedMesh
-        ref={instancedMeshRef}
-        args={[treeGeometry, treeMaterial, treeDefs.length]}
-      />
-    </>
+    <instancedMesh
+      ref={instancedMeshRef}
+      args={[treeGeometry, treeMaterial, treeDefs.length]}
+    />
   );
 }
 
@@ -246,7 +213,8 @@ function GameContents() {
       </group>
       {/* Group for relative to corner */}
       <group position={[-50, 0.5, -50]}>
-        <HandleCollission2Debug />
+        {/* <HandleCollission2Debug /> */}
+        <HandleCollission2DebugInstancedStrategy />
         <TerrainTrees />
       </group>
       <Terrain />
