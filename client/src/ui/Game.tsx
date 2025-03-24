@@ -1,7 +1,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Landscape, OfPlayer, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
-import React, { useRef } from "react";
+import React, { Ref, RefObject, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls, OrthographicCamera, Stats } from "@react-three/drei";
 import { useControls } from "leva";
@@ -21,6 +21,7 @@ const MOVEMENT_LERP_FACTOR = 0.08;
 const CAMERA_LERP_FACTOR = 0.01;
 function GamePlayer(props: { playerId: string; color: number }) {
   const meshRef = useRef<THREE.Mesh>(null!);
+  useAlignedBoxY(meshRef);
   const world = useWorld();
 
   useFrame((_s) => {
@@ -69,27 +70,30 @@ function TerrainTrees() {
   return trees.map((t) => {
     const treePos = t.get(Position2)!;
     return (
-      <mesh position={[treePos.x, 0, treePos.z]} key={t.id()}>
-        <coneGeometry args={[0.2, 1, 8]} />
-        <meshStandardMaterial color={0x305010} flatShading />
-      </mesh>
+      <Tree
+        treePosX={treePos.x}
+        treePosZ={treePos.z}
+        radius={0.2}
+        height={1}
+        key={t.id()}
+      />
     );
   });
 }
 
-function DebugPoint(props: {
-  posX: number;
-  posZ: number;
-  color?: string | number;
+function Tree(props: {
+  treePosX: number;
+  treePosZ: number;
+  radius: number;
+  height: number;
 }) {
-  const { debugMode } = useControls({ debugMode: true });
-  if (!debugMode) {
-    return null;
-  }
+  const ref = useRef<THREE.Mesh>(null!);
+  useAlignedBoxY(ref);
+
   return (
-    <mesh position={[props.posX, 0.5, props.posZ]}>
-      <cylinderGeometry args={[0.1, 0.1, 1]} />
-      <meshStandardMaterial color={props.color ?? 0xff0000} transparent />
+    <mesh ref={ref} position={[props.treePosX, 0, props.treePosZ]}>
+      <coneGeometry args={[props.radius, props.height, 8]} />
+      <meshStandardMaterial color={0x305010} flatShading />
     </mesh>
   );
 }
@@ -143,28 +147,34 @@ function GameContents() {
           zoom={zoom}
         />
       )}
-      {/* Game objects on the proper y-axis */}
-      <group position={[0, 0.25, 0]}>
-        {players.map((p, idx) => {
-          return (
-            <GamePlayer
-              key={p.get(OfPlayer)!.playerId}
-              color={playerColors[idx % playerColors.length]!}
-              playerId={p.get(OfPlayer)!.playerId}
-            />
-          );
-        })}
-        {/* Group for relative to corner */}
-        <group position={[-50, 0, -50]}>
-          <DebugPoint posX={0} posZ={0} color={"hotpink"} />
-          <DebugPoint posX={0} posZ={10} color={"hotpink"} />
-          <DebugPoint posX={10} posZ={0} color={"hotpink"} />
-          <DebugPoint posX={10} posZ={10} color={"hotpink"} />
-          <DebugPoint posX={5} posZ={5} color={"hotpink"} />
-          <TerrainTrees />
-        </group>
+      {players.map((p, idx) => {
+        return (
+          <GamePlayer
+            key={p.get(OfPlayer)!.playerId}
+            color={playerColors[idx % playerColors.length]!}
+            playerId={p.get(OfPlayer)!.playerId}
+          />
+        );
+      })}
+      {/* Group for relative to corner */}
+      <group position={[-50, 0, -50]}>
+        <TerrainTrees />
       </group>
       <Terrain />
     </>
   );
 }
+
+const useAlignedBoxY = (
+  ref: RefObject<THREE.Mesh>,
+  computeDeps: unknown[] = []
+) => {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: We only want to compute once upon mount; if the bounding-box changes dynamically, we have to update the computedDeps
+  React.useEffect(() => {
+    if (ref.current) {
+      ref.current.geometry.computeBoundingBox();
+      const { min } = ref.current.geometry.boundingBox!;
+      ref.current.position.y -= min.y; // Move the object so its base is at y = 0
+    }
+  }, computeDeps);
+};
