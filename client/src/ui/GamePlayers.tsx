@@ -33,7 +33,7 @@ function DamageRing(props: { playerId: string }) {
     );
     // Cycle transparency
     transparencyRef.current = (transparencyRef.current % 1) + 0.5 * deltaTime;
-    materialRef.current.opacity = 0.1 + Math.sin(transparencyRef.current) + 0.2;
+    materialRef.current.opacity = 0.4 + Math.sin(transparencyRef.current) * 0.5;
   });
 
   return (
