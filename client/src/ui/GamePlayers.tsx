@@ -1,8 +1,8 @@
-import React from "react";
 import { useFrame } from "@react-three/fiber";
-import * as THREE from "three";
-import { useQuery, useWorld } from "koota/react";
 import { DamageZone, Player, Position2 } from "@shared/ecs/trait";
+import { useQuery, useWorld } from "koota/react";
+import React from "react";
+import * as THREE from "three";
 
 const MOVEMENT_LERP_FACTOR = 0.08;
 
@@ -27,9 +27,9 @@ function DamageRing(props: { playerId: string }) {
       new THREE.Vector3(
         myPlayerPos.x,
         meshRef.current.position.y,
-        myPlayerPos.z
+        myPlayerPos.z,
       ),
-      MOVEMENT_LERP_FACTOR
+      MOVEMENT_LERP_FACTOR,
     );
     // Cycle transparency
     transparencyRef.current = (transparencyRef.current % 1) + 0.5 * deltaTime;
@@ -67,9 +67,9 @@ export function GamePlayer(props: { playerId: string; color: number }) {
       new THREE.Vector3(
         myPlayerPos.x,
         meshRef.current.position.y,
-        myPlayerPos.z
+        myPlayerPos.z,
       ),
-      MOVEMENT_LERP_FACTOR
+      MOVEMENT_LERP_FACTOR,
     );
   });
 

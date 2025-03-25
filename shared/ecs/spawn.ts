@@ -1,13 +1,13 @@
 import type { World } from "koota";
 import {
+  Collision2,
+  DamageZone,
+  IsEnemy,
+  IsObstacle,
   Landscape,
   Player,
   Position2,
   Velocity2,
-  Collision2,
-  IsEnemy,
-  DamageZone,
-  IsObstacle,
 } from "./trait";
 
 export const spawnPlayer = (
@@ -15,14 +15,14 @@ export const spawnPlayer = (
   props: {
     pos: { x: number; z: number };
     player: { playerId: string; playerNumber: number; isMe?: boolean };
-  }
+  },
 ) => {
   world.spawn(
     Position2(props.pos),
     Velocity2(),
     Player(props.player),
     // hard-coded width/depth for all players
-    Collision2({ depth: 0.5, width: 0.5 })
+    Collision2({ depth: 0.5, width: 0.5 }),
   );
 };
 
@@ -32,7 +32,7 @@ export function spawnTree(world: World, props: { x: number; z: number }) {
     Landscape({ type: "tree" }),
     // hard-coded width/depth for all trees
     Collision2({ width: 0.4, depth: 0.4 }),
-    IsObstacle()
+    IsObstacle(),
   );
 }
 
@@ -42,19 +42,19 @@ export function spawnBadGuy(world: World, props: { x: number; z: number }) {
     IsEnemy(),
     // hard-coded width/depth for all bad guys
     Collision2({ width: 1, depth: 1 }),
-    IsObstacle()
+    IsObstacle(),
   );
 }
 
 export function spawnDamageZone(
   world: World,
-  props: { x: number; z: number; playerId: string }
+  props: { x: number; z: number; playerId: string },
 ) {
   world.spawn(
     Position2({ x: props.x, z: props.z }),
     DamageZone({ playerId: props.playerId }),
     // hard-coded width/depth for all damage zones
-    Collision2({ width: 1.4, depth: 1.4 })
+    Collision2({ width: 1.4, depth: 1.4 }),
   );
 }
 
@@ -64,7 +64,7 @@ export function spawnRandomGameLandscapeTreeObstacles(
   minZ: number,
   maxX: number,
   maxZ: number,
-  numberOfEntities: number
+  numberOfEntities: number,
 ) {
   const arrX = new Uint32Array(numberOfEntities);
   const arrZ = new Uint32Array(numberOfEntities);
@@ -90,7 +90,7 @@ export function spawnRandomBadGuys(
   minZ: number,
   maxX: number,
   maxZ: number,
-  numberOfEntities: number
+  numberOfEntities: number,
 ) {
   const arrX = new Uint32Array(numberOfEntities);
   const arrZ = new Uint32Array(numberOfEntities);

@@ -38,7 +38,7 @@ function CreateOrJoinInterface(props: {
   const [sessionCode, setSessionCode] = React.useState("");
   const storageSession = React.useSyncExternalStore(
     prevSessionSubscriptionController.subscribe,
-    prevSessionSubscriptionController.getSnapshot
+    prevSessionSubscriptionController.getSnapshot,
   );
   const [activeTab, setActiveTab] = React.useState<
     "create" | "join" | "restore"
@@ -163,7 +163,7 @@ function CreateOrJoinInterface(props: {
 export function GameStart() {
   const game = useGameStore((s) => s.game);
   const multiplayerSessionStatus = useGameStore(
-    (s) => s.multiplayerSessionStatus
+    (s) => s.multiplayerSessionStatus,
   );
   const sendEvent = useGameSessionStore((s) => s.sendEvent);
   const sessionCode = useGameStore((s) => s.game?.gameData.sessionId);
@@ -186,7 +186,7 @@ export function GameStart() {
         }
       });
     },
-    [gameStore]
+    [gameStore],
   );
 
   React.useEffect(
@@ -205,7 +205,7 @@ export function GameStart() {
         }
       });
     },
-    [gameStore]
+    [gameStore],
   );
 
   if (game) {

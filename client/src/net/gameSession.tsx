@@ -31,13 +31,13 @@ export const gameSessionStoreFactory = (gameStoreProvider: () => GameStore) => {
         return set(function setupWs(state) {
           if (state.ws) {
             throw new Error(
-              "WS already set! make sure to get rid of it first..."
+              "WS already set! make sure to get rid of it first...",
             );
           }
           const { ws } = createWsConnection(
             gameStoreProvider,
             onOpen,
-            onFailure
+            onFailure,
           );
           return { ws };
         });
@@ -56,7 +56,7 @@ export const GameSessionContext = React.createContext<
 >(undefined);
 
 export function useGameSessionStore<T = WsStore>(
-  selector?: (s: WsStore) => T
+  selector?: (s: WsStore) => T,
 ): T {
   const store = React.use(GameSessionContext);
   if (!store) {
@@ -76,7 +76,7 @@ export function useVanillaGameStore() {
 /** Once the store is initialize, use this helper to subscribe to changes and deal with re-connection attempts */
 export function setupWsCloseReconnectionHandler(
   wsStore: StoreApi<WsStore>,
-  gameStoreProvider: () => GameStore
+  gameStoreProvider: () => GameStore,
 ) {
   function connectToGame(onConnect?: () => void, onFailure?: () => void) {
     return wsStore.getState().initWs(function onSuccess() {
@@ -87,7 +87,7 @@ export function setupWsCloseReconnectionHandler(
         const sessionData = getStoredSessionData(); // This is a quick shortcut to getting the relevant re-connection data
         if (!sessionData) {
           throw new Error(
-            "I expect to have session data if a game is running!"
+            "I expect to have session data if a game is running!",
           );
         }
         wsStore.getState().sendEvent({
@@ -129,7 +129,7 @@ export function setupWsCloseReconnectionHandler(
         }, 3_000);
         abortController.abort();
       },
-      { signal: abortController.signal }
+      { signal: abortController.signal },
     );
   }
 
@@ -151,7 +151,7 @@ export function setupWsCloseReconnectionHandler(
         toast("Failed to initialize connection to game server ❌", {
           position: "top-right",
         });
-      }
+      },
     );
 
     return () => {
@@ -170,7 +170,7 @@ function wsSend(ws: WebSocket, msg: GameSessionClientEvent): void {
 function createWsConnection(
   gameStoreProvider: () => GameStore,
   onOpen?: () => void,
-  onInitialConnectionFailure?: () => void
+  onInitialConnectionFailure?: () => void,
 ) {
   let didInitiallyConnect = false;
   const wsAbortController = new AbortController();
@@ -183,7 +183,7 @@ function createWsConnection(
       console.debug("connected to the server");
       onOpen?.();
     },
-    { signal: wsAbortController.signal }
+    { signal: wsAbortController.signal },
   );
 
   ws.addEventListener(
@@ -197,7 +197,7 @@ function createWsConnection(
         onInitialConnectionFailure?.();
       }
     },
-    { signal: wsAbortController.signal }
+    { signal: wsAbortController.signal },
   );
 
   ws.addEventListener(
@@ -205,7 +205,7 @@ function createWsConnection(
     (e) => {
       console.debug("Received message: ", e.data);
     },
-    { signal: wsAbortController.signal }
+    { signal: wsAbortController.signal },
   );
 
   ws.addEventListener(
@@ -227,7 +227,7 @@ function createWsConnection(
         }
       }
     },
-    { signal: wsAbortController.signal }
+    { signal: wsAbortController.signal },
   );
 
   return { ws, wsAbortController };
@@ -235,7 +235,7 @@ function createWsConnection(
 
 function handleSessionServerEvents(
   jsonData: GameSessionServerEvent,
-  gameStoreSnapshot: GameStore
+  gameStoreSnapshot: GameStore,
 ) {
   switch (jsonData.type) {
     case "GAME_STATUS_UPDATE": {
@@ -244,7 +244,7 @@ function handleSessionServerEvents(
         throw new Error("received session update about another game; weird!");
       }
       gameStoreSnapshot.setMultiplayerSessionStatus(
-        data.multiplayerSessionStatus
+        data.multiplayerSessionStatus,
       );
       // Handle each game status update...
       switch (data.multiplayerSessionStatus) {
@@ -271,7 +271,7 @@ function handleSessionServerEvents(
         }
         default:
           throw new Error(
-            `Unhandled game status update ${data.multiplayerSessionStatus}`
+            `Unhandled game status update ${data.multiplayerSessionStatus}`,
           );
       }
       break;
@@ -287,7 +287,7 @@ function handleSessionServerEvents(
       }
       gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
       gameStoreSnapshot.setMultiplayerSessionStatus(
-        data.multiplayerSessionStatus
+        data.multiplayerSessionStatus,
       );
       break;
     }
@@ -302,7 +302,7 @@ function handleSessionServerEvents(
       }
       gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
       gameStoreSnapshot.setMultiplayerSessionStatus(
-        data.multiplayerSessionStatus
+        data.multiplayerSessionStatus,
       );
       break;
     }
@@ -316,7 +316,7 @@ function handleSessionServerEvents(
         return;
       }
       gameStoreSnapshot.setMultiplayerSessionStatus(
-        data.multiplayerSessionStatus
+        data.multiplayerSessionStatus,
       );
       gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
       if (data.multiplayerSessionStatus === "PLAYING") {
@@ -343,7 +343,7 @@ function handleSessionServerEvents(
     case "POSITIONS_UPDATE": {
       gameStoreSnapshot.updatePositions(
         jsonData.data.playerPositions,
-        jsonData.data.damagePositions
+        jsonData.data.damagePositions,
       );
       break;
     }
@@ -362,7 +362,7 @@ function handleSessionServerEvents(
           ? jsonUnknown.type
           : undefined;
       console.warn(
-        `Unhandled server event${jsonUnknownType ? `, ${jsonUnknownType}` : ""}`
+        `Unhandled server event${jsonUnknownType ? `, ${jsonUnknownType}` : ""}`,
       );
     }
   }

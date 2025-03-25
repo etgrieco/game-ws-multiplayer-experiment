@@ -14,7 +14,7 @@ const TICK_RATE = 1000 / 10; // 60 updates per second (~16.67ms per frame)
 export function setupGameSimulation(
   id: string,
   world = createWorld(),
-  lastUpdated?: number
+  lastUpdated?: number,
 ): GameSimulation {
   const gameData: GameSimulation["gameData"] = {
     sessionId: id,
@@ -55,7 +55,7 @@ export type GameSimulationBroadcaster = {
 
 export function createGameBroadcaster(
   gameData: GameData,
-  wsConnections: [WS | null, WS | null]
+  wsConnections: [WS | null, WS | null],
 ): GameSimulationBroadcaster {
   const privConnections: typeof wsConnections = [
     wsConnections[0],

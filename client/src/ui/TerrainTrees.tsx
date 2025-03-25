@@ -1,7 +1,7 @@
-import React from "react";
-import * as THREE from "three";
 import { Landscape, Position2 } from "@shared/ecs/trait";
 import { useQuery } from "koota/react";
+import React from "react";
+import * as THREE from "three";
 
 export function TerrainTrees() {
   const landscape = useQuery(Position2, Landscape);
@@ -35,7 +35,7 @@ function TreeInstances({ treeDefs }: { treeDefs: TreeDefs }) {
       tempMatrix.compose(
         new THREE.Vector3(treeDefs[i]!.x, 0, treeDefs[i]!.z),
         new THREE.Quaternion(),
-        new THREE.Vector3(1, 1, 1)
+        new THREE.Vector3(1, 1, 1),
       );
       instancedMeshRef.current.setMatrixAt(i, tempMatrix);
     }

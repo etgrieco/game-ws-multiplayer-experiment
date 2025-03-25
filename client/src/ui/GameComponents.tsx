@@ -22,7 +22,7 @@ function createAppComponents() {
 
   // add some side-effects
   const subscribe = setupWsCloseReconnectionHandler(wsStore, () =>
-    gameStore.getState()
+    gameStore.getState(),
   );
 
   return {

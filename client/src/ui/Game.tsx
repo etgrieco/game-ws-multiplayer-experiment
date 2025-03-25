@@ -1,13 +1,13 @@
-import React from "react";
-import { Canvas } from "@react-three/fiber";
 import { Stats } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import { DamageZone, IsEnemy, Landscape, Player } from "@shared/ecs/trait";
+import React from "react";
+import { BadGuys } from "./BadGuys";
+import { CollisionDebug } from "./CollisionDebug";
+import { GameCamera } from "./GameCamera";
+import { GamePlayers } from "./GamePlayers";
 import { Terrain } from "./Terrain";
 import { TerrainTrees } from "./TerrainTrees";
-import { GamePlayers } from "./GamePlayers";
-import { GameCamera } from "./GameCamera";
-import { CollisionDebug } from "./CollisionDebug";
-import { DamageZone, IsEnemy, Landscape, Player } from "@shared/ecs/trait";
-import { BadGuys } from "./BadGuys";
 
 export function Game() {
   return (

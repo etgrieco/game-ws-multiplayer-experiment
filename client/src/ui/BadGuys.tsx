@@ -1,7 +1,7 @@
-import React from "react";
-import * as THREE from "three";
 import { Damage, IsEnemy, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
+import React from "react";
+import * as THREE from "three";
 
 type EnemyDefs = { id: string | number; x: number; z: number }[];
 
@@ -67,7 +67,7 @@ function EnemyInstances({ enemyDefs }: { enemyDefs: EnemyDefs }) {
       tempMatrix.compose(
         new THREE.Vector3(enemyDefs[i]!.x, 0, enemyDefs[i]!.z),
         new THREE.Quaternion(),
-        new THREE.Vector3(1, 1, 1)
+        new THREE.Vector3(1, 1, 1),
       );
       instancedMeshRef.current.setMatrixAt(i, tempMatrix);
     }

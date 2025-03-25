@@ -2,11 +2,10 @@
   "name": "game-ws-multiplayer",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "client",
-    "server",
-    "shared"
-  ],
+  "workspaces": ["client", "server", "shared"],
+  "scripts": {
+    "check": "biome check"
+  },
   "packageManager": "pnpm@10.6.5",
   "devDependencies": {
     "@biomejs/biome": "1.9.4"

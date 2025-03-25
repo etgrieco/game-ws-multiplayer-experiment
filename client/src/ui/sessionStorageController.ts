@@ -17,11 +17,11 @@ const tryJsonParseOrNull = (str: string | null) => {
 };
 
 const subscribeStorageFactory = <
-  TSnapshot extends Record<string, unknown> = Record<string, unknown>
+  TSnapshot extends Record<string, unknown> = Record<string, unknown>,
 >(
   storageKey: string,
   /** Depends upon a storage interface that emits the applicable 'storage' event on window(s) upon storage manipulation */
-  targetStorage: Storage
+  targetStorage: Storage,
 ): {
   subscribe: (cb: () => void) => () => void;
   getSnapshot: () => TSnapshot | null;
@@ -30,7 +30,7 @@ const subscribeStorageFactory = <
   const registeredCallbacks = new Set<() => void>();
 
   let currSnapshot: TSnapshot | null = tryJsonParseOrNull(
-    sessionStorage.getItem(sessionKey)
+    sessionStorage.getItem(sessionKey),
   ) as TSnapshot;
   return {
     subscribe(cb) {
@@ -55,7 +55,7 @@ const subscribeStorageFactory = <
         },
         {
           signal: abortController.signal,
-        }
+        },
       );
       return () => {
         abortController.abort();

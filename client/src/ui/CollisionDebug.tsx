@@ -1,10 +1,10 @@
-import React from "react";
-import * as THREE from "three";
+import { useFrame } from "@react-three/fiber";
 import { Collision2, Position2 } from "@shared/ecs/trait";
+import type { Trait } from "koota";
 import { useQuery, useWorld } from "koota/react";
 import { useControls } from "leva";
-import type { Trait } from "koota";
-import { useFrame } from "@react-three/fiber";
+import React from "react";
+import * as THREE from "three";
 
 const boxHelperMaterial = new THREE.MeshStandardMaterial({
   color: 0xff0000,
@@ -23,7 +23,7 @@ export function CollisionDebug(props: {
   const collidables = useQuery(
     Position2,
     Collision2,
-    ...(props.traitFilters ?? [])
+    ...(props.traitFilters ?? []),
   );
   const world = useWorld();
 
@@ -33,7 +33,7 @@ export function CollisionDebug(props: {
     const collidables = world.query(
       Position2,
       Collision2,
-      ...(props.traitFilters ?? [])
+      ...(props.traitFilters ?? []),
     );
 
     const tempMatrix = new THREE.Matrix4();
@@ -59,7 +59,7 @@ export function CollisionDebug(props: {
       tempMatrix.compose(
         new THREE.Vector3(position.x, 0, position.z),
         new THREE.Quaternion(),
-        new THREE.Vector3(collision.width, 1, collision.depth)
+        new THREE.Vector3(collision.width, 1, collision.depth),
       );
       instancedMeshRef.current.setMatrixAt(i, tempMatrix);
     }

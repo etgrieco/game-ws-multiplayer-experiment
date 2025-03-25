@@ -1,4 +1,4 @@
-import type { World, ExtractSchema } from "koota";
+import type { ExtractSchema, World } from "koota";
 import {
   Collision2,
   Damage,
@@ -26,7 +26,7 @@ export function movePosition2ByVelocitySystem(world: World, deltaTime: number) {
         { x: newPosX, z: newPosZ },
         otherEntPos,
         col,
-        otherEntCol
+        otherEntCol,
       );
       if (isColliding) {
         break;
@@ -53,7 +53,7 @@ export function moveDamageZoneFollowPlayer(world: World) {
     const matchingPlayer = players.find((p) => p.playerId === dmg.playerId);
     if (!matchingPlayer) {
       console.warn(
-        "Cannot find existing player for given damage zone. moving on."
+        "Cannot find existing player for given damage zone. moving on.",
       );
       return;
     }
@@ -96,7 +96,7 @@ function checkAABBCollision(
   aPos: ExtractSchema<typeof Position2>,
   bPos: ExtractSchema<typeof Position2>,
   aCol: ExtractSchema<typeof Collision2>,
-  bCol: ExtractSchema<typeof Collision2>
+  bCol: ExtractSchema<typeof Collision2>,
 ) {
   return (
     aPos.x < bPos.x + bCol.width &&

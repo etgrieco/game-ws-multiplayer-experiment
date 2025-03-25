@@ -1,3 +1,10 @@
+import { levelConfig } from "@config/levelConfig.js";
+import {
+  spawnDamageZone,
+  spawnPlayer,
+  spawnRandomBadGuys,
+  spawnRandomGameLandscapeTreeObstacles,
+} from "@shared/ecs/spawn.js";
 import {
   DamageZone,
   IsEnemy,
@@ -7,25 +14,18 @@ import {
   Velocity2,
 } from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
+import type { World } from "koota";
 import { WebSocket as WS } from "ws";
 import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { wsSend } from "./wsSend.js";
-import type { World } from "koota";
-import { levelConfig } from "@config/levelConfig.js";
-import {
-  spawnRandomBadGuys,
-  spawnPlayer,
-  spawnRandomGameLandscapeTreeObstacles,
-  spawnDamageZone,
-} from "@shared/ecs/spawn.js";
 
 export function handleEventsIncoming(
   eventData: GameSessionClientEvent,
   context: {
     ws: WS;
     sessionsData: Map<string, MultiplayerGameContainer>;
-  }
+  },
 ) {
   switch (eventData.type) {
     case "CREATE_NEW_SESSION": {
@@ -54,7 +54,7 @@ export function handleEventsIncoming(
         0,
         levelConfig.terrain.maxX,
         levelConfig.terrain.maxZ,
-        1000
+        1000,
       );
       spawnRandomBadGuys(session.gameSim.gameData.world, 45, 45, 55, 55, 10);
 
@@ -81,13 +81,13 @@ export function handleEventsIncoming(
             (t) => ({
               x: t.pos.x,
               z: t.pos.z,
-            })
+            }),
           ),
           badGuyPositions: getBadGuysState(session.gameSim.gameData.world).map(
             (t) => ({
               x: t.pos.x,
               z: t.pos.z,
-            })
+            }),
           ),
         },
       });
@@ -112,7 +112,7 @@ export function handleEventsIncoming(
         session.gameSim.gameData.world.query(Player).length;
       if (existingPlayers > 1) {
         console.error(
-          `JOIN_SESSION - Failed to join existing session with ${existingPlayers} players`
+          `JOIN_SESSION - Failed to join existing session with ${existingPlayers} players`,
         );
       }
 
@@ -160,13 +160,13 @@ export function handleEventsIncoming(
             (t) => ({
               x: t.pos.x,
               z: t.pos.z,
-            })
+            }),
           ),
           badGuyPositions: getBadGuysState(session.gameSim.gameData.world).map(
             (t) => ({
               x: t.pos.x,
               z: t.pos.z,
-            })
+            }),
           ),
         },
       });
@@ -190,13 +190,13 @@ export function handleEventsIncoming(
               (p) => ({
                 ...p.pos,
                 playerId: p.playerId,
-              })
+              }),
             ),
             damagePositions: getDamageState(session.gameSim.gameData.world).map(
               (p) => ({
                 ...p.pos,
                 playerId: p.playerId,
-              })
+              }),
             ),
           },
         });
@@ -208,10 +208,10 @@ export function handleEventsIncoming(
               (t) => ({
                 x: t.pos.x,
                 z: t.pos.z,
-              })
+              }),
             ),
             badGuyPositions: getBadGuysState(
-              session.gameSim.gameData.world
+              session.gameSim.gameData.world,
             ).map((t) => ({
               x: t.pos.x,
               z: t.pos.z,
@@ -235,7 +235,7 @@ export function handleEventsIncoming(
           },
         });
         console.error(
-          `REJOIN_EXISTING_SESSION - Session ${eventData.data.id} not found`
+          `REJOIN_EXISTING_SESSION - Session ${eventData.data.id} not found`,
         );
         return;
       }
@@ -254,7 +254,7 @@ export function handleEventsIncoming(
           },
         });
         console.error(
-          `REJOIN_EXISTING_SESSION - Cannot find player with matching ID ${eventData.data.playerId} (session: ${eventData.data.id})`
+          `REJOIN_EXISTING_SESSION - Cannot find player with matching ID ${eventData.data.playerId} (session: ${eventData.data.id})`,
         );
         return;
       }
@@ -263,7 +263,7 @@ export function handleEventsIncoming(
 
       session.broadcaster.updateConnect(
         playerData.playerNumber as 1 | 2,
-        context.ws
+        context.ws,
       );
       session.gameStatus = (() => {
         if (session.gameSim.status === "RUNNING") {
@@ -272,7 +272,7 @@ export function handleEventsIncoming(
         // if every connection ready...
         if (
           session.broadcaster.connections.every(
-            (c) => c && c.readyState === c.OPEN
+            (c) => c && c.readyState === c.OPEN,
           )
         ) {
           return "PAUSED_AWAITING_START";
@@ -301,13 +301,13 @@ export function handleEventsIncoming(
             (t) => ({
               x: t.pos.x,
               z: t.pos.z,
-            })
+            }),
           ),
           badGuyPositions: getBadGuysState(session.gameSim.gameData.world).map(
             (t) => ({
               x: t.pos.x,
               z: t.pos.z,
-            })
+            }),
           ),
         },
       });
@@ -330,13 +330,13 @@ export function handleEventsIncoming(
               (p) => ({
                 ...p.pos,
                 playerId: p.playerId,
-              })
+              }),
             ),
             damagePositions: getDamageState(session.gameSim.gameData.world).map(
               (p) => ({
                 ...p.pos,
                 playerId: p.playerId,
-              })
+              }),
             ),
           },
         });
@@ -348,10 +348,10 @@ export function handleEventsIncoming(
               (t) => ({
                 x: t.pos.x,
                 z: t.pos.z,
-              })
+              }),
             ),
             badGuyPositions: getBadGuysState(
-              session.gameSim.gameData.world
+              session.gameSim.gameData.world,
             ).map((t) => ({
               x: t.pos.x,
               z: t.pos.z,
@@ -374,7 +374,7 @@ export function handleEventsIncoming(
           },
         });
         console.error(
-          `START_SESSION_GAME_RESPONSE - Session ${eventData.data.id} not found`
+          `START_SESSION_GAME_RESPONSE - Session ${eventData.data.id} not found`,
         );
         return;
       }
@@ -444,7 +444,7 @@ export function handleEventsIncoming(
       if (!session) {
         context.ws.close();
         throw new Error(
-          `PLAYER_UPDATE - Session ${eventData.data.id} not found. Closing connection.`
+          `PLAYER_UPDATE - Session ${eventData.data.id} not found. Closing connection.`,
         );
       }
       if (!session.broadcaster) {
@@ -457,7 +457,7 @@ export function handleEventsIncoming(
           context.ws.close();
         }
         throw new Error(
-          "PLAYER_UPDATE - Failed to find matching player. Closing connection."
+          "PLAYER_UPDATE - Failed to find matching player. Closing connection.",
         );
       }
       const game = session.gameSim.gameData;
@@ -480,7 +480,7 @@ export function handleEventsIncoming(
 
 function createSession(
   sessionsData: Map<string, MultiplayerGameContainer>,
-  ws: WS
+  ws: WS,
 ) {
   const uuid = crypto.randomUUID();
   if (sessionsData.has(uuid)) {

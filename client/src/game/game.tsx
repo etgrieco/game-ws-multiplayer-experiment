@@ -49,7 +49,7 @@ export type GameStore = Readonly<{
       pos: { x: number; z: number };
       playerId: string;
       playerAssignment: 1 | 2;
-    }[]
+    }[],
   ) => void;
   destroyGameCleanup: () => void;
   connectGameNet: (newSender: (ev: GameSessionClientEvent) => void) => void;
@@ -57,7 +57,7 @@ export type GameStore = Readonly<{
   pauseGame: () => void;
   updatePositions: (
     playerPositions: { x: number; z: number; playerId: string }[],
-    damagePositions: { x: number; z: number; playerId: string }[]
+    damagePositions: { x: number; z: number; playerId: string }[],
   ) => void;
   setupLevelLandscape: (treePositions: { x: number; z: number }[]) => void;
   setupBadGuys: (badGuys: { x: number; z: number }[]) => void;
@@ -109,7 +109,7 @@ export const gameStoreFactory = (mainWorld: World) => {
           id,
           myPlayerId,
           initialState,
-          mainWorld
+          mainWorld,
         );
         set({
           game: gameSimulation,
@@ -131,7 +131,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         }
         if (gameStore.multiplayerSessionStatus !== "PAUSED_AWAITING_START") {
           throw new Error(
-            `Cannot start game outside of PAUSED_AWAITING_START state. (current state: ${gameStore.multiplayerSessionStatus})`
+            `Cannot start game outside of PAUSED_AWAITING_START state. (current state: ${gameStore.multiplayerSessionStatus})`,
           );
         }
         if (sessionId !== game.sessionId) {
@@ -176,7 +176,7 @@ export const gameStoreFactory = (mainWorld: World) => {
               perFrameMovementUpdates.dz += 1;
             },
           },
-          getStore
+          getStore,
         );
         set({
           multiplayerSessionStatus: "PLAYING",
@@ -202,9 +202,9 @@ export const gameStoreFactory = (mainWorld: World) => {
                 vel.z = Math.max(
                   Math.min(
                     configs.playerSpeed.zMax,
-                    vel.z + perFrameMovementUpdates.dz
+                    vel.z + perFrameMovementUpdates.dz,
                   ),
-                  -configs.playerSpeed.zMax
+                  -configs.playerSpeed.zMax,
                 );
               }
 
@@ -220,9 +220,9 @@ export const gameStoreFactory = (mainWorld: World) => {
                     configs.playerSpeed.xMax,
                     vel.x +
                       configs.playerSpeed.xIncrement *
-                        perFrameMovementUpdates.dx
+                        perFrameMovementUpdates.dx,
                   ),
-                  -configs.playerSpeed.xMax
+                  -configs.playerSpeed.xMax,
                 );
               }
 
@@ -253,7 +253,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         const game = getStore().game;
         if (!game) {
           throw new Error(
-            "Illegal state update; Updated positions on updated positions."
+            "Illegal state update; Updated positions on updated positions.",
           );
         }
 
@@ -269,7 +269,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         // Ensure all players exist!
         playerPositions.forEach((p, idx) => {
           const hasPlayer = clientPlayers.some(
-            (cp) => p.playerId === cp.player.playerId
+            (cp) => p.playerId === cp.player.playerId,
           );
           if (!hasPlayer) {
             spawnPlayer(game.gameData.world, {
@@ -286,7 +286,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         // Now, update
         clientPlayersQuery.updateEach(([p, player]) => {
           const matchingPlayer = playerPositions.find(
-            (serverPlayer) => serverPlayer.playerId === player.playerId
+            (serverPlayer) => serverPlayer.playerId === player.playerId,
           );
           if (!matchingPlayer) {
             throw new Error("Player to update no longer exists!?");
@@ -300,7 +300,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         // Ensure all damages exist!
         const clientDamagesQuery = game.gameData.world.query(
           Position2,
-          DamageZone
+          DamageZone,
         );
         const clientDamages = clientDamagesQuery.map((e) => {
           return {
@@ -311,7 +311,7 @@ export const gameStoreFactory = (mainWorld: World) => {
 
         damagePositions.forEach((d) => {
           const hasDamage = clientDamages.some(
-            (cp) => d.playerId === cp.player.playerId
+            (cp) => d.playerId === cp.player.playerId,
           );
           if (!hasDamage) {
             spawnDamageZone(game.gameData.world, {
@@ -325,7 +325,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         // now, update
         clientDamagesQuery.updateEach(([pos, dmg]) => {
           const serverDmgData = damagePositions.find(
-            (d) => d.playerId === dmg.playerId
+            (d) => d.playerId === dmg.playerId,
           );
           if (!serverDmgData) {
             throw new Error("Damage to update no longer exists!?");
@@ -339,7 +339,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         const gameSimSnapshot = getStore().game?.gameData;
         if (!gameSimSnapshot) {
           throw new Error(
-            "Cannot setup level terrain before game world is constructed"
+            "Cannot setup level terrain before game world is constructed",
           );
         }
         gameSimSnapshot.world.query(Landscape).forEach((l) => {
@@ -355,7 +355,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         const gameSimSnapshot = getStore().game?.gameData;
         if (!gameSimSnapshot) {
           throw new Error(
-            "Cannot setup enemies before game world is constructed"
+            "Cannot setup enemies before game world is constructed",
           );
         }
         gameSimSnapshot.world.query(IsEnemy).forEach((l) => {
@@ -378,7 +378,7 @@ function setupGameControls(
     handleAccPlayerForward(): void;
     handleAccPlayerBackwards(): void;
   },
-  gameProvider: () => GameStore
+  gameProvider: () => GameStore,
 ): {
   loopCb: () => void;
   onDestroy: () => void;
@@ -421,7 +421,7 @@ function setupGameControls(
           }
         }
       },
-      { signal: abortController.signal }
+      { signal: abortController.signal },
     );
     document.addEventListener(
       "keyup",
@@ -445,14 +445,14 @@ function setupGameControls(
           }
         }
       },
-      { signal: abortController.signal }
+      { signal: abortController.signal },
     );
     window.addEventListener(
       "blur",
       () => {
         resetKeys();
       },
-      { signal: abortController.signal }
+      { signal: abortController.signal },
     );
   }
 
@@ -493,7 +493,7 @@ function createGameSimulationFactory(
     playerId: string;
     playerAssignment: 1 | 2;
   }[],
-  world: World
+  world: World,
 ): GameSimulation {
   // the world should be clean of all player entities when this is triggered
   world.query(Player).forEach((e) => {
@@ -534,7 +534,7 @@ function createGameSimulationFactory(
         // Here, we would do client-side logic
         // FIXME: also do on backend
         triggerDamageBeingDamagedByCollisionWithEnemy(
-          simulation.gameData.world
+          simulation.gameData.world,
         );
         syncCb?.();
         simulation.lastUpdated = Date.now();

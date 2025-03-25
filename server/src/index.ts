@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { spawnBadGuy, spawnPlayer, spawnTree } from "@shared/ecs/spawn.js";
 import {
   IsEnemy,
   Landscape,
@@ -14,7 +15,6 @@ import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { handleEventsIncoming } from "./handle-events-incoming.js";
 import { wsSend } from "./wsSend.js";
-import { spawnBadGuy, spawnPlayer, spawnTree } from "@shared/ecs/spawn.js";
 
 const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
 const createBakFileName = (date: Date) => `bak-${date.getTime()}.json`;
@@ -51,7 +51,7 @@ const sessionsData: SessionMap = new Map(
           // max 24 hours ago
           .filter(([_, value]) => {
             return Date.now() - value.gameSim.lastUpdated < 24 * 60 * 60 * 1000;
-          })
+          }),
       );
       console.log(`loading ${sessionsMap.size} backups`);
       return sessionsMap;
@@ -59,7 +59,7 @@ const sessionsData: SessionMap = new Map(
       console.error("Backup read failed, return empty");
       return [];
     }
-  })()
+  })(),
 );
 
 function toWorldJSONBackup(container: World) {
@@ -93,7 +93,7 @@ function toWorldJSONBackup(container: World) {
 function toJSONBackup(
   id: string,
   sess: MultiplayerGameContainer,
-  lastUpdated: number
+  lastUpdated: number,
 ) {
   return [
     id,
@@ -120,7 +120,7 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
         });
       } else {
         console.warn(
-          "I do not know how to spawn non-player entity... moving on"
+          "I do not know how to spawn non-player entity... moving on",
         );
       }
     });
@@ -161,7 +161,7 @@ process.on("exit", () => {
     JSON.stringify(data),
     {
       encoding: BAK_FILE_ENC,
-    }
+    },
   );
 });
 
@@ -184,7 +184,7 @@ wss.on("connection", function connection(ws) {
         sessionsData,
         ws,
       });
-    })
+    }),
   );
 
   ws.on("close", function close(_code, _reason) {
@@ -214,7 +214,7 @@ wss.on("connection", function connection(ws) {
 
 // biome-ignore lint/suspicious/noExplicitAny: This would otherwise be a difficult thing to type
 function tryCatchLog<T extends (...args: any[]) => any>(
-  fn: T
+  fn: T,
 ): (...args: Parameters<T>) => ReturnType<T> | undefined {
   return (...args: Parameters<T>): ReturnType<T> | undefined => {
     try {
