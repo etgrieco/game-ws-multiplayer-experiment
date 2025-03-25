@@ -190,6 +190,8 @@ export const gameStoreFactory = (mainWorld: World) => {
             destroyGameControlResources();
           },
         });
+
+        const lastPlayerUpdateSent = { vel: { x: 0, z: 0 } };
         gameStore.game.start(() => {
           gameControlsCb();
           // then, handle game systems updates based upon state changes
@@ -235,16 +237,26 @@ export const gameStoreFactory = (mainWorld: World) => {
                 dz: vel.z,
               };
               normalizeVectors(vec);
-              verifiedInits.sendNetEvent({
-                type: "PLAYER_UPDATE",
-                data: {
-                  id: game.sessionId,
-                  vel: {
-                    x: vec.dx,
-                    z: vec.dz,
+              const velToSend = {
+                x: vec.dx,
+                z: vec.dz,
+              };
+              if (
+                velToSend.x !== lastPlayerUpdateSent.vel.x ||
+                velToSend.z !== lastPlayerUpdateSent.vel.z
+              ) {
+                verifiedInits.sendNetEvent({
+                  type: "PLAYER_UPDATE",
+                  data: {
+                    id: game.sessionId,
+                    vel: {
+                      x: vec.dx,
+                      z: vec.dz,
+                    },
                   },
-                },
-              });
+                });
+              }
+              lastPlayerUpdateSent.vel = velToSend;
             }
           });
 
