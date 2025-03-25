@@ -4,7 +4,11 @@ import {
   spawnPlayer,
   spawnTree,
 } from "@shared/ecs/spawn";
-import { triggerDamageBeingDamagedByCollisionWithEnemy } from "@shared/ecs/system";
+import {
+  destroyHealthZeroSystem,
+  takeDamageOverTimeSystem,
+  triggerDamageBeingDamagedByCollisionWithEnemy,
+} from "@shared/ecs/system";
 import {
   DamageZone,
   IsEnemy,
@@ -531,13 +535,15 @@ function createGameSimulationFactory(
     },
     start(syncCb) {
       status = "RUNNING";
-      const loop = gameLoopFactory((_deltaTime) => {
+      const loop = gameLoopFactory((deltaTime) => {
         // we currently rely solely on the server to drive systems
         // Here, we would do client-side logic
         // FIXME: also do on backend
         triggerDamageBeingDamagedByCollisionWithEnemy(
           simulation.gameData.world,
         );
+        takeDamageOverTimeSystem(simulation.gameData.world, deltaTime);
+        destroyHealthZeroSystem(simulation.gameData.world);
         syncCb?.();
         simulation.lastUpdated = Date.now();
       });

@@ -3,6 +3,7 @@ import {
   Collision2,
   Damage,
   DamageZone,
+  Health,
   IsEnemy,
   IsObstacle,
   Player,
@@ -68,6 +69,7 @@ export function triggerDamageBeingDamagedByCollisionWithEnemy(world: World) {
     .map((d) => ({
       pos: d.get(Position2)!,
       col: d.get(Collision2)!,
+      dps: d.get(DamageZone)!.dps,
     }));
   const enemiesQuery = world.query(IsEnemy, Position2, Collision2);
 
@@ -78,7 +80,11 @@ export function triggerDamageBeingDamagedByCollisionWithEnemy(world: World) {
       const col = e.get(Collision2)!;
       const isColliding = checkAABBCollision(pos, zone.pos, col, zone.col);
       if (isColliding) {
-        e.add(Damage);
+        if (e.has(Damage)) {
+          e.set(Damage, { dps: zone.dps }, true);
+        } else {
+          e.add(Damage({ dps: zone.dps }));
+        }
         alreadyDamagedSet.add(e);
       } else {
         if (!alreadyDamagedSet.has(e)) {
@@ -104,4 +110,23 @@ function checkAABBCollision(
     aPos.z < bPos.z + bCol.depth &&
     aPos.z + aCol.depth > bPos.z
   );
+}
+
+export function takeDamageOverTimeSystem(world: World, deltaTime: number) {
+  const damagedHealthEntities = world.query(Health, Damage);
+  damagedHealthEntities.updateEach(([health, damage]) => {
+    health.hp -= damage.dps * (deltaTime / 1000);
+    if (health.hp < 0) {
+      health.hp = 0;
+    }
+  });
+}
+
+export function destroyHealthZeroSystem(world: World) {
+  const damagedHealthEntities = world.query(Health, Damage);
+  for (const entity of damagedHealthEntities) {
+    if (entity.get(Health)!.hp <= 0) {
+      entity.destroy();
+    }
+  }
 }

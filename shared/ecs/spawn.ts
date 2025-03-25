@@ -2,6 +2,7 @@ import type { World } from "koota";
 import {
   Collision2,
   DamageZone,
+  Health,
   IsEnemy,
   IsObstacle,
   Landscape,
@@ -43,6 +44,7 @@ export function spawnBadGuy(world: World, props: { x: number; z: number }) {
     // hard-coded width/depth for all bad guys
     Collision2({ width: 1, depth: 1 }),
     IsObstacle(),
+    Health({ hp: 10 }),
   );
 }
 
@@ -52,7 +54,7 @@ export function spawnDamageZone(
 ) {
   world.spawn(
     Position2({ x: props.x, z: props.z }),
-    DamageZone({ playerId: props.playerId }),
+    DamageZone({ playerId: props.playerId, dps: 1 }),
     // hard-coded width/depth for all damage zones
     Collision2({ width: 1.4, depth: 1.4 }),
   );
