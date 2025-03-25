@@ -1,6 +1,12 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { Landscape, Player, Position2, Velocity2 } from "@shared/ecs/trait.js";
+import {
+  IsEnemy,
+  Landscape,
+  Player,
+  Position2,
+  Velocity2,
+} from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import { type World, createWorld } from "koota";
 import { WebSocketServer } from "ws";
@@ -8,7 +14,7 @@ import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { handleEventsIncoming } from "./handle-events-incoming.js";
 import { wsSend } from "./wsSend.js";
-import { spawnPlayer, spawnTree } from "@shared/ecs/spawn.js";
+import { spawnBadGuy, spawnPlayer, spawnTree } from "@shared/ecs/spawn.js";
 
 const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
 const createBakFileName = (date: Date) => `bak-${date.getTime()}.json`;
@@ -71,10 +77,16 @@ function toWorldJSONBackup(container: World) {
       landscape: e.get(Landscape),
     };
   });
+  const enemies = container.query(Position2, IsEnemy).map((e) => {
+    return {
+      pos: e.get(Position2),
+    };
+  });
 
   return {
     players,
     terrain,
+    enemies,
   };
 }
 
@@ -120,6 +132,11 @@ function fromJSONBackup(b: ReturnType<typeof toJSONBackup>[]): SessionMap {
         console.warn("I do not know how to spawn non-tree entity... moving on");
       }
     });
+    // handle spawning enemies
+    backupWorldEntities.enemies.forEach((e) => {
+      spawnBadGuy(world, e.pos!);
+    });
+
     const gameSim = setupGameSimulation(id, world, lastUpdated);
     map.set(id, {
       id,

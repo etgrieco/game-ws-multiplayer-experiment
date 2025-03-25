@@ -1,4 +1,5 @@
 import {
+  DamageZone,
   IsEnemy,
   Landscape,
   Player,
@@ -13,9 +14,10 @@ import { wsSend } from "./wsSend.js";
 import type { World } from "koota";
 import { levelConfig } from "@config/levelConfig.js";
 import {
-  spawnBadGuys,
+  spawnRandomBadGuys,
   spawnPlayer,
   spawnRandomGameLandscapeTreeObstacles,
+  spawnDamageZone,
 } from "@shared/ecs/spawn.js";
 
 export function handleEventsIncoming(
@@ -40,6 +42,11 @@ export function handleEventsIncoming(
         pos: playerOneInitialPos,
         player: { playerNumber, playerId: newPlayerId },
       });
+      spawnDamageZone(session.gameSim.gameData.world, {
+        playerId: newPlayerId,
+        x: playerOneInitialPos.x,
+        z: playerOneInitialPos.z,
+      });
       // create landscapes and add to world
       spawnRandomGameLandscapeTreeObstacles(
         session.gameSim.gameData.world,
@@ -49,7 +56,7 @@ export function handleEventsIncoming(
         levelConfig.terrain.maxZ,
         1000
       );
-      spawnBadGuys(session.gameSim.gameData.world, 45, 45, 55, 55, 10);
+      spawnRandomBadGuys(session.gameSim.gameData.world, 45, 45, 55, 55, 10);
 
       session.gameStatus = "PAUSED_AWAITING_PLAYERS";
 
@@ -61,9 +68,7 @@ export function handleEventsIncoming(
           data: {
             id: session.id,
             multiplayerSessionStatus: session.gameStatus,
-            initialState: getPlayersInitialState(
-              session.gameSim.gameData.world
-            ),
+            initialState: getPlayerState(session.gameSim.gameData.world),
             myPlayerId: newPlayerId,
           },
         },
@@ -124,6 +129,13 @@ export function handleEventsIncoming(
         player: { playerNumber: playerNumber, playerId: newPlayerId },
         pos: playerTwoInitialPos,
       });
+      // Add damage zone at the player location
+      spawnDamageZone(session.gameSim.gameData.world, {
+        playerId: newPlayerId,
+        x: playerTwoInitialPos.x,
+        z: playerTwoInitialPos.z,
+      });
+
       session.gameStatus = "PAUSED_AWAITING_START";
       wsSend(context.ws, {
         id: crypto.randomUUID(),
@@ -132,9 +144,7 @@ export function handleEventsIncoming(
           isSuccess: true,
           data: {
             id: session.id,
-            initialState: getPlayersInitialState(
-              session.gameSim.gameData.world
-            ),
+            initialState: getPlayerState(session.gameSim.gameData.world),
             multiplayerSessionStatus: session.gameStatus,
             myPlayerId: newPlayerId,
           },
@@ -176,12 +186,18 @@ export function handleEventsIncoming(
           id: crypto.randomUUID(),
           type: "POSITIONS_UPDATE",
           data: {
-            playerPositions: getPlayersInitialState(
-              session.gameSim.gameData.world
-            ).map((p) => ({
-              ...p.pos,
-              playerId: p.playerId,
-            })),
+            playerPositions: getPlayerState(session.gameSim.gameData.world).map(
+              (p) => ({
+                ...p.pos,
+                playerId: p.playerId,
+              })
+            ),
+            damagePositions: getDamageState(session.gameSim.gameData.world).map(
+              (p) => ({
+                ...p.pos,
+                playerId: p.playerId,
+              })
+            ),
           },
         });
         wsSend(ws, {
@@ -272,9 +288,7 @@ export function handleEventsIncoming(
           data: {
             id: session.id,
             multiplayerSessionStatus: session.gameStatus,
-            initialState: getPlayersInitialState(
-              session.gameSim.gameData.world
-            ),
+            initialState: getPlayerState(session.gameSim.gameData.world),
             myPlayerId: playerData.playerId,
           },
         },
@@ -312,12 +326,18 @@ export function handleEventsIncoming(
           id: crypto.randomUUID(),
           type: "POSITIONS_UPDATE",
           data: {
-            playerPositions: getPlayersInitialState(
-              session.gameSim.gameData.world
-            ).map((p) => ({
-              ...p.pos,
-              playerId: p.playerId,
-            })),
+            playerPositions: getPlayerState(session.gameSim.gameData.world).map(
+              (p) => ({
+                ...p.pos,
+                playerId: p.playerId,
+              })
+            ),
+            damagePositions: getDamageState(session.gameSim.gameData.world).map(
+              (p) => ({
+                ...p.pos,
+                playerId: p.playerId,
+              })
+            ),
           },
         });
         wsSend(ws, {
@@ -478,7 +498,7 @@ function createSession(
   return container;
 }
 
-function getPlayersInitialState(world: World): {
+function getPlayerState(world: World): {
   pos: { x: number; z: number };
   playerId: string;
   playerAssignment: 1 | 2;
@@ -495,6 +515,17 @@ function getPlayersInitialState(world: World): {
     .sort((a, b) => {
       return a.playerAssignment - b.playerAssignment;
     });
+}
+
+function getDamageState(world: World): {
+  pos: { x: number; z: number };
+  playerId: string;
+}[] {
+  const damagePositionsQuery = world.query(Position2, DamageZone);
+  return damagePositionsQuery.map((d) => ({
+    playerId: d.get(DamageZone)!.playerId,
+    pos: { x: d.get(Position2)!.x, z: d.get(Position2)!.z },
+  }));
 }
 
 function getTreesState(world: World): {

@@ -61,6 +61,7 @@ export type GameSessionServerEvent =
       id: string;
       data: {
         playerPositions: { x: number; z: number; playerId: string }[];
+        damagePositions: { x: number; z: number; playerId: string }[];
       };
     }
   | {

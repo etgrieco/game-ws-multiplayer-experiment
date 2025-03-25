@@ -2,7 +2,7 @@ import React from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useQuery, useWorld } from "koota/react";
-import { Player, Position2 } from "@shared/ecs/trait";
+import { DamageZone, Player, Position2 } from "@shared/ecs/trait";
 
 const MOVEMENT_LERP_FACTOR = 0.08;
 
@@ -14,14 +14,15 @@ function DamageRing(props: { playerId: string }) {
 
   useFrame((_s, deltaTime) => {
     // Movement
-    const myPlayer = world
-      .query(Position2, Player)
-      .find((p) => p.get(Player)!.playerId === props.playerId);
-    if (!myPlayer) {
-      console.error("Can't find player entity for component. huh?");
+    const myPlayerDamage = world
+      .query(Position2, DamageZone)
+      .find((p) => p.get(DamageZone)!.playerId === props.playerId);
+
+    if (!myPlayerDamage) {
+      console.error("Can't find damage entity for component. huh?");
       return;
     }
-    const myPlayerPos = myPlayer.get(Position2)!;
+    const myPlayerPos = myPlayerDamage.get(Position2)!;
     meshRef.current.position.lerp(
       new THREE.Vector3(
         myPlayerPos.x,

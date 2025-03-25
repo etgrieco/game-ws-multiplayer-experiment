@@ -341,7 +341,10 @@ function handleSessionServerEvents(
       break;
     }
     case "POSITIONS_UPDATE": {
-      gameStoreSnapshot.updatePositions(jsonData.data.playerPositions);
+      gameStoreSnapshot.updatePositions(
+        jsonData.data.playerPositions,
+        jsonData.data.damagePositions
+      );
       break;
     }
     case "LEVEL_UPDATE": {

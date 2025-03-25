@@ -6,6 +6,8 @@ import {
   Velocity2,
   Collision2,
   IsEnemy,
+  DamageZone,
+  IsObstacle,
 } from "./trait";
 
 export const spawnPlayer = (
@@ -20,7 +22,8 @@ export const spawnPlayer = (
     Velocity2(),
     Player(props.player),
     // hard-coded width/depth for all players
-    Collision2({ depth: 0.5, width: 0.5 })
+    Collision2({ depth: 0.5, width: 0.5 }),
+    IsObstacle()
   );
 };
 
@@ -29,7 +32,8 @@ export function spawnTree(world: World, props: { x: number; z: number }) {
     Position2({ x: props.x, z: props.z }),
     Landscape({ type: "tree" }),
     // hard-coded width/depth for all trees
-    Collision2({ width: 0.4, depth: 0.4 })
+    Collision2({ width: 0.4, depth: 0.4 }),
+    IsObstacle()
   );
 }
 
@@ -39,6 +43,18 @@ export function spawnBadGuy(world: World, props: { x: number; z: number }) {
     IsEnemy(),
     // hard-coded width/depth for all bad guys
     Collision2({ width: 0.85, depth: 0.85 })
+  );
+}
+
+export function spawnDamageZone(
+  world: World,
+  props: { x: number; z: number; playerId: string }
+) {
+  world.spawn(
+    Position2({ x: props.x, z: props.z }),
+    DamageZone({ playerId: props.playerId }),
+    // hard-coded width/depth for all damage zones
+    Collision2({ width: 1.4, depth: 1.4 })
   );
 }
 
@@ -68,7 +84,7 @@ export function spawnRandomGameLandscapeTreeObstacles(
   }
 }
 
-export function spawnBadGuys(
+export function spawnRandomBadGuys(
   world: World,
   minX: number,
   minZ: number,

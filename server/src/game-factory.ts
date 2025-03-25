@@ -1,5 +1,5 @@
 import { movePosition2ByVelocitySystem } from "@shared/ecs/system.js";
-import { Player, Position2 } from "@shared/ecs/trait.js";
+import { DamageZone, IsEnemy, Player, Position2 } from "@shared/ecs/trait.js";
 import type { GameData, GameSimulation } from "@shared/game/types.js";
 import { createWorld } from "koota";
 import type { WebSocket as WS } from "ws";
@@ -69,14 +69,10 @@ export function createGameBroadcaster(
     connections: privConnections,
     sync() {
       const playerPositionsQuery = gameData.world.query(Position2, Player);
-      const entitiesOrdered = [
-        playerPositionsQuery.filter(
-          (v) => v.get(Player)!.playerNumber === 1
-        )[0]!,
-        playerPositionsQuery.filter(
-          (v) => v.get(Player)!.playerNumber === 2
-        )[0]!,
-      ] as const;
+      const playersOrdered = playerPositionsQuery.slice().sort((a, b) => {
+        return a.get(Player)!.playerNumber - b.get(Player)!.playerNumber;
+      });
+      const damages = gameData.world.query(Position2, DamageZone);
 
       let idx = 0;
       for (const ws of privConnections) {
@@ -91,16 +87,16 @@ export function createGameBroadcaster(
           id: crypto.randomUUID(),
           type: "POSITIONS_UPDATE",
           data: {
-            playerPositions: [
-              {
-                ...entitiesOrdered[0].get(Position2)!,
-                playerId: entitiesOrdered[0].get(Player)!.playerId,
-              },
-              {
-                ...entitiesOrdered[1].get(Position2)!,
-                playerId: entitiesOrdered[1].get(Player)!.playerId,
-              },
-            ],
+            playerPositions: playersOrdered.map((p) => ({
+              playerId: p.get(Player)!.playerId,
+              x: p.get(Position2)!.x,
+              z: p.get(Position2)!.z,
+            })),
+            damagePositions: damages.map((d) => ({
+              playerId: d.get(DamageZone)!.playerId,
+              x: d.get(Position2)!.x,
+              z: d.get(Position2)!.z,
+            })),
           },
         });
         idx++;

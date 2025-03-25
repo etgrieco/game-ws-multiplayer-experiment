@@ -1,6 +1,11 @@
-import { spawnBadGuy, spawnPlayer, spawnTree } from "@shared/ecs/spawn";
 import {
-  Collision2,
+  spawnBadGuy,
+  spawnDamageZone,
+  spawnPlayer,
+  spawnTree,
+} from "@shared/ecs/spawn";
+import {
+  DamageZone,
   IsEnemy,
   Landscape,
   Player,
@@ -12,7 +17,7 @@ import type {
   MultiplayerSessionStatus,
 } from "@shared/game/types";
 import type { GameSessionClientEvent } from "@shared/net/messages";
-import { Not, type Entity, type World } from "koota";
+import type { World } from "koota";
 import React from "react";
 import { createStore, useStore } from "zustand";
 
@@ -50,7 +55,8 @@ export type GameStore = Readonly<{
   startGame: (sessionId: string) => void;
   pauseGame: () => void;
   updatePositions: (
-    playerPositions: { x: number; z: number; playerId: string }[]
+    playerPositions: { x: number; z: number; playerId: string }[],
+    damagePositions: { x: number; z: number; playerId: string }[]
   ) => void;
   setupLevelLandscape: (treePositions: { x: number; z: number }[]) => void;
   setupBadGuys: (badGuys: { x: number; z: number }[]) => void;
@@ -242,21 +248,23 @@ export const gameStoreFactory = (mainWorld: World) => {
           perFrameMovementUpdates.dz = 0;
         }); // start client-side game loop
       },
-      updatePositions(playerPositions) {
+      updatePositions(playerPositions, damagePositions) {
         const game = getStore().game;
         if (!game) {
           throw new Error(
             "Illegal state update; Updated positions on updated positions."
           );
         }
-        const clientPlayers = game.gameData.world
-          .query(Position2, Player)
-          .map((e) => {
-            return {
-              pos: e.get(Position2)!,
-              player: e.get(Player)!,
-            };
-          });
+
+        const clientPlayersQuery = game.gameData.world.query(Position2, Player);
+
+        const clientPlayers = clientPlayersQuery.map((e) => {
+          return {
+            pos: e.get(Position2)!,
+            player: e.get(Player)!,
+          };
+        });
+
         // Ensure all players exist!
         playerPositions.forEach((p, idx) => {
           const hasPlayer = clientPlayers.some(
@@ -275,18 +283,55 @@ export const gameStoreFactory = (mainWorld: World) => {
         });
 
         // Now, update
-        game.gameData.world
-          .query(Position2, Player)
-          .updateEach(([p, player]) => {
-            const matchingPlayer = playerPositions.find(
-              (serverPlayer) => serverPlayer.playerId === player.playerId
-            );
-            if (!matchingPlayer) {
-              throw new Error("Player to update no longer exists!?");
-            }
-            p.x = matchingPlayer.x;
-            p.z = matchingPlayer.z;
-          });
+        clientPlayersQuery.updateEach(([p, player]) => {
+          const matchingPlayer = playerPositions.find(
+            (serverPlayer) => serverPlayer.playerId === player.playerId
+          );
+          if (!matchingPlayer) {
+            throw new Error("Player to update no longer exists!?");
+          }
+          p.x = matchingPlayer.x;
+          p.z = matchingPlayer.z;
+        });
+
+        // HANDLE DAMAGES
+
+        // Ensure all damages exist!
+        const clientDamagesQuery = game.gameData.world.query(
+          Position2,
+          DamageZone
+        );
+        const clientDamages = clientDamagesQuery.map((e) => {
+          return {
+            pos: e.get(Position2)!,
+            player: e.get(DamageZone)!,
+          };
+        });
+
+        damagePositions.forEach((d) => {
+          const hasDamage = clientDamages.some(
+            (cp) => d.playerId === cp.player.playerId
+          );
+          if (!hasDamage) {
+            spawnDamageZone(game.gameData.world, {
+              x: 0,
+              z: 0,
+              playerId: d.playerId,
+            });
+          }
+        });
+
+        // now, update
+        clientDamagesQuery.updateEach(([pos, dmg]) => {
+          const serverDmgData = damagePositions.find(
+            (d) => d.playerId === dmg.playerId
+          );
+          if (!serverDmgData) {
+            throw new Error("Damage to update no longer exists!?");
+          }
+          pos.x = serverDmgData.x;
+          pos.z = serverDmgData.z;
+        });
       },
       setupLevelLandscape(treePositions) {
         // destroy existing terrain
@@ -462,6 +507,13 @@ function createGameSimulationFactory(
         isMe: myPlayerId === p.playerId,
         playerId: p.playerId,
       },
+    });
+    // create a damage zone, but just put completely off screen
+    spawnDamageZone(world, {
+      playerId: p.playerId,
+      // FIXME: fix to do something that makes it spawn, but doesn't show it?
+      x: -500,
+      z: -500,
     });
   });
 

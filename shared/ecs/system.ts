@@ -1,16 +1,16 @@
-import { Not, type World, type ExtractSchema } from "koota";
-import { Collision2, Player, Position2, Velocity2 } from "./trait.js";
+import type { World, ExtractSchema } from "koota";
+import { Collision2, IsObstacle, Position2, Velocity2 } from "./trait.js";
 
 export function movePosition2ByVelocitySystem(world: World, deltaTime: number) {
   const movablesQuery = world.query(Position2, Velocity2, Collision2);
-  const nonPlayerCollidables = world.query(Position2, Collision2, Not(Player));
+  const obstacles = world.query(Position2, Collision2, IsObstacle);
 
   movablesQuery.updateEach(([pos, vel, col]) => {
     const newPosX = pos.x + vel.x * (deltaTime / 1000);
     const newPosZ = pos.z + vel.z * (deltaTime / 1000);
 
     let isColliding = false;
-    for (const ent of nonPlayerCollidables) {
+    for (const ent of obstacles) {
       const otherEntPos = ent.get(Position2)!;
       const otherEntCol = ent.get(Collision2)!;
       isColliding = checkAABBCollision(
@@ -21,6 +21,7 @@ export function movePosition2ByVelocitySystem(world: World, deltaTime: number) {
       );
       if (isColliding) break;
     }
+    console.log("iscollding?", isColliding);
 
     if (isColliding) {
       return;
