@@ -1,7 +1,9 @@
 import type { World, ExtractSchema } from "koota";
 import {
   Collision2,
+  Damage,
   DamageZone,
+  IsEnemy,
   IsObstacle,
   Player,
   Position2,
@@ -58,6 +60,33 @@ export function moveDamageZoneFollowPlayer(world: World) {
     pos.x = matchingPlayer.pos.x;
     pos.z = matchingPlayer.pos.z;
   });
+}
+
+export function triggerDamageBeingDamagedByCollisionWithEnemy(world: World) {
+  const damageZones = world
+    .query(DamageZone, Position2, Collision2)
+    .map((d) => ({
+      pos: d.get(Position2)!,
+      col: d.get(Collision2)!,
+    }));
+  const enemiesQuery = world.query(IsEnemy, Position2, Collision2);
+
+  const alreadyDamagedSet = new Set<number>();
+  for (const zone of damageZones) {
+    enemiesQuery.forEach((e) => {
+      const pos = e.get(Position2)!;
+      const col = e.get(Collision2)!;
+      const isColliding = checkAABBCollision(pos, zone.pos, col, zone.col);
+      if (isColliding) {
+        e.add(Damage);
+        alreadyDamagedSet.add(e);
+      } else {
+        if (!alreadyDamagedSet.has(e)) {
+          e.remove(Damage);
+        }
+      }
+    });
+  }
 }
 
 /**

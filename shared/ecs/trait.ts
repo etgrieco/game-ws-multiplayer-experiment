@@ -12,3 +12,4 @@ export const IsObstacle = trait();
 export const Collision2 = trait({ width: 0, depth: 0 });
 export const IsEnemy = trait();
 export const DamageZone = trait({ playerId: "" });
+export const Damage = trait();

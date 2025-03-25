@@ -1,12 +1,21 @@
 import React from "react";
 import * as THREE from "three";
-import { IsEnemy, Position2 } from "@shared/ecs/trait";
-import { useQuery } from "koota/react";
+import { Damage, IsEnemy, Position2 } from "@shared/ecs/trait";
+import { useQuery, useWorld } from "koota/react";
 
 type EnemyDefs = { id: string | number; x: number; z: number }[];
 
 export function BadGuys() {
   const enemies = useQuery(Position2, IsEnemy);
+  const damages = useQuery(Damage, IsEnemy);
+  const world = useWorld();
+
+  React.useEffect(() => {
+    return world.onChange(Damage, (e) => {
+      console.log(e);
+    });
+  }, [world]);
+
   const enemyDefs = React.useMemo(() => {
     return enemies.map((t) => {
       const pos = t.get(Position2)!;
@@ -18,7 +27,29 @@ export function BadGuys() {
     }) satisfies EnemyDefs;
   }, [enemies]);
 
-  return <EnemyInstances enemyDefs={enemyDefs} />;
+  return (
+    <>
+      <EnemyInstances enemyDefs={enemyDefs} />
+      {damages.map((e) => {
+        if (e.has(IsEnemy) && e.has(Position2)) {
+          const pos = e.get(Position2)!;
+          return <EnemyDamage key={e.id()} posX={pos.x} posZ={pos.z} />;
+        }
+        return null;
+      })}
+    </>
+  );
+}
+
+function EnemyDamage(props: { posX: number; posZ: number }) {
+  const meshRef = React.useRef<THREE.Mesh>(null!);
+
+  return (
+    <mesh position={[props.posX, 0, props.posZ]} ref={meshRef}>
+      <sphereGeometry />
+      <meshStandardMaterial color={0xff5c00} transparent opacity={0.5} />
+    </mesh>
+  );
 }
 
 const enemyGeometry = new THREE.SphereGeometry(0.5, 12, 12);

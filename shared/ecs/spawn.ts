@@ -8,6 +8,7 @@ import {
   IsEnemy,
   DamageZone,
   IsObstacle,
+  Damage,
 } from "./trait";
 
 export const spawnPlayer = (
