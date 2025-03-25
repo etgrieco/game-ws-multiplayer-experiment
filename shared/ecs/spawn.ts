@@ -42,7 +42,7 @@ export function spawnBadGuy(world: World, props: { x: number; z: number }) {
     Position2({ x: props.x, z: props.z }),
     IsEnemy(),
     // hard-coded width/depth for all bad guys
-    Collision2({ width: 0.85, depth: 0.85 }),
+    Collision2({ width: 1, depth: 1 }),
     IsObstacle()
   );
 }
