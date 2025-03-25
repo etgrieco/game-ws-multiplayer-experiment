@@ -1,4 +1,7 @@
-import { movePosition2ByVelocitySystem } from "@shared/ecs/system.js";
+import {
+  moveDamageZoneFollowPlayer,
+  movePosition2ByVelocitySystem,
+} from "@shared/ecs/system.js";
 import { DamageZone, IsEnemy, Player, Position2 } from "@shared/ecs/trait.js";
 import type { GameData, GameSimulation } from "@shared/game/types.js";
 import { createWorld } from "koota";
@@ -108,6 +111,7 @@ export function createGameBroadcaster(
 function gameLoop(initGameData: GameData, deltaTime: number) {
   // do stuff
   movePosition2ByVelocitySystem(initGameData.world!, deltaTime);
+  moveDamageZoneFollowPlayer(initGameData.world!);
 }
 
 function gameLoopFactory(mainMethod: (deltaTime: number) => void) {

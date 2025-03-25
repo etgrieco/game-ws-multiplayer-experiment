@@ -22,8 +22,7 @@ export const spawnPlayer = (
     Velocity2(),
     Player(props.player),
     // hard-coded width/depth for all players
-    Collision2({ depth: 0.5, width: 0.5 }),
-    IsObstacle()
+    Collision2({ depth: 0.5, width: 0.5 })
   );
 };
 
@@ -42,7 +41,8 @@ export function spawnBadGuy(world: World, props: { x: number; z: number }) {
     Position2({ x: props.x, z: props.z }),
     IsEnemy(),
     // hard-coded width/depth for all bad guys
-    Collision2({ width: 0.85, depth: 0.85 })
+    Collision2({ width: 0.85, depth: 0.85 }),
+    IsObstacle()
   );
 }
 
