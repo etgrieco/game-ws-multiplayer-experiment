@@ -13,7 +13,7 @@ export type GameSessionServerEvent =
         id: string;
         myPlayerId: string;
         multiplayerSessionStatus: MultiplayerSessionStatus;
-        initialState: {
+        initialPlayersState: {
           pos: { x: number; z: number };
           playerId: string;
           playerAssignment: 1 | 2;
@@ -27,7 +27,7 @@ export type GameSessionServerEvent =
         id: string;
         myPlayerId: string;
         multiplayerSessionStatus: MultiplayerSessionStatus;
-        initialState: {
+        initialPlayersState: {
           pos: { x: number; z: number };
           playerId: string;
           playerAssignment: 1 | 2;
@@ -41,7 +41,7 @@ export type GameSessionServerEvent =
         multiplayerSessionStatus: MultiplayerSessionStatus;
         id: string;
         myPlayerId: string;
-        initialState: {
+        initialPlayersState: {
           pos: { x: number; z: number };
           playerId: string;
           playerAssignment: 1 | 2;

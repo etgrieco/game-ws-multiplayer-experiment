@@ -285,7 +285,11 @@ function handleSessionServerEvents(
         });
         return;
       }
-      gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
+      gameStoreSnapshot.setupGame(
+        data.id,
+        data.myPlayerId,
+        data.initialPlayersState,
+      );
       gameStoreSnapshot.setMultiplayerSessionStatus(
         data.multiplayerSessionStatus,
       );
@@ -300,7 +304,11 @@ function handleSessionServerEvents(
         });
         return;
       }
-      gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
+      gameStoreSnapshot.setupGame(
+        data.id,
+        data.myPlayerId,
+        data.initialPlayersState,
+      );
       gameStoreSnapshot.setMultiplayerSessionStatus(
         data.multiplayerSessionStatus,
       );
@@ -318,7 +326,11 @@ function handleSessionServerEvents(
       gameStoreSnapshot.setMultiplayerSessionStatus(
         data.multiplayerSessionStatus,
       );
-      gameStoreSnapshot.setupGame(data.id, data.myPlayerId, data.initialState);
+      gameStoreSnapshot.setupGame(
+        data.id,
+        data.myPlayerId,
+        data.initialPlayersState,
+      );
       if (data.multiplayerSessionStatus === "PLAYING") {
         // trigger a start
         gameStoreSnapshot.startGame(data.id);

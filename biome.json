@@ -30,6 +30,9 @@
   "json": {
     "linter": {
       "enabled": true
+    },
+    "formatter": {
+      "enabled": true
     }
   }
 }

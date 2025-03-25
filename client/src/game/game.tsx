@@ -258,7 +258,6 @@ export const gameStoreFactory = (mainWorld: World) => {
         }
 
         const clientPlayersQuery = game.gameData.world.query(Position2, Player);
-
         const clientPlayers = clientPlayersQuery.map((e) => {
           return {
             pos: e.get(Position2)!,
@@ -497,6 +496,9 @@ function createGameSimulationFactory(
 ): GameSimulation {
   // the world should be clean of all player entities when this is triggered
   world.query(Player).forEach((e) => {
+    e.destroy();
+  });
+  world.query(DamageZone).forEach((e) => {
     e.destroy();
   });
   // spawn players
