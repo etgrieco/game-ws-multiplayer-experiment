@@ -10,7 +10,7 @@ import { TerrainTrees } from "./TerrainTrees";
 
 export function Game() {
   return (
-    <div className="w-[640px] h-[480px] border-2 border-solid rounded-sm">
+    <div className="w-full h-full p-4 border-2 border-solid rounded-sm">
       <Canvas>
         <GameContents />
       </Canvas>

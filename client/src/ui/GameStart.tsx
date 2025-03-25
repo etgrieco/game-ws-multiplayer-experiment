@@ -225,7 +225,7 @@ export function GameStart() {
     };
 
     return (
-      <div className="text-primary">
+      <div className="text-primary h-full flex flex-col">
         {multiplayerSessionStatus === "PAUSED_AWAITING_START" ? (
           <div>
             Ready to start?{" "}
