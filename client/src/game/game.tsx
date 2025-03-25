@@ -191,7 +191,8 @@ export const gameStoreFactory = (mainWorld: World) => {
           },
         });
 
-        const lastPlayerUpdateSent = { vel: { x: 0, z: 0 } };
+        const prevPlayerUpdateSent = { vel: { x: 0, z: 0 } };
+        // Currently we compute the relationship between control input -> new speed client-side, and send to server
         gameStore.game.start(() => {
           gameControlsCb();
           // then, handle game systems updates based upon state changes
@@ -242,8 +243,8 @@ export const gameStoreFactory = (mainWorld: World) => {
                 z: vec.dz,
               };
               if (
-                velToSend.x !== lastPlayerUpdateSent.vel.x ||
-                velToSend.z !== lastPlayerUpdateSent.vel.z
+                velToSend.x !== prevPlayerUpdateSent.vel.x ||
+                velToSend.z !== prevPlayerUpdateSent.vel.z
               ) {
                 verifiedInits.sendNetEvent({
                   type: "PLAYER_UPDATE",
@@ -256,7 +257,7 @@ export const gameStoreFactory = (mainWorld: World) => {
                   },
                 });
               }
-              lastPlayerUpdateSent.vel = velToSend;
+              prevPlayerUpdateSent.vel = velToSend;
             }
           });
 

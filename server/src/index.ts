@@ -40,20 +40,18 @@ const sessionsData: SessionMap = new Map(
       const backupData = JSON.parse(backupFile) as ReturnType<
         typeof toJSONBackup
       >[];
-      let sessionsMap = fromJSONBackup(backupData);
-      sessionsMap = new Map(
-        Array.from(sessionsMap.entries())
-          .sort(([_ka, valueA], [_kb, valueB]) => {
-            return valueB.gameSim.lastUpdated - valueA.gameSim.lastUpdated;
-          })
-          // max latest 5
-          .slice(0, 5)
-          // max 10 mins ago
-          .filter(([_, value]) => {
-            return Date.now() - value.gameSim.lastUpdated < 10 * 60 * 1000;
-          }),
-      );
-      console.log(`loading ${sessionsMap.size} backups`);
+
+      const filteredBackups = backupData
+        .sort(([, backupA], [, backupB]) => {
+          return backupB.lastUpdated - backupA.lastUpdated;
+        })
+        // max latest 5
+        .slice(0, 5)
+        // max 10 mins ago
+        .filter((v) => Date.now() - v[1].lastUpdated < 10 * 60 * 1000);
+
+      console.log(`loading ${filteredBackups.length} backups`);
+      const sessionsMap = fromJSONBackup(filteredBackups);
       return sessionsMap;
     } catch (e) {
       console.error("Backup read failed, return empty");
