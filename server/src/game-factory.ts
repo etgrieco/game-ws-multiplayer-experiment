@@ -2,7 +2,7 @@ import {
   moveDamageZoneFollowPlayer,
   movePosition2ByVelocitySystem,
 } from "@shared/ecs/system.js";
-import { DamageZone, IsEnemy, Player, Position2 } from "@shared/ecs/trait.js";
+import { DamageZone, Player, Position2 } from "@shared/ecs/trait.js";
 import type { GameData, GameSimulation } from "@shared/game/types.js";
 import { createWorld } from "koota";
 import type { WebSocket as WS } from "ws";

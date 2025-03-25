@@ -1,7 +1,7 @@
 import { Toaster } from "@client/components/ui/sonner";
 import { Player } from "@shared/ecs/trait";
 import { useQuery } from "koota/react";
-import React from "react";
+import * as React from "react";
 import { useGameStore } from "./game/game";
 import { GameComponentsProvider } from "./ui/GameComponents";
 import { GameStart } from "./ui/GameStart";

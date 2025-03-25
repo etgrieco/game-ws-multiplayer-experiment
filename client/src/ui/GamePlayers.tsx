@@ -1,7 +1,7 @@
 import { useFrame } from "@react-three/fiber";
 import { DamageZone, Player, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
-import React from "react";
+import * as React from "react";
 import * as THREE from "three";
 
 const MOVEMENT_LERP_FACTOR = 0.08;

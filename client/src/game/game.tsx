@@ -19,7 +19,7 @@ import type {
 } from "@shared/game/types";
 import type { GameSessionClientEvent } from "@shared/net/messages";
 import type { World } from "koota";
-import React from "react";
+import * as React from "react";
 import { createStore, useStore } from "zustand";
 
 const configs = {

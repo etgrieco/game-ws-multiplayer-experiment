@@ -11,8 +11,8 @@
     "baseUrl": "./",
     "paths": {
       "@shared/*": ["../shared/*"],
-      "@config/*": ["../config/*"],
-    },
+      "@config/*": ["../config/*"]
+    }
   },
   "include": ["src", "../shared", "../config"]
 }

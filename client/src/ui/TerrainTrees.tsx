@@ -1,6 +1,6 @@
 import { Landscape, Position2 } from "@shared/ecs/trait";
 import { useQuery } from "koota/react";
-import React from "react";
+import * as React from "react";
 import * as THREE from "three";
 
 export function TerrainTrees() {

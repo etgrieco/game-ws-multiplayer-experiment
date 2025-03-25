@@ -3,7 +3,7 @@ import { Collision2, Position2 } from "@shared/ecs/trait";
 import type { Trait } from "koota";
 import { useQuery, useWorld } from "koota/react";
 import { useControls } from "leva";
-import React from "react";
+import * as React from "react";
 import * as THREE from "three";
 
 const boxHelperMaterial = new THREE.MeshStandardMaterial({

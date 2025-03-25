@@ -18,6 +18,9 @@
       "complexity": {
         "noForEach": "off"
       },
+      "correctness": {
+        "noUnusedImports": "warn"
+      },
       "a11y": {
         "useKeyWithClickEvents": "off"
       },

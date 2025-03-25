@@ -4,7 +4,7 @@ import type {
   GameSessionClientEvent,
   GameSessionServerEvent,
 } from "@shared/net/messages";
-import React from "react";
+import * as React from "react";
 import { toast } from "sonner";
 import { type StoreApi, createStore, useStore } from "zustand";
 

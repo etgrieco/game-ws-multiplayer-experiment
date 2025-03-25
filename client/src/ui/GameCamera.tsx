@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { Player, Position2 } from "@shared/ecs/trait";
 import { useQuery } from "koota/react";
 import { useControls } from "leva";
-import React from "react";
+import * as React from "react";
 import * as THREE from "three";
 
 const CAMERA_LERP_FACTOR = 0.01;

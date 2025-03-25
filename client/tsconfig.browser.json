@@ -8,13 +8,13 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "baseUrl": "./",
     "paths": {
       "@shared/*": ["../shared/*"],
       "@client/*": ["./src/*"],
       "@config/*": ["../config/*"]
-    },
+    }
   },
   "include": ["src", "../shared", "../config"]
 }
