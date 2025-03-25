@@ -1,3 +1,4 @@
+import { useFrame } from "@react-three/fiber";
 import { Damage, IsEnemy, Position2 } from "@shared/ecs/trait";
 import { useQuery, useWorld } from "koota/react";
 import React from "react";
@@ -8,13 +9,6 @@ type EnemyDefs = { id: string | number; x: number; z: number }[];
 export function BadGuys() {
   const enemies = useQuery(Position2, IsEnemy);
   const damages = useQuery(Damage, IsEnemy);
-  const world = useWorld();
-
-  React.useEffect(() => {
-    return world.onChange(Damage, (e) => {
-      console.log(e);
-    });
-  }, [world]);
 
   const enemyDefs = React.useMemo(() => {
     return enemies.map((t) => {
@@ -43,11 +37,23 @@ export function BadGuys() {
 
 function EnemyDamage(props: { posX: number; posZ: number }) {
   const meshRef = React.useRef<THREE.Mesh>(null!);
+  const materialRef = React.useRef<THREE.Material>(null!);
+  const opacityRef = React.useRef<number>(0);
+
+  useFrame(() => {
+    opacityRef.current += 0.05;
+    materialRef.current.opacity = 0.1 + Math.sin(opacityRef.current) * 0.5;
+  });
 
   return (
     <mesh position={[props.posX, 0, props.posZ]} ref={meshRef}>
-      <sphereGeometry />
-      <meshStandardMaterial color={0xff5c00} transparent opacity={0.5} />
+      <sphereGeometry args={[0.5, 12, 12]} />
+      <meshStandardMaterial
+        ref={materialRef}
+        color={0xff5c00}
+        transparent
+        opacity={0.5}
+      />
     </mesh>
   );
 }
