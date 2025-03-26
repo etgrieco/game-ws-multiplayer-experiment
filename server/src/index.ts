@@ -9,6 +9,7 @@ import {
   Velocity2,
 } from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
+import express from "express";
 import { type World, createWorld } from "koota";
 import { WebSocketServer } from "ws";
 import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
@@ -16,13 +17,67 @@ import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { handleEventsIncoming } from "./handle-events-incoming.js";
 import { wsSend } from "./wsSend.js";
 
+const LISTEN_PORT = process.env.PORT || "8080";
+
+/** START HTTP SERVER */
+const staticFilePathRoot =
+  process.env.CLIENT_STATIC_DIR ??
+  path.join(import.meta.dirname, "../../client/dist");
+
+const app = express();
+app.use(express.static(staticFilePathRoot));
+
+// const staticFilesCache = new Map();
+// const httpServer = http.createServer((req, res) => {
+//   // Serve static files from the "client/dist" folder
+//   const filePath = path.join(
+//     staticFilePathRoot,
+//     req.url === "/" ? "index.html" : req.url!,
+//   );
+
+//   if (staticFilesCache.has(filePath)) {
+//     console.log(`getting file from cache ${filePath}`);
+//     return staticFilesCache.get(filePath)!;
+//   }
+
+//   console.log(`getting file ${filePath}`);
+//   fs.readFile(filePath, (err, data) => {
+//     if (err) {
+//       res.statusCode = 404;
+//       res.end("Not Found");
+//       return;
+//     }
+
+//     // cache the file content
+//     staticFilesCache.set(filePath, data);
+
+//     res.statusCode = 200;
+//     res.setHeader("Content-Type", getMimeType(filePath));
+//     res.end(data);
+//   });
+// });
+
+// // Simple MIME type detection (for common file types)
+// function getMimeType(filePath: string) {
+//   const extname = path.extname(filePath);
+//   if (extname === ".js") return "application/javascript";
+//   if (extname === ".css") return "text/css";
+//   if (extname === ".html") return "text/html";
+//   if (extname === ".json") return "application/json";
+//   return "application/octet-stream";
+// }
+
+// httpServer.listen(3000, () => {
+//   console.log("HTTP server is listening on port 3000");
+// });
+/** END HTTP SERVER */
+
 const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
 const createBakFileName = (date: Date) => `bak-${date.getTime()}.json`;
 const BAK_FILE_ENC = "utf-8";
 
-console.log("Server started...");
-
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ server: app.listen(LISTEN_PORT) });
+console.log("WS Server started...");
 
 type SessionMap = Map<string, MultiplayerGameContainer>;
 /** Singleton holding our games! */

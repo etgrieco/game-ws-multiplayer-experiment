@@ -8,6 +8,9 @@ import * as React from "react";
 import { toast } from "sonner";
 import { type StoreApi, createStore, useStore } from "zustand";
 
+const WS_SERVER_URL =
+  import.meta.env.VITE_WS_SERVER_URL ?? "ws://localhost:8080";
+
 export type WsStore = {
   ws: WebSocket | null;
   initWs: (onSuccess?: () => void, onFailure?: () => void) => void;
@@ -174,7 +177,7 @@ function createWsConnection(
 ) {
   let didInitiallyConnect = false;
   const wsAbortController = new AbortController();
-  const ws = new WebSocket("ws://localhost:8080");
+  const ws = new WebSocket(WS_SERVER_URL);
 
   ws.addEventListener(
     "open",

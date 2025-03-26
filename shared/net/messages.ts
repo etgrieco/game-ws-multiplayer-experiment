@@ -1,4 +1,4 @@
-import type { MultiplayerSessionStatus } from "@shared/game/types";
+import type { MultiplayerSessionStatus } from "@shared/game/types.js";
 
 type SuccessOrFailure<T> =
   | { data: T; isSuccess: true; failureMessage?: undefined }

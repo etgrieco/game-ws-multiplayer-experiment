@@ -4,7 +4,6 @@ import {
   Damage,
   DamageZone,
   Health,
-  IsEnemy,
   IsObstacle,
   Player,
   Position2,
@@ -71,7 +70,7 @@ export function triggerDamageBeingDamagedByCollisionWithEnemy(world: World) {
       col: d.get(Collision2)!,
       dps: d.get(DamageZone)!.dps,
     }));
-  const enemiesQuery = world.query(IsEnemy, Position2, Collision2);
+  const enemiesQuery = world.query(Position2, Collision2);
 
   const alreadyDamagedSet = new Set<number>();
   for (const zone of damageZones) {

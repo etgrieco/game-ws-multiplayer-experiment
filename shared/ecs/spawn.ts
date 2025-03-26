@@ -9,7 +9,7 @@ import {
   Player,
   Position2,
   Velocity2,
-} from "./trait";
+} from "./trait.js";
 
 export const spawnPlayer = (
   world: World,
@@ -34,6 +34,8 @@ export function spawnTree(world: World, props: { x: number; z: number }) {
     // hard-coded width/depth for all trees
     Collision2({ width: 0.4, depth: 0.4 }),
     IsObstacle(),
+    // Damage(),
+    // Health({ hp: 1 }),
   );
 }
 
