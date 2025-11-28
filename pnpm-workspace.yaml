@@ -4,6 +4,6 @@ packages:
   - server
   - shared
 catalog:
-  koota: 0.3.0
+  koota: 0.5.0
   react: 19.0.0
   react-dom: 19.0.0
