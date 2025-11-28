@@ -12,16 +12,18 @@ import {
 
 export function movePosition2ByVelocitySystem(world: World, deltaTime: number) {
   const movablesQuery = world.query(Position2, Velocity2, Collision2);
-  const obstacles = world.query(Position2, Collision2, IsObstacle);
+  const obstacles = world.query(Position2, IsObstacle, Collision2).map(e => ({
+    id: e.id(),
+    pos: e.get(Position2)!,
+    col: e.get(Collision2)!
+  }));
 
   movablesQuery.updateEach(([pos, vel, col]) => {
     const newPosX = pos.x + vel.x * (deltaTime / 1000);
     const newPosZ = pos.z + vel.z * (deltaTime / 1000);
 
     let isColliding = false;
-    for (const ent of obstacles) {
-      const otherEntPos = ent.get(Position2)!;
-      const otherEntCol = ent.get(Collision2)!;
+    for (const { pos: otherEntPos, col: otherEntCol } of obstacles) {
       isColliding = checkAABBCollision(
         { x: newPosX, z: newPosZ },
         otherEntPos,
@@ -70,28 +72,19 @@ export function triggerDamageBeingDamagedByCollisionWithEnemy(world: World) {
       col: d.get(Collision2)!,
       dps: d.get(DamageZone)!.dps,
     }));
-  const enemiesQuery = world.query(Position2, Collision2);
 
-  const alreadyDamagedSet = new Set<number>();
-  for (const zone of damageZones) {
-    enemiesQuery.forEach((e) => {
-      const pos = e.get(Position2)!;
-      const col = e.get(Collision2)!;
-      const isColliding = checkAABBCollision(pos, zone.pos, col, zone.col);
+  const damageablesQuery = world.query(Damage, Position2, Collision2);
+  damageablesQuery.updateEach(([damage, pos, col]) => {
+    // Reset per-frame computations back to zero
+    damage.dps = 0
+    // Then, accumulate via collisions with zones
+    for (const { pos: zonePos, col: zoneCol, dps: zoneDps } of damageZones) {
+      const isColliding = checkAABBCollision(pos, zonePos, col, zoneCol);
       if (isColliding) {
-        if (e.has(Damage)) {
-          e.set(Damage, { dps: zone.dps }, true);
-        } else {
-          e.add(Damage({ dps: zone.dps }));
-        }
-        alreadyDamagedSet.add(e);
-      } else {
-        if (!alreadyDamagedSet.has(e)) {
-          e.remove(Damage);
-        }
+        damage.dps += zoneDps
       }
-    });
-  }
+    }
+  })
 }
 
 /**
@@ -115,9 +108,6 @@ export function takeDamageOverTimeSystem(world: World, deltaTime: number) {
   const damagedHealthEntities = world.query(Health, Damage);
   damagedHealthEntities.updateEach(([health, damage]) => {
     health.hp -= damage.dps * (deltaTime / 1000);
-    if (health.hp < 0) {
-      health.hp = 0;
-    }
   });
 }
 

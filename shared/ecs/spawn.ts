@@ -1,6 +1,7 @@
 import type { World } from "koota";
 import {
   Collision2,
+  Damage,
   DamageZone,
   Health,
   IsEnemy,
@@ -33,9 +34,7 @@ export function spawnTree(world: World, props: { x: number; z: number }) {
     Landscape({ type: "tree" }),
     // hard-coded width/depth for all trees
     Collision2({ width: 0.4, depth: 0.4 }),
-    IsObstacle(),
-    // Damage(),
-    // Health({ hp: 1 }),
+    IsObstacle()
   );
 }
 
@@ -47,6 +46,7 @@ export function spawnBadGuy(world: World, props: { x: number; z: number }) {
     Collision2({ width: 1, depth: 1 }),
     IsObstacle(),
     Health({ hp: 10 }),
+    Damage()
   );
 }
 

@@ -8,14 +8,14 @@ import * as THREE from "three";
 type EnemyDefs = { id: string | number; x: number; z: number }[];
 
 export function BadGuys() {
-  const enemies = useQuery(Position2, IsEnemy);
-  const damages = useQuery(Damage, Health, IsEnemy);
-  const getHealths = React.useCallback((dmgs: typeof damages) => {
+  const enemiesPos2s = useQuery(Position2, IsEnemy);
+  const enemyDamages = useQuery(Health, Damage, IsEnemy);
+  const getHealths = React.useCallback((dmgs: typeof enemyDamages) => {
     return dmgs.map((d) => d.get(Health)!.hp.toFixed(0)).join("-");
   }, []);
 
   const enemyDefs = React.useMemo(() => {
-    return enemies.map((t) => {
+    return enemiesPos2s.map((t) => {
       const pos = t.get(Position2)!;
       return {
         id: t.id(),
@@ -23,16 +23,16 @@ export function BadGuys() {
         z: pos.z,
       };
     }) satisfies EnemyDefs;
-  }, [enemies]);
+  }, [enemiesPos2s]);
 
-  const [healths, setHealths] = React.useState(() => getHealths(damages));
+  const [healths, setHealths] = React.useState(() => getHealths(enemyDamages));
   const lastUpdateRef = React.useRef(0);
   useFrame((_s, d) => {
     lastUpdateRef.current += d;
     // check every 0.5 seconds
     if (lastUpdateRef.current > 0.5) {
       lastUpdateRef.current = 0;
-      const currHealths = getHealths(damages);
+      const currHealths = getHealths(enemyDamages);
       if (currHealths !== healths) {
         // check health values, signal a change if floats have changed
         setHealths(currHealths);
@@ -43,24 +43,27 @@ export function BadGuys() {
   return (
     <>
       <EnemyInstances enemyDefs={enemyDefs} />
-      {damages.map((e) => {
-        if (e.has(IsEnemy) && e.has(Position2)) {
-          const pos = e.get(Position2)!;
-          const health = e.get(Health)!;
-          return (
-            <React.Fragment key={e.id()}>
-              <EnemyDamage posX={pos.x} posZ={pos.z} />
-              <Text
-                letterSpacing={-0.06}
-                fontSize={0.5}
-                position={[pos.x, 1, pos.z]}
-              >
-                {health.hp.toFixed(0)}
-              </Text>
-            </React.Fragment>
-          );
+      {enemyDamages.map((e) => {
+        const pos = e.get(Position2)!;
+        const health = e.get(Health)!;
+        const damage = e.get(Damage)!
+
+        if (damage.dps <= 0) {
+          return null
         }
-        return null;
+        return (
+          // Places a second red sphere + a health indication change to display enemies receiving damage per-frame
+          <React.Fragment key={e.id()}>
+            <EnemyDamage posX={pos.x} posZ={pos.z} />
+            <Text
+              letterSpacing={-0.06}
+              fontSize={0.5}
+              position={[pos.x, 1, pos.z]}
+            >
+              {health.hp.toFixed(0)}
+            </Text>
+          </React.Fragment>
+        );
       })}
     </>
   );
