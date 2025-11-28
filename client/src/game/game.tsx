@@ -142,6 +142,7 @@ export const gameStoreFactory = (mainWorld: World) => {
           throw new Error("Mismatched session IDs");
         }
 
+        // Mutable state for per-frame movement updates, shared between controls and game loop
         const perFrameMovementUpdates = {
           dx: 0,
           dz: 0,
@@ -261,7 +262,7 @@ export const gameStoreFactory = (mainWorld: World) => {
             }
           });
 
-          // then, reset
+          // at the end of the frame, reset per-frame movement updates
           perFrameMovementUpdates.dx = 0;
           perFrameMovementUpdates.dz = 0;
         }); // start client-side game loop
@@ -270,7 +271,7 @@ export const gameStoreFactory = (mainWorld: World) => {
         const game = getStore().game;
         if (!game) {
           throw new Error(
-            "Illegal state update; Updated positions on updated positions.",
+            "Illegal state update; Updated before game is started.",
           );
         }
 
