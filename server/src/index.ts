@@ -25,6 +25,7 @@ if (Number.isNaN(envPort)) {
   );
 }
 const LISTEN_PORT = envPort ?? 8080;
+const LISTEN_HOST = process.env.SERVER_HOST || "0.0.0.0";
 
 const staticFilePathRoot =
   process.env.CLIENT_STATIC_DIR ??
@@ -40,7 +41,7 @@ const BAK_PATH = path.resolve(import.meta.dirname, "../../bak");
 const createBakFileName = (date: Date) => `bak-${date.getTime()}.json`;
 const BAK_FILE_ENC = "utf-8";
 
-app.listen({ port: LISTEN_PORT });
+app.listen({ port: LISTEN_PORT, host: LISTEN_HOST });
 
 const wss = new WebSocketServer({ server: app.server });
 console.log("WS Server started...");
