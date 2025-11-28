@@ -20,7 +20,7 @@ export const Collision2 = trait({ width: 0, depth: 0 });
 export const IsEnemy = trait();
 /** Damage properties and owner of damage-giving entity */
 export const DamageZone = trait({ playerId: "", dps: 1 });
-/** DPS properties on .. the receiving end of damage? */
+/** DPS properties on damage-receiving entities. Used for computing damage accumulation over time. */
 export const Damage = trait({ dps: 0 });
 /** Health properties */
 export const Health = trait({ hp: 0 });
