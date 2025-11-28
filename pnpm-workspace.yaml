@@ -4,4 +4,4 @@ packages:
   - server
   - shared
 catalog:
-  koota: 0.5.0
+  koota: 0.5.3
