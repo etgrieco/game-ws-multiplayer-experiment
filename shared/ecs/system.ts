@@ -108,7 +108,6 @@ export function takeDamageOverTimeSystem(world: World, deltaTime: number) {
   const damagedHealthEntities = world.query(Health, Damage);
   damagedHealthEntities.updateEach(([health, damage]) => {
     health.hp -= damage.dps * (deltaTime / 1000);
-    console.log(health)
   });
 }
 
