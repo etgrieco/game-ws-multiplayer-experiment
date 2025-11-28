@@ -1,5 +1,9 @@
 FROM node:22-slim
 
+ARG CLIENT_WS_SERVER_URL="ws://localhost:8080" # Embedded client reference to the server address
+ARG SERVER_HOST="0.0.0.0" # Embedded reference to the server host
+ARG PORT="8080" # Embedded server reference to the server port
+
 # Install pnpm globally
 RUN npm install -g pnpm
 
@@ -26,12 +30,15 @@ RUN pnpm install --frozen-lockfile --prod=false
 
 COPY --chown=node:node . .
 
+# Build the server
 RUN pnpm --filter game-server build
 
-ARG WS_SERVER_URL="ws://localhost:8080"
-RUN VITE_WS_SERVER_URL=$WS_SERVER_URL pnpm --filter game-client build
+# Build the client
+RUN VITE_WS_SERVER_URL=$CLIENT_WS_SERVER_URL pnpm --filter game-client build
 
+# Run the server
 ENV CLIENT_STATIC_DIR=/home/node/app/client/dist
-ENV PORT=8080
+ENV PORT=$PORT
+ENV SERVER_HOST=$SERVER_HOST
 
 CMD ["node","server/dist/server/src/index.js"]
