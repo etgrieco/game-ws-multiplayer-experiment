@@ -1,4 +1,4 @@
-import { Landscape, Position2 } from "@shared/ecs/trait";
+import { Landscape, Position2 } from "game-shared/ecs/trait";
 import { useQuery } from "koota/react";
 import * as React from "react";
 import * as THREE from "three";

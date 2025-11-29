@@ -1,16 +1,16 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import fastifyStatic from "@fastify/static";
-import { spawnBadGuy, spawnPlayer, spawnTree } from "@shared/ecs/spawn.js";
+import fastify from "fastify";
+import { spawnBadGuy, spawnPlayer, spawnTree } from "game-shared/ecs/spawn.js";
 import {
   IsEnemy,
   Landscape,
   Player,
   Position2,
   Velocity2,
-} from "@shared/ecs/trait.js";
-import type { GameSessionClientEvent } from "@shared/net/messages.js";
-import fastify from "fastify";
+} from "game-shared/ecs/trait.js";
+import type { GameSessionClientEvent } from "game-shared/net/messages.js";
 import { createWorld, type World } from "koota";
 import { WebSocketServer } from "ws";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";

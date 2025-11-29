@@ -3,5 +3,7 @@ packages:
   - client
   - server
   - shared
+  - packages/*
+  - config
 catalog:
   koota: 0.5.3

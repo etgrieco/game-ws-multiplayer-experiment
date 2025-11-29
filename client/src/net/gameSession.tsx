@@ -1,12 +1,12 @@
-import type { GameStore } from "@client/game/game";
-import { getStoredSessionData } from "@client/ui/sessionStorageController";
 import type {
   GameSessionClientEvent,
   GameSessionServerEvent,
-} from "@shared/net/messages";
+} from "game-shared/net/messages";
 import * as React from "react";
 import { toast } from "sonner";
 import { createStore, type StoreApi, useStore } from "zustand";
+import type { GameStore } from "@/game/game";
+import { getStoredSessionData } from "@/ui/sessionStorageController";
 
 const WS_SERVER_URL =
   import.meta.env.VITE_WS_SERVER_URL ?? "ws://localhost:8080";

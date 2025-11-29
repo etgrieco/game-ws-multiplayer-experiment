@@ -1,6 +1,6 @@
 import { OrbitControls, OrthographicCamera } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Player, Position2 } from "@shared/ecs/trait";
+import { Player, Position2 } from "game-shared/ecs/trait";
 import { useQuery } from "koota/react";
 import { useControls } from "leva";
 import * as React from "react";

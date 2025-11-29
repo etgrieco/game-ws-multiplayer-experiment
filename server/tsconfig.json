@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "@repo/typescript-config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
     "module": "NodeNext",
@@ -8,11 +8,7 @@
     "skipLibCheck": true,
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
-    "baseUrl": "./",
-    "paths": {
-      "@shared/*": ["../shared/*"],
-      "@config/*": ["../config/*"]
-    }
+    "baseUrl": "./"
   },
-  "include": ["src", "../shared", "../config"]
+  "include": ["src"]
 }

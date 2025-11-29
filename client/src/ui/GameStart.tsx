@@ -1,21 +1,3 @@
-import { Button } from "@client/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@client/components/ui/card";
-import { Input } from "@client/components/ui/input";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@client/components/ui/tabs";
-import { useGameStore, useVanillaGameStore } from "@client/game/game";
-import { useGameSessionStore } from "@client/net/gameSession";
 import { Label } from "@radix-ui/react-label";
 import {
   ArrowRight,
@@ -27,6 +9,19 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGameStore, useVanillaGameStore } from "@/game/game";
+import { useGameSessionStore } from "@/net/gameSession";
 import { Game } from "./Game";
 import { prevSessionSubscriptionController } from "./sessionStorageController";
 

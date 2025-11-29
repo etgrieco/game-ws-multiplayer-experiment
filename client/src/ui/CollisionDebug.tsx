@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { Collision2, Position2 } from "@shared/ecs/trait";
+import { Collision2, Position2 } from "game-shared/ecs/trait";
 import type { Trait } from "koota";
 import { useQuery, useWorld } from "koota/react";
 import { useControls } from "leva";

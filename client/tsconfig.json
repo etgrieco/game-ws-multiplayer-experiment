@@ -1,0 +1,11 @@
+{
+  "extends": "@repo/typescript-config/tsconfig.browser.json",
+  "compilerOptions": {
+    "types": ["three"],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}

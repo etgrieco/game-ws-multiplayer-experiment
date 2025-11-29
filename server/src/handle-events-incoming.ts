@@ -1,10 +1,10 @@
-import { levelConfig } from "@config/levelConfig.js";
+import { levelConfig } from "game-config/levelConfig.js";
 import {
   spawnDamageZone,
   spawnPlayer,
   spawnRandomBadGuys,
   spawnRandomGameLandscapeTreeObstacles,
-} from "@shared/ecs/spawn.js";
+} from "game-shared/ecs/spawn.js";
 import {
   DamageZone,
   IsEnemy,
@@ -12,8 +12,8 @@ import {
   Player,
   Position2,
   Velocity2,
-} from "@shared/ecs/trait.js";
-import type { GameSessionClientEvent } from "@shared/net/messages.js";
+} from "game-shared/ecs/trait.js";
+import type { GameSessionClientEvent } from "game-shared/net/messages.js";
 import type { World } from "koota";
 import { WebSocket as WS } from "ws";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";

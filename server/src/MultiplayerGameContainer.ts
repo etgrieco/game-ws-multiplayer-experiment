@@ -1,7 +1,7 @@
 import type {
   GameSimulation,
   MultiplayerSessionStatus,
-} from "@shared/game/types.js";
+} from "game-shared/game/types.js";
 import type { GameSimulationBroadcaster } from "./game-factory.js";
 
 export type MultiplayerGameContainer = {

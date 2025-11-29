@@ -1,4 +1,4 @@
-import { levelConfig } from "@config/levelConfig";
+import { levelConfig } from "game-config/levelConfig";
 
 const TERRAIN_ROTATION = [-Math.PI / 2, 0, 0] as const;
 export function Terrain() {

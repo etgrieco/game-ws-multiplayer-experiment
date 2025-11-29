@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
@@ -9,12 +9,6 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
-    "baseUrl": "./",
-    "paths": {
-      "@shared/*": ["../shared/*"],
-      "@client/*": ["./src/*"],
-      "@config/*": ["../config/*"]
-    }
-  },
-  "include": ["src", "../shared", "../config"]
+    "baseUrl": "./"
+  }
 }

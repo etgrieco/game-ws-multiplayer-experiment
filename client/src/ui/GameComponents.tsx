@@ -1,12 +1,12 @@
-import { GameContext, gameStoreFactory } from "@client/game/game";
+import { createWorld, universe } from "koota";
+import { WorldProvider } from "koota/react";
+import React, { type PropsWithChildren } from "react";
+import { GameContext, gameStoreFactory } from "@/game/game";
 import {
   GameSessionContext,
   gameSessionStoreFactory,
   setupWsCloseReconnectionHandler,
-} from "@client/net/gameSession";
-import { createWorld, universe } from "koota";
-import { WorldProvider } from "koota/react";
-import React, { type PropsWithChildren } from "react";
+} from "@/net/gameSession";
 
 function createAppComponents() {
   universe.reset();
