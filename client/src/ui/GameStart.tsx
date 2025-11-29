@@ -106,7 +106,8 @@ function CreateOrJoinInterface(props: {
             {recentSessions.length > 0 ? (
               <div className="space-y-3">
                 {recentSessions.map((session) => (
-                  <div
+                  <button
+                    type="button"
                     key={session?.gameId}
                     className="flex items-center justify-between p-3 bg-slate-700/50 rounded-md hover:bg-slate-700 transition-colors cursor-pointer"
                     onClick={() => {
@@ -128,7 +129,7 @@ function CreateOrJoinInterface(props: {
                       </div>
                     </div>
                     <ArrowRight className="h-5 w-5 text-slate-400" />
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : (

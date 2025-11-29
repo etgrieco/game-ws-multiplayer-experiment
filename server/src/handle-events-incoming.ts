@@ -16,8 +16,8 @@ import {
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import type { World } from "koota";
 import { WebSocket as WS } from "ws";
-import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
+import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { wsSend } from "./wsSend.js";
 
 export function handleEventsIncoming(
