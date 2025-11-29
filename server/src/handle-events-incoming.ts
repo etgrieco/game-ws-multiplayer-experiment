@@ -1,4 +1,4 @@
-import { levelConfig } from "game-config/levelConfig.js";
+import { levelConfig } from "@repo/game-config/levelConfig.js";
 import {
   spawnDamageZone,
   spawnPlayer,

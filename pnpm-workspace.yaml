@@ -3,7 +3,6 @@ packages:
   - game/*
   - server
   - shared
-  - config
   - packages/*
 catalog:
   koota: 0.5.3

@@ -18,12 +18,6 @@ importers:
         specifier: 2.3.8
         version: 2.3.8
 
-  config:
-    devDependencies:
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../packages/typescript-config
-
   game/client:
     dependencies:
       '@radix-ui/react-label':
@@ -41,15 +35,15 @@ importers:
       '@react-three/fiber':
         specifier: ^9.4.0
         version: 9.4.0(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(three@0.174.0)
+      '@repo/game-config':
+        specifier: workspace:*
+        version: link:../config
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      game-config:
-        specifier: workspace:*
-        version: link:../../config
       game-server:
         specifier: workspace:*
         version: link:../../server
@@ -124,6 +118,12 @@ importers:
         specifier: ^5.1.4
         version: 5.1.4(typescript@5.7.3)(vite@6.4.1(@types/node@22.13.10)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6))
 
+  game/config:
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+
   packages/typescript-config: {}
 
   server:
@@ -131,12 +131,12 @@ importers:
       '@fastify/static':
         specifier: ^8.3.0
         version: 8.3.0
+      '@repo/game-config':
+        specifier: workspace:*
+        version: link:../game/config
       fastify:
         specifier: ^5.6.2
         version: 5.6.2
-      game-config:
-        specifier: workspace:*
-        version: link:../config
       game-shared:
         specifier: workspace:*
         version: link:../shared
