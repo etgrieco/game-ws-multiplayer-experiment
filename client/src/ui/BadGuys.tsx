@@ -46,10 +46,10 @@ export function BadGuys() {
       {enemyDamages.map((e) => {
         const pos = e.get(Position2)!;
         const health = e.get(Health)!;
-        const damage = e.get(Damage)!
+        const damage = e.get(Damage)!;
 
         if (damage.dps <= 0) {
-          return null
+          return null;
         }
         return (
           // Places a second red sphere + a health indication change to display enemies receiving damage per-frame

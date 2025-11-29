@@ -6,7 +6,7 @@ import type {
 } from "@shared/net/messages";
 import * as React from "react";
 import { toast } from "sonner";
-import { type StoreApi, createStore, useStore } from "zustand";
+import { createStore, type StoreApi, useStore } from "zustand";
 
 const WS_SERVER_URL =
   import.meta.env.VITE_WS_SERVER_URL ?? "ws://localhost:8080";
@@ -220,7 +220,9 @@ function createWsConnection(
           jsonData = JSON.parse(e.data) as GameSessionServerEvent;
         } catch (err) {
           console.error(e);
-          console.warn(`Attempted to parse JSON ${e.data}, but failed.`);
+          console.warn(
+            `Attempted to parse JSON ${e.data}, but failed. (Parsing error: ${err})`,
+          );
           return;
         }
         try {

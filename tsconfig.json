@@ -1,12 +1,12 @@
 {
-    "extends": "./tsconfig.base.json",
-    "files": [],
-    "references": [
-      {
-        "path": "./shared/tsconfig.json",
-      },
-      {
-        "path": "./client/tsconfig.browser.json"
-      }
-  ],
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    {
+      "path": "./shared/tsconfig.json"
+    },
+    {
+      "path": "./client/tsconfig.browser.json"
+    }
+  ]
 }

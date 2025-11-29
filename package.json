@@ -8,7 +8,8 @@
     "shared"
   ],
   "scripts": {
-    "check": "biome check"
+    "check": "biome check",
+    "check:write": "biome check --write ."
   },
   "packageManager": "pnpm@10.24.0",
   "devDependencies": {

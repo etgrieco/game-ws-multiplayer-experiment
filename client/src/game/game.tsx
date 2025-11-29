@@ -7,7 +7,7 @@ import {
 import {
   destroyHealthZeroSystem,
   takeDamageOverTimeSystem,
-  triggerDamageBeingDamagedByCollisionWithEnemy
+  triggerDamageBeingDamagedByCollisionWithEnemy,
 } from "@shared/ecs/system";
 import {
   DamageZone,
@@ -553,7 +553,9 @@ function createGameSimulationFactory(
         // we currently rely solely on the server to drive systems
         // Here, we would do client-side logic
         // FIXME: also do on backend; currently, client runs logic and sends updates to server
-        triggerDamageBeingDamagedByCollisionWithEnemy(simulation.gameData.world) // Compute received damages per-entity
+        triggerDamageBeingDamagedByCollisionWithEnemy(
+          simulation.gameData.world,
+        ); // Compute received damages per-entity
         takeDamageOverTimeSystem(simulation.gameData.world, deltaTime); // Compute health effects per-entity
         destroyHealthZeroSystem(simulation.gameData.world); // Destroy entities that are hp = 0
         syncCb?.();

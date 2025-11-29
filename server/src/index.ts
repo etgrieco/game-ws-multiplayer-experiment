@@ -11,14 +11,14 @@ import {
 } from "@shared/ecs/trait.js";
 import type { GameSessionClientEvent } from "@shared/net/messages.js";
 import fastify from "fastify";
-import { type World, createWorld } from "koota";
+import { createWorld, type World } from "koota";
 import { WebSocketServer } from "ws";
-import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";
 import { handleEventsIncoming } from "./handle-events-incoming.js";
+import type { MultiplayerGameContainer } from "./MultiplayerGameContainer.js";
 import { wsSend } from "./wsSend.js";
 
-const envPort = process.env.PORT ? Number.parseInt(process.env.PORT) : null;
+const envPort = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : null;
 if (Number.isNaN(envPort)) {
   throw new Error(
     `Expected integer from environment variable PORT, received ${process.env.PORT}`,
@@ -75,7 +75,7 @@ const sessionsData: SessionMap = new Map(
       console.log(`loading ${filteredBackups.length} backups`);
       const sessionsMap = fromJSONBackup(filteredBackups);
       return sessionsMap;
-    } catch (e) {
+    } catch {
       console.error("Backup read failed, return empty");
       return [];
     }

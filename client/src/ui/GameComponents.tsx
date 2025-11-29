@@ -1,5 +1,4 @@
-import { GameContext } from "@client/game/game";
-import { gameStoreFactory } from "@client/game/game";
+import { GameContext, gameStoreFactory } from "@client/game/game";
 import {
   GameSessionContext,
   gameSessionStoreFactory,
