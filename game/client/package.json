@@ -21,7 +21,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "dependencies": {
-    "game-server": "workspace:*",
+    "@repo/game-server": "workspace:*",
     "@repo/game-shared": "workspace:*",
     "@repo/game-config": "workspace:*",
     "@radix-ui/react-label": "^2.1.8",

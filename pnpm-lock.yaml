@@ -38,6 +38,9 @@ importers:
       '@repo/game-config':
         specifier: workspace:*
         version: link:../config
+      '@repo/game-server':
+        specifier: workspace:*
+        version: link:../server
       '@repo/game-shared':
         specifier: workspace:*
         version: link:../shared
@@ -47,9 +50,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      game-server:
-        specifier: workspace:*
-        version: link:../../server
       koota:
         specifier: 'catalog:'
         version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
@@ -124,32 +124,17 @@ importers:
         specifier: workspace:*
         version: link:../../packages/typescript-config
 
-  game/shared:
-    dependencies:
-      koota:
-        specifier: 'catalog:'
-        version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
-    devDependencies:
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      typescript:
-        specifier: ~5.7.2
-        version: 5.7.3
-
-  packages/typescript-config: {}
-
-  server:
+  game/server:
     dependencies:
       '@fastify/static':
         specifier: ^8.3.0
         version: 8.3.0
       '@repo/game-config':
         specifier: workspace:*
-        version: link:../game/config
+        version: link:../config
       '@repo/game-shared':
         specifier: workspace:*
-        version: link:../game/shared
+        version: link:../shared
       fastify:
         specifier: ^5.6.2
         version: 5.6.2
@@ -162,7 +147,7 @@ importers:
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
-        version: link:../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@types/express':
         specifier: ^5.0.5
         version: 5.0.5
@@ -178,6 +163,21 @@ importers:
       typescript:
         specifier: ~5.7.2
         version: 5.7.3
+
+  game/shared:
+    dependencies:
+      koota:
+        specifier: 'catalog:'
+        version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.3
+
+  packages/typescript-config: {}
 
 packages:
 
@@ -1498,9 +1498,6 @@ packages:
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
     engines: {node: '>=6.9.0'}
-
-  get-tsconfig@4.10.0:
-    resolution: {integrity: sha512-kGzZ3LWWQcGIAmg6iWvXn0ei6WDtV26wzHRMwDSzmAbcXrTEXxHy6IehI6/4eT6VRKyMP1eF1VqwrVUmE/LR7A==}
 
   get-tsconfig@4.13.0:
     resolution: {integrity: sha512-1VKTZJCwBrvbd+Wn3AOgQP/2Av+TfTCOlE4AcRJE72W1ksZXbAx8PPBR9RzgTeSPzlPMHrbANMH3LbltH73wxQ==}
@@ -3584,10 +3581,6 @@ snapshots:
 
   gensync@1.0.0-beta.2: {}
 
-  get-tsconfig@4.10.0:
-    dependencies:
-      resolve-pkg-maps: 1.0.0
-
   get-tsconfig@4.13.0:
     dependencies:
       resolve-pkg-maps: 1.0.0
@@ -4182,7 +4175,7 @@ snapshots:
   tsx@4.20.6:
     dependencies:
       esbuild: 0.25.1
-      get-tsconfig: 4.10.0
+      get-tsconfig: 4.13.0
     optionalDependencies:
       fsevents: 2.3.3
 

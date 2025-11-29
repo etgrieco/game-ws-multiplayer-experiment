@@ -1,5 +1,5 @@
 {
-  "name": "game-server",
+  "name": "@repo/game-server",
   "version": "1.0.0",
   "description": "Game server",
   "type": "module",

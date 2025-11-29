@@ -31,7 +31,7 @@ RUN pnpm install --frozen-lockfile --prod=false
 COPY --chown=node:node . .
 
 # Build the server
-RUN pnpm --filter game-server build
+RUN pnpm --filter @repo/game-server build
 
 # Build the client
 RUN VITE_WS_SERVER_URL=$CLIENT_WS_SERVER_URL pnpm --filter @repo/game-client build
