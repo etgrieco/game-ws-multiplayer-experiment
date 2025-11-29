@@ -3,12 +3,12 @@ import {
   spawnDamageZone,
   spawnPlayer,
   spawnTree,
-} from "game-shared/ecs/spawn";
+} from "@repo/game-shared/ecs/spawn";
 import {
   destroyHealthZeroSystem,
   takeDamageOverTimeSystem,
   triggerDamageBeingDamagedByCollisionWithEnemy,
-} from "game-shared/ecs/system";
+} from "@repo/game-shared/ecs/system";
 import {
   DamageZone,
   IsEnemy,
@@ -16,12 +16,12 @@ import {
   Player,
   Position2,
   Velocity2,
-} from "game-shared/ecs/trait";
+} from "@repo/game-shared/ecs/trait";
 import type {
   GameSimulation,
   MultiplayerSessionStatus,
-} from "game-shared/game/types";
-import type { GameSessionClientEvent } from "game-shared/net/messages";
+} from "@repo/game-shared/game/types";
+import type { GameSessionClientEvent } from "@repo/game-shared/net/messages";
 import type { World } from "koota";
 import * as React from "react";
 import { createStore, useStore } from "zustand";

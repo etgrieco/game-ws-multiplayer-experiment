@@ -1,9 +1,9 @@
 import {
   moveDamageZoneFollowPlayer,
   movePosition2ByVelocitySystem,
-} from "game-shared/ecs/system.js";
-import { DamageZone, Player, Position2 } from "game-shared/ecs/trait.js";
-import type { GameData, GameSimulation } from "game-shared/game/types.js";
+} from "@repo/game-shared/ecs/system.js";
+import { DamageZone, Player, Position2 } from "@repo/game-shared/ecs/trait.js";
+import type { GameData, GameSimulation } from "@repo/game-shared/game/types.js";
 import { createWorld } from "koota";
 import type { WebSocket as WS } from "ws";
 import { wsSend } from "./wsSend.js";

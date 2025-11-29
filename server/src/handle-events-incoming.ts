@@ -4,7 +4,7 @@ import {
   spawnPlayer,
   spawnRandomBadGuys,
   spawnRandomGameLandscapeTreeObstacles,
-} from "game-shared/ecs/spawn.js";
+} from "@repo/game-shared/ecs/spawn.js";
 import {
   DamageZone,
   IsEnemy,
@@ -12,8 +12,8 @@ import {
   Player,
   Position2,
   Velocity2,
-} from "game-shared/ecs/trait.js";
-import type { GameSessionClientEvent } from "game-shared/net/messages.js";
+} from "@repo/game-shared/ecs/trait.js";
+import type { GameSessionClientEvent } from "@repo/game-shared/net/messages.js";
 import type { World } from "koota";
 import { WebSocket as WS } from "ws";
 import { createGameBroadcaster, setupGameSimulation } from "./game-factory.js";

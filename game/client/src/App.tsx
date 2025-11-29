@@ -1,4 +1,4 @@
-import { Player } from "game-shared/ecs/trait";
+import { Player } from "@repo/game-shared/ecs/trait";
 import { useQuery } from "koota/react";
 import * as React from "react";
 import { Toaster } from "@/components/ui/sonner";

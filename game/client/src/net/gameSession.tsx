@@ -1,7 +1,7 @@
 import type {
   GameSessionClientEvent,
   GameSessionServerEvent,
-} from "game-shared/net/messages";
+} from "@repo/game-shared/net/messages";
 import * as React from "react";
 import { toast } from "sonner";
 import { createStore, type StoreApi, useStore } from "zustand";

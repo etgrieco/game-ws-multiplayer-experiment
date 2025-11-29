@@ -38,6 +38,9 @@ importers:
       '@repo/game-config':
         specifier: workspace:*
         version: link:../config
+      '@repo/game-shared':
+        specifier: workspace:*
+        version: link:../shared
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -47,9 +50,6 @@ importers:
       game-server:
         specifier: workspace:*
         version: link:../../server
-      game-shared:
-        specifier: workspace:*
-        version: link:../../shared
       koota:
         specifier: 'catalog:'
         version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
@@ -124,6 +124,19 @@ importers:
         specifier: workspace:*
         version: link:../../packages/typescript-config
 
+  game/shared:
+    dependencies:
+      koota:
+        specifier: 'catalog:'
+        version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.3
+
   packages/typescript-config: {}
 
   server:
@@ -134,12 +147,12 @@ importers:
       '@repo/game-config':
         specifier: workspace:*
         version: link:../game/config
+      '@repo/game-shared':
+        specifier: workspace:*
+        version: link:../game/shared
       fastify:
         specifier: ^5.6.2
         version: 5.6.2
-      game-shared:
-        specifier: workspace:*
-        version: link:../shared
       koota:
         specifier: 'catalog:'
         version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
@@ -162,19 +175,6 @@ importers:
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
-      typescript:
-        specifier: ~5.7.2
-        version: 5.7.3
-
-  shared:
-    dependencies:
-      koota:
-        specifier: 'catalog:'
-        version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
-    devDependencies:
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../packages/typescript-config
       typescript:
         specifier: ~5.7.2
         version: 5.7.3

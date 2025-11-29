@@ -1,6 +1,11 @@
 import { Text } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Damage, Health, IsEnemy, Position2 } from "game-shared/ecs/trait";
+import {
+  Damage,
+  Health,
+  IsEnemy,
+  Position2,
+} from "@repo/game-shared/ecs/trait";
 import { useQuery } from "koota/react";
 import * as React from "react";
 import * as THREE from "three";

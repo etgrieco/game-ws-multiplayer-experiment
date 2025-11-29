@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "game-server": "workspace:*",
-    "game-shared": "workspace:*",
+    "@repo/game-shared": "workspace:*",
     "@repo/game-config": "workspace:*",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",

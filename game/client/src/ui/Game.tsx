@@ -1,6 +1,11 @@
 import { Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { DamageZone, IsEnemy, Landscape, Player } from "game-shared/ecs/trait";
+import {
+  DamageZone,
+  IsEnemy,
+  Landscape,
+  Player,
+} from "@repo/game-shared/ecs/trait";
 import { BadGuys } from "./BadGuys";
 import { CollisionDebug } from "./CollisionDebug";
 import { GameCamera } from "./GameCamera";
