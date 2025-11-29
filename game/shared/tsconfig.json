@@ -1,14 +1,4 @@
 {
   "extends": "@repo/typescript-config/tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "./",
-    "declaration": true,
-    "declarationMap": true,
-    "composite": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler"
-  },
-  "include": ["ecs", "game"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["ecs", "game", "net"]
 }

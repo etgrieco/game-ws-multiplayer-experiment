@@ -1,12 +1,12 @@
 {
   "name": "@repo/game-shared",
   "version": "0.0.0",
-  "peerDependencies": {
+  "dependencies": {
     "koota": "catalog:"
   },
   "type": "module",
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "typescript": "~5.7.2"
+    "typescript": "catalog:"
   }
 }
