@@ -34,7 +34,7 @@ export function spawnTree(world: World, props: { x: number; z: number }) {
     Landscape({ type: "tree" }),
     // hard-coded width/depth for all trees
     Collision2({ width: 0.4, depth: 0.4 }),
-    IsObstacle()
+    IsObstacle(),
   );
 }
 
@@ -46,7 +46,7 @@ export function spawnBadGuy(world: World, props: { x: number; z: number }) {
     Collision2({ width: 1, depth: 1 }),
     IsObstacle(),
     Health({ hp: 10 }),
-    Damage()
+    Damage(),
   );
 }
 

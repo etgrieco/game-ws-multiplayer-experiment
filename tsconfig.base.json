@@ -13,12 +13,12 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    
+
     /** Other stuff **/
     "noUncheckedSideEffectImports": true,
     "useDefineForClassFields": true,
     "isolatedModules": true,
     "moduleDetection": "auto",
-    "skipLibCheck": true,
+    "skipLibCheck": true
   }
 }

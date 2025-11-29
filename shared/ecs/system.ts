@@ -12,10 +12,10 @@ import {
 
 export function movePosition2ByVelocitySystem(world: World, deltaTime: number) {
   const movablesQuery = world.query(Position2, Velocity2, Collision2);
-  const obstacles = world.query(Position2, IsObstacle, Collision2).map(e => ({
+  const obstacles = world.query(Position2, IsObstacle, Collision2).map((e) => ({
     id: e.id(),
     pos: e.get(Position2)!,
-    col: e.get(Collision2)!
+    col: e.get(Collision2)!,
   }));
 
   movablesQuery.updateEach(([pos, vel, col]) => {
@@ -76,15 +76,15 @@ export function triggerDamageBeingDamagedByCollisionWithEnemy(world: World) {
   const damageablesQuery = world.query(Damage, Position2, Collision2);
   damageablesQuery.updateEach(([damage, pos, col]) => {
     // Reset per-frame computations back to zero
-    damage.dps = 0
+    damage.dps = 0;
     // Then, accumulate via collisions with zones
     for (const { pos: zonePos, col: zoneCol, dps: zoneDps } of damageZones) {
       const isColliding = checkAABBCollision(pos, zonePos, col, zoneCol);
       if (isColliding) {
-        damage.dps += zoneDps
+        damage.dps += zoneDps;
       }
     }
-  })
+  });
 }
 
 /**
