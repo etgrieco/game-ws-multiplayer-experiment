@@ -2,11 +2,6 @@
   "name": "game-ws-multiplayer",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "client",
-    "server",
-    "shared"
-  ],
   "scripts": {
     "check": "biome check",
     "check:write": "biome check --write ."

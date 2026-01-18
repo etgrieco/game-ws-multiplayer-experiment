@@ -7,8 +7,8 @@ settings:
 catalogs:
   default:
     koota:
-      specifier: 0.5.3
-      version: 0.5.3
+      specifier: 0.6.3
+      version: 0.6.3
     typescript:
       specifier: 5.9.3
       version: 5.9.3
@@ -55,7 +55,7 @@ importers:
         version: 2.1.1
       koota:
         specifier: 'catalog:'
-        version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
+        version: 0.6.3(@types/react@19.2.7)(react@19.2.0)
       leva:
         specifier: ^0.10.1
         version: 0.10.1(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -143,7 +143,7 @@ importers:
         version: 5.6.2
       koota:
         specifier: 'catalog:'
-        version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
+        version: 0.6.3(@types/react@19.2.7)(react@19.2.0)
       ws:
         specifier: ^8.18.3
         version: 8.18.3
@@ -171,7 +171,7 @@ importers:
     dependencies:
       koota:
         specifier: 'catalog:'
-        version: 0.5.3(@types/react@19.2.7)(react@19.2.0)
+        version: 0.6.3(@types/react@19.2.7)(react@19.2.0)
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -1629,8 +1629,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  koota@0.5.3:
-    resolution: {integrity: sha512-mGTOSeVgHqAe/AtsChSv3IaFwzEWFvrDSGVv0tXqMX9ttaDMg+1DlnLaD/PpMZ6xQx4U1H2AdUjvsjFoJnFMsA==}
+  koota@0.6.3:
+    resolution: {integrity: sha512-O2KfXqz4xa+uGUXwrcF1vxen9IYsnbUp9vSIPbSYPyeC1+11FQDvig+sNfwBfMnnCBUPzBGjA+K1JLuLqEfSvg==}
     peerDependencies:
       '@types/react': '>=18.0.0'
       react: '>=18.0.0'
@@ -3693,7 +3693,7 @@ snapshots:
 
   json5@2.2.3: {}
 
-  koota@0.5.3(@types/react@19.2.7)(react@19.2.0):
+  koota@0.6.3(@types/react@19.2.7)(react@19.2.0):
     optionalDependencies:
       '@types/react': 19.2.7
       react: 19.2.0
