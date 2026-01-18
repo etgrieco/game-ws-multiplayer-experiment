@@ -1,0 +1,14 @@
+{
+  "extends": "@repo/typescript-config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "NodeNext",
+    "lib": ["ES2022"],
+    "target": "ES2022",
+    "skipLibCheck": true,
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "baseUrl": "./"
+  },
+  "include": ["src"]
+}
